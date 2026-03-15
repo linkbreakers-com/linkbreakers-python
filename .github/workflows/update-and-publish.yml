@@ -23,11 +23,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install setuptools wheel twine
-
-      - name: Install OpenAPI Generator
-        run: |
-          npm install -g @openapitools/openapi-generator-cli
+          pip install setuptools wheel twine datamodel-code-generator httpx
 
       - name: Fetch current version from swagger
         id: fetch-version
@@ -59,36 +55,154 @@ jobs:
             echo "🔄 Version changed: ${{ steps.current-version.outputs.current_version }} → ${{ steps.fetch-version.outputs.new_version }}"
           fi
 
-      - name: Download OpenAPI spec
-        if: steps.compare.outputs.needs_update == 'true'
-        run: |
-          # Download spec
-          curl -o swagger.json https://api.linkbreakers.com/internal/openapi/api/v1/api.swagger.json
-          echo "✅ Spec downloaded"
-
-      - name: Generate SDK
+      - name: Generate SDK models
         if: steps.compare.outputs.needs_update == 'true'
         run: |
           # Remove existing generated code (except __init__.py)
           find linkbreakers -mindepth 1 ! -name '__init__.py' -delete || true
 
-          # Use OpenAPI Generator 6.6.0 for better compatibility
-          npm config set @openapitools:registry https://registry.npmjs.org
-          openapi-generator-cli version-manager set 6.6.0
+          # Generate Pydantic models from OpenAPI spec using datamodel-code-generator
+          datamodel-codegen \
+            --url https://api.linkbreakers.com/internal/openapi/api/v1/api.swagger.json \
+            --output linkbreakers/models.py \
+            --output-model-type pydantic_v2.BaseModel \
+            --field-constraints \
+            --use-standard-collections
 
-          # Generate SDK using OpenAPI Generator with local spec file
-          openapi-generator-cli generate \
-            -i swagger.json \
-            -g python \
-            -o . \
-            --skip-validate-spec \
-            --global-property apiTests=false,modelTests=false,apiDocs=false,modelDocs=false \
-            --additional-properties=packageName=linkbreakers,projectName=linkbreakers,library=urllib3
+          echo "✅ Models generated successfully"
 
-          # Clean up
-          rm swagger.json
+      - name: Create SDK client wrapper
+        if: steps.compare.outputs.needs_update == 'true'
+        run: |
+          cat > linkbreakers/client.py << 'EOF'
+          """Linkbreakers API Client"""
+          from typing import Any, Dict, Optional
+          import httpx
 
-          echo "✅ SDK generated successfully"
+
+          class LinkebreakersClient:
+              """HTTP client for Linkbreakers API"""
+
+              def __init__(
+                  self,
+                  api_key: str,
+                  base_url: str = "https://api.linkbreakers.com",
+                  timeout: float = 30.0
+              ):
+                  self.api_key = api_key
+                  self.base_url = base_url
+                  self.timeout = timeout
+                  self._client = httpx.Client(
+                      base_url=base_url,
+                      headers={
+                          "Authorization": f"Bearer {api_key}",
+                          "Content-Type": "application/json",
+                      },
+                      timeout=timeout,
+                  )
+
+              def request(
+                  self,
+                  method: str,
+                  path: str,
+                  **kwargs: Any
+              ) -> httpx.Response:
+                  """Make an HTTP request to the API"""
+                  return self._client.request(method, path, **kwargs)
+
+              def get(self, path: str, **kwargs: Any) -> httpx.Response:
+                  """Make a GET request"""
+                  return self.request("GET", path, **kwargs)
+
+              def post(self, path: str, **kwargs: Any) -> httpx.Response:
+                  """Make a POST request"""
+                  return self.request("POST", path, **kwargs)
+
+              def put(self, path: str, **kwargs: Any) -> httpx.Response:
+                  """Make a PUT request"""
+                  return self.request("PUT", path, **kwargs)
+
+              def patch(self, path: str, **kwargs: Any) -> httpx.Response:
+                  """Make a PATCH request"""
+                  return self.request("PATCH", path, **kwargs)
+
+              def delete(self, path: str, **kwargs: Any) -> httpx.Response:
+                  """Make a DELETE request"""
+                  return self.request("DELETE", path, **kwargs)
+
+              def close(self) -> None:
+                  """Close the HTTP client"""
+                  self._client.close()
+
+              def __enter__(self):
+                  return self
+
+              def __exit__(self, *args):
+                  self.close()
+
+
+          class AsyncLinkebreakersClient:
+              """Async HTTP client for Linkbreakers API"""
+
+              def __init__(
+                  self,
+                  api_key: str,
+                  base_url: str = "https://api.linkbreakers.com",
+                  timeout: float = 30.0
+              ):
+                  self.api_key = api_key
+                  self.base_url = base_url
+                  self.timeout = timeout
+                  self._client = httpx.AsyncClient(
+                      base_url=base_url,
+                      headers={
+                          "Authorization": f"Bearer {api_key}",
+                          "Content-Type": "application/json",
+                      },
+                      timeout=timeout,
+                  )
+
+              async def request(
+                  self,
+                  method: str,
+                  path: str,
+                  **kwargs: Any
+              ) -> httpx.Response:
+                  """Make an HTTP request to the API"""
+                  return await self._client.request(method, path, **kwargs)
+
+              async def get(self, path: str, **kwargs: Any) -> httpx.Response:
+                  """Make a GET request"""
+                  return await self.request("GET", path, **kwargs)
+
+              async def post(self, path: str, **kwargs: Any) -> httpx.Response:
+                  """Make a POST request"""
+                  return await self.request("POST", path, **kwargs)
+
+              async def put(self, path: str, **kwargs: Any) -> httpx.Response:
+                  """Make a PUT request"""
+                  return await self.request("PUT", path, **kwargs)
+
+              async def patch(self, path: str, **kwargs: Any) -> httpx.Response:
+                  """Make a PATCH request"""
+                  return await self.request("PATCH", path, **kwargs)
+
+              async def delete(self, path: str, **kwargs: Any) -> httpx.Response:
+                  """Make a DELETE request"""
+                  return await self.request("DELETE", path, **kwargs)
+
+              async def close(self) -> None:
+                  """Close the HTTP client"""
+                  await self._client.aclose()
+
+              async def __aenter__(self):
+                  return self
+
+              async def __aexit__(self, *args):
+                  await self.close()
+          EOF
+
+          echo "✅ Client wrapper created"
 
       - name: Update version files
         if: steps.compare.outputs.needs_update == 'true'
