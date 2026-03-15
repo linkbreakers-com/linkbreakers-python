@@ -59,19 +59,34 @@ jobs:
             echo "🔄 Version changed: ${{ steps.current-version.outputs.current_version }} → ${{ steps.fetch-version.outputs.new_version }}"
           fi
 
+      - name: Download OpenAPI spec
+        if: steps.compare.outputs.needs_update == 'true'
+        run: |
+          # Download spec
+          curl -o swagger.json https://api.linkbreakers.com/internal/openapi/api/v1/api.swagger.json
+          echo "✅ Spec downloaded"
+
       - name: Generate SDK
         if: steps.compare.outputs.needs_update == 'true'
         run: |
           # Remove existing generated code (except __init__.py)
           find linkbreakers -mindepth 1 ! -name '__init__.py' -delete || true
 
-          # Generate SDK using OpenAPI Generator
+          # Use OpenAPI Generator 6.6.0 for better compatibility
+          npm config set @openapitools:registry https://registry.npmjs.org
+          openapi-generator-cli version-manager set 6.6.0
+
+          # Generate SDK using OpenAPI Generator with local spec file
           openapi-generator-cli generate \
-            -i https://api.linkbreakers.com/internal/openapi/api/v1/api.swagger.json \
+            -i swagger.json \
             -g python \
             -o . \
             --skip-validate-spec \
-            --additional-properties=packageName=linkbreakers,projectName=linkbreakers
+            --global-property apiTests=false,modelTests=false,apiDocs=false,modelDocs=false \
+            --additional-properties=packageName=linkbreakers,projectName=linkbreakers,library=urllib3
+
+          # Clean up
+          rm swagger.json
 
           echo "✅ SDK generated successfully"
 
