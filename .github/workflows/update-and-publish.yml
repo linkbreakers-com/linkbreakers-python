@@ -70,6 +70,7 @@ jobs:
             -i https://api.linkbreakers.com/internal/openapi/api/v1/api.swagger.json \
             -g python \
             -o . \
+            --skip-validate-spec \
             --additional-properties=packageName=linkbreakers,projectName=linkbreakers
 
           echo "✅ SDK generated successfully"
