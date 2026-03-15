@@ -13,34 +13,88 @@ pip install linkbreakers
 
 ## Usage
 
-```python
-from linkbreakers import Configuration, ApiClient, LinksApi
+### Synchronous Client
 
-# Configure API client
-configuration = Configuration(
-    api_key={'ApiKeyAuth': 'your_api_key_here'},
-    host='https://api.linkbreakers.com'
-)
+```python
+from linkbreakers import LinkebreakersClient
 
 # Create API client
-with ApiClient(configuration) as api_client:
-    links_api = LinksApi(api_client)
-
+with LinkebreakersClient(
+    api_key='your_api_key_here',
+    base_url='https://api.linkbreakers.com'
+) as client:
     # Create a shortened link
-    link = links_api.create_link({
+    response = client.post('/api/v1/links', json={
         'destination': 'https://example.com',
         'name': 'My Link'
     })
 
-    print(f'Short link: {link.shortlink}')
+    if response.is_success:
+        link = response.json()
+        print(f'Short link: {link["shortlink"]}')
+    else:
+        print(f'Error: {response.status_code}')
+
+    # Get a link
+    response = client.get(f'/api/v1/links/{link_id}')
+    link = response.json()
+
+    # Update a link
+    response = client.patch(f'/api/v1/links/{link_id}', json={
+        'name': 'Updated Name'
+    })
+
+    # Delete a link
+    client.delete(f'/api/v1/links/{link_id}')
+```
+
+### Async Client
+
+```python
+from linkbreakers import AsyncLinkebreakersClient
+import asyncio
+
+async def main():
+    async with AsyncLinkebreakersClient(
+        api_key='your_api_key_here',
+        base_url='https://api.linkbreakers.com'
+    ) as client:
+        # Create a shortened link
+        response = await client.post('/api/v1/links', json={
+            'destination': 'https://example.com',
+            'name': 'My Async Link'
+        })
+
+        link = response.json()
+        print(f'Short link: {link["shortlink"]}')
+
+asyncio.run(main())
+```
+
+### Type-Safe Models
+
+The SDK includes Pydantic models for all API types:
+
+```python
+from linkbreakers.models import CreateLinkRequest, Link
+
+# Use models for type checking
+request = CreateLinkRequest(
+    destination='https://example.com',
+    name='My Link'
+)
+
+response = client.post('/api/v1/links', json=request.dict())
 ```
 
 ## Features
 
-- ✅ Full type hints and autocompletion support
-- ✅ Python 3.7+ support
+- ✅ Full type hints and autocompletion support with Pydantic v2
+- ✅ Synchronous and asynchronous clients
+- ✅ Python 3.8+ support
 - ✅ Auto-generated from OpenAPI specification
 - ✅ Automatically updated when API changes
+- ✅ Built on modern httpx library
 
 ## Documentation
 
