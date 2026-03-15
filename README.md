@@ -13,88 +13,71 @@ pip install linkbreakers
 
 ## Usage
 
-### Synchronous Client
-
 ```python
-from linkbreakers import LinkebreakersClient
+from linkbreakers import Configuration, ApiClient, LinksApi
+
+# Configure API client
+configuration = Configuration(
+    api_key={'ApiKeyAuth': 'your_api_key_here'},
+    host='https://api.linkbreakers.com'
+)
 
 # Create API client
-with LinkebreakersClient(
-    api_key='your_api_key_here',
-    base_url='https://api.linkbreakers.com'
-) as client:
+with ApiClient(configuration) as api_client:
+    links_api = LinksApi(api_client)
+
     # Create a shortened link
-    response = client.post('/api/v1/links', json={
+    link = links_api.create_link({
         'destination': 'https://example.com',
         'name': 'My Link'
     })
 
-    if response.is_success:
-        link = response.json()
-        print(f'Short link: {link["shortlink"]}')
-    else:
-        print(f'Error: {response.status_code}')
-
-    # Get a link
-    response = client.get(f'/api/v1/links/{link_id}')
-    link = response.json()
-
-    # Update a link
-    response = client.patch(f'/api/v1/links/{link_id}', json={
-        'name': 'Updated Name'
-    })
-
-    # Delete a link
-    client.delete(f'/api/v1/links/{link_id}')
+    print(f'Short link: {link.shortlink}')
 ```
 
-### Async Client
+### Full API Support
+
+The SDK provides type-safe methods for all API operations:
 
 ```python
-from linkbreakers import AsyncLinkebreakersClient
-import asyncio
+from linkbreakers import Configuration, ApiClient, LinksApi
 
-async def main():
-    async with AsyncLinkebreakersClient(
-        api_key='your_api_key_here',
-        base_url='https://api.linkbreakers.com'
-    ) as client:
-        # Create a shortened link
-        response = await client.post('/api/v1/links', json={
-            'destination': 'https://example.com',
-            'name': 'My Async Link'
-        })
-
-        link = response.json()
-        print(f'Short link: {link["shortlink"]}')
-
-asyncio.run(main())
-```
-
-### Type-Safe Models
-
-The SDK includes Pydantic models for all API types:
-
-```python
-from linkbreakers.models import CreateLinkRequest, Link
-
-# Use models for type checking
-request = CreateLinkRequest(
-    destination='https://example.com',
-    name='My Link'
+configuration = Configuration(
+    api_key={'ApiKeyAuth': 'your_api_key_here'},
+    host='https://api.linkbreakers.com'
 )
 
-response = client.post('/api/v1/links', json=request.dict())
+with ApiClient(configuration) as api_client:
+    links_api = LinksApi(api_client)
+
+    # Get a link by ID
+    link = links_api.get_link(id='link-id')
+
+    # Update a link
+    updated = links_api.update_link(
+        id='link-id',
+        update_link_request={
+            'name': 'Updated Name'
+        }
+    )
+
+    # Delete a link
+    links_api.delete_link(id='link-id')
+
+    # List links with filtering
+    links = links_api.list_links(
+        page_size=50,
+        search='my-search',
+        tags=['tag1', 'tag2']
+    )
 ```
 
 ## Features
 
-- ✅ Full type hints and autocompletion support with Pydantic v2
-- ✅ Synchronous and asynchronous clients
-- ✅ Python 3.8+ support
+- ✅ Full type hints and autocompletion support
+- ✅ Python 3.7+ support
 - ✅ Auto-generated from OpenAPI specification
 - ✅ Automatically updated when API changes
-- ✅ Built on modern httpx library
 
 ## Documentation
 

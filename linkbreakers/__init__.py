@@ -3,12 +3,12 @@
 
 __version__ = '1.32.0'
 
-# Re-export client and models (will be populated after generation)
+# Re-export generated API classes (will be populated after generation)
 try:
-    from linkbreakers.client import LinkebreakersClient, AsyncLinkebreakersClient
+    from linkbreakers.api import *
     from linkbreakers.models import *
+    from linkbreakers.configuration import Configuration
+    from linkbreakers.api_client import ApiClient
 except ImportError:
     # Not yet generated
     pass
-
-__all__ = ['LinkebreakersClient', 'AsyncLinkebreakersClient', '__version__']
