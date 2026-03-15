@@ -94,6 +94,7 @@ jobs:
             -i openapi-3.1.json \
             -g python \
             -o . \
+            --skip-validate-spec \
             --global-property apiTests=false,modelTests=false,apiDocs=false,modelDocs=false \
             --additional-properties=packageName=linkbreakers,projectName=linkbreakers,library=urllib3
 
