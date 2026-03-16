@@ -62,6 +62,7 @@ linkbreakers/models/create_workspace_token_request.py
 linkbreakers/models/create_workspace_token_response.py
 linkbreakers/models/custom_domain.py
 linkbreakers/models/custom_domain_status.py
+linkbreakers/models/custom_domains_service_update_body.py
 linkbreakers/models/data_collection.py
 linkbreakers/models/day_of_month_condition_payload.py
 linkbreakers/models/day_of_month_condition_trace_data.py
@@ -195,6 +196,7 @@ linkbreakers/models/time_of_day_condition_trace_data.py
 linkbreakers/models/time_of_day_condition_trace_range.py
 linkbreakers/models/time_of_day_range.py
 linkbreakers/models/triggered_by.py
+linkbreakers/models/update_custom_domain_response.py
 linkbreakers/models/update_device_response.py
 linkbreakers/models/update_link_response.py
 linkbreakers/models/update_link_setting_response.py
