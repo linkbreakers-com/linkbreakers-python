@@ -17,7 +17,7 @@ setup(
     long_description_content_type='text/markdown',
     author='Linkbreakers',
     author_email='support@linkbreakers.com',
-    url='https://github.com/linkbreakers-com/linkbreakers-python',
+    url='https://linkbreakers.com',
     project_urls={
         'Documentation': 'https://docs.linkbreakers.com',
         'Source': 'https://github.com/linkbreakers-com/linkbreakers-python',
