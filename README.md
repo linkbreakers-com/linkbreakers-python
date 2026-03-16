@@ -174,6 +174,17 @@ with ApiClient(configuration) as api_client:
 - ✅ Auto-generated from OpenAPI specification
 - ✅ Automatically updated when API changes
 
+## Examples
+
+For complete, runnable code examples, see the [examples/](./examples) directory:
+
+- **[identify_visitor.py](./examples/identify_visitor.py)** - Identify visitors using LBID (most important!)
+- **[update_visitor.py](./examples/update_visitor.py)** - Update visitors by UUID
+- **[create_link.py](./examples/create_link.py)** - Create shortened links with various options
+- **[list_visitors.py](./examples/list_visitors.py)** - Query and filter visitors
+
+Each example is complete, well-documented, and ready to run. See [examples/README.md](./examples/README.md) for details.
+
 ## Documentation
 
 For complete API documentation, visit [https://docs.linkbreakers.com](https://docs.linkbreakers.com)
