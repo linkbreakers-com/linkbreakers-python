@@ -1,0 +1,8 @@
+# Prevent OpenAPI Generator from creating or modifying GitHub Actions workflows
+.github/
+
+# Keep our custom configuration files
+setup.py
+README.md
+OPENAPI_VERSION
+.gitignore
