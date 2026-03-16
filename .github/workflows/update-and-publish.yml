@@ -89,6 +89,8 @@ jobs:
       - name: Generate SDK using OpenAPI Generator
         if: steps.compare.outputs.needs_update == 'true'
         run: |
+          NEW_VERSION="${{ steps.fetch-version.outputs.new_version }}"
+
           # Remove existing generated code (except __init__.py)
           find linkbreakers -mindepth 1 ! -name '__init__.py' -delete || true
 
@@ -99,12 +101,12 @@ jobs:
             -o . \
             --skip-validate-spec \
             --global-property apiTests=false,modelTests=false,apiDocs=false,modelDocs=false \
-            --additional-properties=packageName=linkbreakers,projectName=linkbreakers,library=urllib3
+            --additional-properties=packageName=linkbreakers,projectName=linkbreakers,packageVersion=$NEW_VERSION,library=urllib3
 
           # Clean up spec files
           rm openapi-3.2.json openapi-3.1.json
 
-          echo "✅ SDK generated successfully"
+          echo "✅ SDK generated successfully with version $NEW_VERSION"
 
       - name: Update version files
         if: steps.compare.outputs.needs_update == 'true'
