@@ -240,6 +240,7 @@ linkbreakers/models/workspace.py
 linkbreakers/models/workspace_insight.py
 linkbreakers/models/workspace_metric.py
 linkbreakers/models/workspace_token.py
+linkbreakers/models/workspace_token_key_type.py
 linkbreakers/py.typed
 linkbreakers/rest.py
 pyproject.toml
