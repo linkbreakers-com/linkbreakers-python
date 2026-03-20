@@ -1,7 +1,6 @@
 .gitlab-ci.yml
 .travis.yml
 git_push.sh
-linkbreakers/__init__.py
 linkbreakers/api/__init__.py
 linkbreakers/api/custom_domains_api.py
 linkbreakers/api/events_api.py
@@ -147,8 +146,9 @@ linkbreakers/models/member.py
 linkbreakers/models/members_service_update_body.py
 linkbreakers/models/multi_link_button.py
 linkbreakers/models/multi_link_payload.py
-linkbreakers/models/multi_link_selected_button.py
+linkbreakers/models/multi_link_trace_button.py
 linkbreakers/models/multi_link_trace_data.py
+linkbreakers/models/multi_link_trace_selected_button.py
 linkbreakers/models/output_file_format.py
 linkbreakers/models/page_theme.py
 linkbreakers/models/page_theme_badge_shape.py
@@ -182,8 +182,10 @@ linkbreakers/models/shape.py
 linkbreakers/models/shortlink_availability_response.py
 linkbreakers/models/shortlink_random_response.py
 linkbreakers/models/social_link_button.py
+linkbreakers/models/social_link_trace_button.py
 linkbreakers/models/social_links_display_style.py
 linkbreakers/models/social_links_payload.py
+linkbreakers/models/social_links_trace_data.py
 linkbreakers/models/sort_direction.py
 linkbreakers/models/specific_date_condition_payload.py
 linkbreakers/models/specific_date_condition_trace_data.py
