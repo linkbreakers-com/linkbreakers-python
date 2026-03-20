@@ -16,9 +16,9 @@ pip install linkbreakers
 ```python
 from linkbreakers import Configuration, ApiClient, LinksApi
 
-# Configure API client
+# Configure API client with Bearer token authentication
 configuration = Configuration(
-    api_key={'ApiKeyAuth': 'your_api_key_here'},
+    access_token='your-api-token',
     host='https://api.linkbreakers.com'
 )
 
@@ -35,6 +35,29 @@ with ApiClient(configuration) as api_client:
     print(f'Short link: {link.shortlink}')
 ```
 
+### Authentication
+
+**Important:** The Linkbreakers API uses Bearer token authentication. The SDK's `Configuration` class is designed to only accept the `access_token` parameter:
+
+```python
+# ✅ CORRECT - Uses Bearer token authentication
+configuration = Configuration(
+    access_token='your-workspace-token',
+    host='https://api.linkbreakers.com'
+)
+
+# ❌ ERROR - Will raise ValueError
+configuration = Configuration(
+    api_key={'ApiKeyAuth': 'your-token'}  # This will raise an error!
+)
+```
+
+The SDK prevents you from accidentally using the wrong authentication method and will raise a clear error message with a link to the help documentation.
+
+Get your workspace API token from the [Linkbreakers dashboard](https://app.linkbreakers.com/settings/api).
+
+For more information, see: https://linkbreakers.com/help/article/api-authentication-accesstoken-vs-apikey
+
 ### Identifying Visitors
 
 Use the `VisitorsApi` to identify and update visitor profiles. The `identify` method finds or creates a visitor using their LBID (from tracking) and merges attributes:
@@ -49,7 +72,7 @@ from linkbreakers import (
 )
 
 configuration = Configuration(
-    access_token='your_api_key_here',
+    access_token='your-api-token',
     host='https://api.linkbreakers.com'
 )
 
@@ -138,7 +161,7 @@ The SDK provides type-safe methods for all API operations:
 from linkbreakers import Configuration, ApiClient, LinksApi
 
 configuration = Configuration(
-    api_key={'ApiKeyAuth': 'your_api_key_here'},
+    access_token='your-api-token',
     host='https://api.linkbreakers.com'
 )
 

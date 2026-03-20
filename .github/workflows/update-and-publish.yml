@@ -91,8 +91,13 @@ jobs:
         run: |
           NEW_VERSION="${{ steps.fetch-version.outputs.new_version }}"
 
-          # Remove existing generated code (except __init__.py)
-          find linkbreakers -mindepth 1 ! -name '__init__.py' -delete || true
+          # Backup custom files that we want to preserve
+          mkdir -p .backup
+          cp linkbreakers/__init__.py .backup/ 2>/dev/null || true
+          cp linkbreakers/safe_config.py .backup/ 2>/dev/null || true
+
+          # Remove existing generated code
+          find linkbreakers -mindepth 1 -delete || true
 
           # Generate SDK using OpenAPI Generator with python generator (creates proper SDK classes)
           openapi-generator-cli generate \
@@ -103,7 +108,12 @@ jobs:
             --global-property apiTests=false,modelTests=false,apiDocs=false,modelDocs=false \
             --additional-properties=packageName=linkbreakers,projectName=linkbreakers,packageVersion=$NEW_VERSION,library=urllib3
 
-          # Clean up spec files
+          # Restore custom files (overwrite the generated ones)
+          cp .backup/__init__.py linkbreakers/ 2>/dev/null || true
+          cp .backup/safe_config.py linkbreakers/ 2>/dev/null || true
+
+          # Clean up
+          rm -rf .backup
           rm openapi-3.2.json openapi-3.1.json
 
           echo "✅ SDK generated successfully with version $NEW_VERSION"

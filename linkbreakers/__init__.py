@@ -512,3 +512,7 @@ from linkbreakers.models.workspace_metric import WorkspaceMetric as WorkspaceMet
 from linkbreakers.models.workspace_token import WorkspaceToken as WorkspaceToken
 from linkbreakers.models.workspace_token_key_type import WorkspaceTokenKeyType as WorkspaceTokenKeyType
 
+# Override Configuration with our safe wrapper that prevents api_key mistakes
+# This must be imported AFTER the auto-generated Configuration import above
+from linkbreakers.safe_config import Configuration as Configuration  # noqa: F811
+

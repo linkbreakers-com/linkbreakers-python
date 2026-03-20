@@ -6,3 +6,7 @@ setup.py
 README.md
 OPENAPI_VERSION
 .gitignore
+
+# Keep our safe configuration wrapper
+linkbreakers/safe_config.py
+linkbreakers/__init__.py
