@@ -112,6 +112,7 @@ linkbreakers/models/googlerpc_status.py
 linkbreakers/models/http_method.py
 linkbreakers/models/identify_request.py
 linkbreakers/models/identify_response.py
+linkbreakers/models/identify_visitor_trace_data.py
 linkbreakers/models/import_qrcode_template_request.py
 linkbreakers/models/import_qrcode_template_response.py
 linkbreakers/models/invite_member_request.py
