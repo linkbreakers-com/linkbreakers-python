@@ -3,6 +3,7 @@
 git_push.sh
 linkbreakers/api/__init__.py
 linkbreakers/api/custom_domains_api.py
+linkbreakers/api/directories_api.py
 linkbreakers/api/events_api.py
 linkbreakers/api/integrations_service_api.py
 linkbreakers/api/link_settings_api.py
@@ -47,6 +48,8 @@ linkbreakers/models/create_contact_link_request.py
 linkbreakers/models/create_contact_link_response.py
 linkbreakers/models/create_custom_domain_request.py
 linkbreakers/models/create_custom_domain_response.py
+linkbreakers/models/create_directory_request.py
+linkbreakers/models/create_directory_response.py
 linkbreakers/models/create_event_trace_response.py
 linkbreakers/models/create_link_request.py
 linkbreakers/models/create_link_response.py
@@ -76,6 +79,8 @@ linkbreakers/models/delete_visitor_response.py
 linkbreakers/models/device.py
 linkbreakers/models/device_input.py
 linkbreakers/models/device_type.py
+linkbreakers/models/directories_service_update_body.py
+linkbreakers/models/directory.py
 linkbreakers/models/dots_options.py
 linkbreakers/models/entry_access_trace_data.py
 linkbreakers/models/error_response.py
@@ -96,6 +101,7 @@ linkbreakers/models/form_payload.py
 linkbreakers/models/form_trace_data.py
 linkbreakers/models/form_trace_data_field.py
 linkbreakers/models/get_custom_domain_response.py
+linkbreakers/models/get_directory_response.py
 linkbreakers/models/get_events_time_series_request.py
 linkbreakers/models/get_events_time_series_response.py
 linkbreakers/models/get_lead_score_explanation_response.py
@@ -122,6 +128,7 @@ linkbreakers/models/link_setting.py
 linkbreakers/models/link_sort_field.py
 linkbreakers/models/links_service_update_body.py
 linkbreakers/models/list_custom_domains_response.py
+linkbreakers/models/list_directories_response.py
 linkbreakers/models/list_event_traces_response.py
 linkbreakers/models/list_events_csv_response.py
 linkbreakers/models/list_events_json_response.py
@@ -201,6 +208,7 @@ linkbreakers/models/time_of_day_range.py
 linkbreakers/models/triggered_by.py
 linkbreakers/models/update_custom_domain_response.py
 linkbreakers/models/update_device_response.py
+linkbreakers/models/update_directory_response.py
 linkbreakers/models/update_link_response.py
 linkbreakers/models/update_link_setting_response.py
 linkbreakers/models/update_me_request.py
