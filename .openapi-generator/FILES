@@ -165,6 +165,7 @@ linkbreakers/models/list_page_themes_response.py
 linkbreakers/models/list_qrcode_templates_response.py
 linkbreakers/models/list_response.py
 linkbreakers/models/list_tags_response.py
+linkbreakers/models/list_visitor_attribute_keys_response.py
 linkbreakers/models/list_visitors_csv_response.py
 linkbreakers/models/list_visitors_json_response.py
 linkbreakers/models/list_visitors_response.py
@@ -258,6 +259,10 @@ linkbreakers/models/visit_type_condition_payload.py
 linkbreakers/models/visit_type_condition_trace_data.py
 linkbreakers/models/visit_type_condition_trace_option.py
 linkbreakers/models/visitor.py
+linkbreakers/models/visitor_data_condition_option.py
+linkbreakers/models/visitor_data_condition_payload.py
+linkbreakers/models/visitor_data_condition_trace_data.py
+linkbreakers/models/visitor_data_condition_trace_option.py
 linkbreakers/models/visitor_event.py
 linkbreakers/models/visitor_input.py
 linkbreakers/models/visitor_link.py
