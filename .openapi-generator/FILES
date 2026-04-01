@@ -152,6 +152,7 @@ linkbreakers/models/lead_score_breakdown.py
 linkbreakers/models/link.py
 linkbreakers/models/link_setting.py
 linkbreakers/models/link_sort_field.py
+linkbreakers/models/link_view.py
 linkbreakers/models/links_service_update_body.py
 linkbreakers/models/list_custom_domains_response.py
 linkbreakers/models/list_directories_response.py
