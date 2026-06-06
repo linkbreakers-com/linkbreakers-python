@@ -250,6 +250,7 @@ linkbreakers/models/update_workspace_origin_purpose_request.py
 linkbreakers/models/update_workspace_request.py
 linkbreakers/models/v_card_data.py
 linkbreakers/models/v_card_payload.py
+linkbreakers/models/v_card_social_link.py
 linkbreakers/models/validation_instructions_custom_domain_response.py
 linkbreakers/models/validation_instructions_custom_domain_response_validation.py
 linkbreakers/models/validation_instructions_custom_domain_response_validation_type.py
