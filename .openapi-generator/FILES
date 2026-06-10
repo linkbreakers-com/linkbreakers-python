@@ -13,6 +13,7 @@ linkbreakers/api/members_api.py
 linkbreakers/api/page_themes_api.py
 linkbreakers/api/qr_code_designs_api.py
 linkbreakers/api/qr_code_templates_api.py
+linkbreakers/api/slack_integrations_api.py
 linkbreakers/api/tags_api.py
 linkbreakers/api/time_series_api.py
 linkbreakers/api/visitors_api.py
@@ -33,6 +34,8 @@ linkbreakers/models/background_options.py
 linkbreakers/models/canvas_position.py
 linkbreakers/models/check_custom_domain_response.py
 linkbreakers/models/client_redirect_payload.py
+linkbreakers/models/complete_slack_o_auth_request.py
+linkbreakers/models/complete_slack_o_auth_response.py
 linkbreakers/models/contact_card_trace_card.py
 linkbreakers/models/contact_card_trace_data.py
 linkbreakers/models/container_config.py
@@ -136,6 +139,8 @@ linkbreakers/models/get_link_setting_response.py
 linkbreakers/models/get_media_response.py
 linkbreakers/models/get_page_theme_response.py
 linkbreakers/models/get_qrcode_design_response.py
+linkbreakers/models/get_slack_integration_response.py
+linkbreakers/models/get_slack_o_auth_url_response.py
 linkbreakers/models/get_webhook_response.py
 linkbreakers/models/get_workflow_step_response.py
 linkbreakers/models/get_workspace_token_response.py
@@ -165,6 +170,7 @@ linkbreakers/models/list_media_response.py
 linkbreakers/models/list_page_themes_response.py
 linkbreakers/models/list_qrcode_templates_response.py
 linkbreakers/models/list_response.py
+linkbreakers/models/list_slack_channels_response.py
 linkbreakers/models/list_tags_response.py
 linkbreakers/models/list_visitor_attribute_keys_response.py
 linkbreakers/models/list_visitors_csv_response.py
@@ -216,6 +222,9 @@ linkbreakers/models/settings_service_update_link_setting_body.py
 linkbreakers/models/shape.py
 linkbreakers/models/shortlink_availability_response.py
 linkbreakers/models/shortlink_random_response.py
+linkbreakers/models/slack_channel.py
+linkbreakers/models/slack_integration.py
+linkbreakers/models/slack_integration_status.py
 linkbreakers/models/social_link_button.py
 linkbreakers/models/social_link_trace_button.py
 linkbreakers/models/social_links_display_style.py
@@ -227,6 +236,7 @@ linkbreakers/models/specific_date_condition_trace_data.py
 linkbreakers/models/specific_date_condition_trace_option.py
 linkbreakers/models/specific_date_option.py
 linkbreakers/models/subscription_type.py
+linkbreakers/models/test_slack_integration_response.py
 linkbreakers/models/theme_color.py
 linkbreakers/models/theme_color_theme_color_type.py
 linkbreakers/models/time_of_day_condition_payload.py
@@ -243,6 +253,8 @@ linkbreakers/models/update_me_request.py
 linkbreakers/models/update_page_theme_response.py
 linkbreakers/models/update_qrcode_design_response.py
 linkbreakers/models/update_qrcode_template_response.py
+linkbreakers/models/update_slack_integration_request.py
+linkbreakers/models/update_slack_integration_response.py
 linkbreakers/models/update_webhook_response.py
 linkbreakers/models/update_workflow_step_response.py
 linkbreakers/models/update_workspace_origin_inquiry_request.py
