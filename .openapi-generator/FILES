@@ -108,6 +108,7 @@ linkbreakers/models/device_type_condition_payload.py
 linkbreakers/models/device_type_condition_trace_data.py
 linkbreakers/models/device_type_condition_trace_option.py
 linkbreakers/models/device_type_condition_value.py
+linkbreakers/models/digest_frequency.py
 linkbreakers/models/directories_service_update_body.py
 linkbreakers/models/directory.py
 linkbreakers/models/dots_options.py
