@@ -5,6 +5,7 @@ linkbreakers/api/__init__.py
 linkbreakers/api/custom_domains_api.py
 linkbreakers/api/directories_api.py
 linkbreakers/api/events_api.py
+linkbreakers/api/google_forms_integrations_api.py
 linkbreakers/api/integrations_service_api.py
 linkbreakers/api/link_settings_api.py
 linkbreakers/api/links_api.py
@@ -34,6 +35,8 @@ linkbreakers/models/background_options.py
 linkbreakers/models/canvas_position.py
 linkbreakers/models/check_custom_domain_response.py
 linkbreakers/models/client_redirect_payload.py
+linkbreakers/models/complete_google_forms_o_auth_request.py
+linkbreakers/models/complete_google_forms_o_auth_response.py
 linkbreakers/models/complete_slack_o_auth_request.py
 linkbreakers/models/complete_slack_o_auth_response.py
 linkbreakers/models/contact_card_trace_card.py
@@ -134,6 +137,9 @@ linkbreakers/models/get_custom_domain_response.py
 linkbreakers/models/get_directory_response.py
 linkbreakers/models/get_events_time_series_request.py
 linkbreakers/models/get_events_time_series_response.py
+linkbreakers/models/get_google_form_fields_response.py
+linkbreakers/models/get_google_forms_integration_response.py
+linkbreakers/models/get_google_forms_o_auth_url_response.py
 linkbreakers/models/get_lead_score_explanation_response.py
 linkbreakers/models/get_link_response.py
 linkbreakers/models/get_link_setting_response.py
@@ -145,6 +151,11 @@ linkbreakers/models/get_slack_o_auth_url_response.py
 linkbreakers/models/get_webhook_response.py
 linkbreakers/models/get_workflow_step_response.py
 linkbreakers/models/get_workspace_token_response.py
+linkbreakers/models/google_form.py
+linkbreakers/models/google_form_field.py
+linkbreakers/models/google_forms_field_mapping.py
+linkbreakers/models/google_forms_integration.py
+linkbreakers/models/google_forms_integration_status.py
 linkbreakers/models/googlerpc_status.py
 linkbreakers/models/http_method.py
 linkbreakers/models/identify_request.py
@@ -166,6 +177,7 @@ linkbreakers/models/list_event_traces_response.py
 linkbreakers/models/list_events_csv_response.py
 linkbreakers/models/list_events_json_response.py
 linkbreakers/models/list_events_response.py
+linkbreakers/models/list_google_forms_response.py
 linkbreakers/models/list_links_response.py
 linkbreakers/models/list_media_response.py
 linkbreakers/models/list_page_themes_response.py
@@ -237,6 +249,7 @@ linkbreakers/models/specific_date_condition_trace_data.py
 linkbreakers/models/specific_date_condition_trace_option.py
 linkbreakers/models/specific_date_option.py
 linkbreakers/models/subscription_type.py
+linkbreakers/models/sync_google_forms_response.py
 linkbreakers/models/test_slack_integration_response.py
 linkbreakers/models/theme_color.py
 linkbreakers/models/theme_color_theme_color_type.py
@@ -248,6 +261,8 @@ linkbreakers/models/triggered_by.py
 linkbreakers/models/update_custom_domain_response.py
 linkbreakers/models/update_device_response.py
 linkbreakers/models/update_directory_response.py
+linkbreakers/models/update_google_forms_integration_request.py
+linkbreakers/models/update_google_forms_integration_response.py
 linkbreakers/models/update_link_response.py
 linkbreakers/models/update_link_setting_response.py
 linkbreakers/models/update_me_request.py
