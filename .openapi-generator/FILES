@@ -40,6 +40,8 @@ linkbreakers/models/ai_send_message_request.py
 linkbreakers/models/ai_send_message_response.py
 linkbreakers/models/analytics_dashboard.py
 linkbreakers/models/api_tag.py
+linkbreakers/models/apply_qrcode_template_request.py
+linkbreakers/models/apply_qrcode_template_response.py
 linkbreakers/models/auto_layout_workflow_response.py
 linkbreakers/models/background_options.py
 linkbreakers/models/breakdown_data_point.py
