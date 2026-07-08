@@ -82,6 +82,8 @@ linkbreakers/models/create_media_request.py
 linkbreakers/models/create_media_response.py
 linkbreakers/models/create_qrcode_template_request.py
 linkbreakers/models/create_qrcode_template_response.py
+linkbreakers/models/create_thank_you_link_request.py
+linkbreakers/models/create_thank_you_link_response.py
 linkbreakers/models/create_webhook_request.py
 linkbreakers/models/create_webhook_response.py
 linkbreakers/models/create_workflow_step_response.py
