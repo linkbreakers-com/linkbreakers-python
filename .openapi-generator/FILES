@@ -236,6 +236,8 @@ linkbreakers/models/media_type.py
 linkbreakers/models/media_visibility.py
 linkbreakers/models/member.py
 linkbreakers/models/members_service_update_body.py
+linkbreakers/models/message_page_navigation_type.py
+linkbreakers/models/message_page_payload.py
 linkbreakers/models/multi_link_button.py
 linkbreakers/models/multi_link_payload.py
 linkbreakers/models/multi_link_trace_button.py
@@ -290,6 +292,7 @@ linkbreakers/models/specific_date_option.py
 linkbreakers/models/subscription_type.py
 linkbreakers/models/sync_google_forms_response.py
 linkbreakers/models/test_slack_integration_response.py
+linkbreakers/models/thank_you_page_payload.py
 linkbreakers/models/theme_color.py
 linkbreakers/models/theme_color_theme_color_type.py
 linkbreakers/models/time_of_day_condition_payload.py
