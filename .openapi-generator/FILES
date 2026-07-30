@@ -35,9 +35,12 @@ linkbreakers/models/action.py
 linkbreakers/models/add_workflow_step_relationship_response.py
 linkbreakers/models/ai_context_type.py
 linkbreakers/models/ai_display_message.py
+linkbreakers/models/ai_display_message_attachment.py
 linkbreakers/models/ai_get_conversation_response.py
 linkbreakers/models/ai_send_message_request.py
 linkbreakers/models/ai_send_message_response.py
+linkbreakers/models/ai_upload_file_request.py
+linkbreakers/models/ai_upload_file_response.py
 linkbreakers/models/analytics_dashboard.py
 linkbreakers/models/api_tag.py
 linkbreakers/models/apply_qrcode_template_request.py
