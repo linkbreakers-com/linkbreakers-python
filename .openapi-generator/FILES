@@ -349,6 +349,7 @@ linkbreakers/models/visitor_data_condition_trace_option.py
 linkbreakers/models/visitor_event.py
 linkbreakers/models/visitor_input.py
 linkbreakers/models/visitor_link.py
+linkbreakers/models/visitor_sort_field.py
 linkbreakers/models/visitor_trend_data_point.py
 linkbreakers/models/visitors_service_update_body.py
 linkbreakers/models/webhook.py
