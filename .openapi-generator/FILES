@@ -378,6 +378,7 @@ linkbreakers/models/widget_position.py
 linkbreakers/models/widget_size.py
 linkbreakers/models/widget_tab.py
 linkbreakers/models/widget_tab_mode.py
+linkbreakers/models/widget_tab_view.py
 linkbreakers/models/widget_visualization.py
 linkbreakers/models/workflow_issue.py
 linkbreakers/models/workflow_step.py
