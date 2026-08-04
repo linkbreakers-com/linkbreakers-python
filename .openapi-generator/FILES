@@ -193,7 +193,7 @@ linkbreakers/models/get_grouped_time_series_request.py
 linkbreakers/models/get_grouped_time_series_response.py
 linkbreakers/models/get_hour_of_day_distribution_request.py
 linkbreakers/models/get_hour_of_day_distribution_response.py
-linkbreakers/models/get_lead_score_explanation_response.py
+linkbreakers/models/get_lead_score_response.py
 linkbreakers/models/get_link_response.py
 linkbreakers/models/get_link_setting_response.py
 linkbreakers/models/get_media_response.py
