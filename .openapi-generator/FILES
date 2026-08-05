@@ -169,6 +169,8 @@ linkbreakers/models/form_field_type.py
 linkbreakers/models/form_payload.py
 linkbreakers/models/form_trace_data.py
 linkbreakers/models/form_trace_data_field.py
+linkbreakers/models/funnel_branch.py
+linkbreakers/models/funnel_step.py
 linkbreakers/models/generate_widget_summary_response.py
 linkbreakers/models/geo_data_point.py
 linkbreakers/models/get_attribute_distribution_request.py
@@ -201,6 +203,8 @@ linkbreakers/models/get_page_theme_response.py
 linkbreakers/models/get_qrcode_design_response.py
 linkbreakers/models/get_slack_integration_response.py
 linkbreakers/models/get_slack_o_auth_url_response.py
+linkbreakers/models/get_step_funnel_request.py
+linkbreakers/models/get_step_funnel_response.py
 linkbreakers/models/get_top_links_request.py
 linkbreakers/models/get_top_links_response.py
 linkbreakers/models/get_visitor_trends_request.py
