@@ -1,6 +1,6 @@
 [project]
 name = "linkbreakers"
-version = "1.111.13"
+version = "1.111.18"
 description = "Linkbreakers API"
 authors = [
   {name = "Linkbreakers Support",email = "team@openapitools.org"},
