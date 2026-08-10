@@ -32,7 +32,6 @@ linkbreakers/configuration.py
 linkbreakers/exceptions.py
 linkbreakers/models/__init__.py
 linkbreakers/models/action.py
-linkbreakers/models/add_workflow_step_relationship_response.py
 linkbreakers/models/agent_context_type.py
 linkbreakers/models/agent_display_message.py
 linkbreakers/models/agent_display_message_attachment.py
@@ -63,6 +62,7 @@ linkbreakers/models/complete_google_forms_o_auth_request.py
 linkbreakers/models/complete_google_forms_o_auth_response.py
 linkbreakers/models/complete_slack_o_auth_request.py
 linkbreakers/models/complete_slack_o_auth_response.py
+linkbreakers/models/connect_workflow_step_response.py
 linkbreakers/models/contact_card_trace_card.py
 linkbreakers/models/contact_card_trace_data.py
 linkbreakers/models/container_config.py
@@ -149,6 +149,7 @@ linkbreakers/models/device_type_condition_value.py
 linkbreakers/models/digest_frequency.py
 linkbreakers/models/directories_service_update_body.py
 linkbreakers/models/directory.py
+linkbreakers/models/disconnect_workflow_step_response.py
 linkbreakers/models/dots_options.py
 linkbreakers/models/dots_type.py
 linkbreakers/models/entry_access_trace_data.py
@@ -291,7 +292,6 @@ linkbreakers/models/qrcode_design_service_update_body.py
 linkbreakers/models/qrcode_template.py
 linkbreakers/models/qrcode_templates_service_update_qrcode_template_body.py
 linkbreakers/models/redirect_trace_data.py
-linkbreakers/models/remove_workflow_step_relationship_response.py
 linkbreakers/models/request_workspace_enrollment_request.py
 linkbreakers/models/resolve_step_collisions_response.py
 linkbreakers/models/response_format.py
@@ -386,10 +386,11 @@ linkbreakers/models/widget_tab_view.py
 linkbreakers/models/widget_visualization.py
 linkbreakers/models/workflow_issue.py
 linkbreakers/models/workflow_step.py
+linkbreakers/models/workflow_step_branch.py
 linkbreakers/models/workflow_step_kind.py
 linkbreakers/models/workflow_step_node_type.py
 linkbreakers/models/workflow_step_payload.py
-linkbreakers/models/workflow_steps_service_add_relationship_body.py
+linkbreakers/models/workflow_steps_service_connect_step_body.py
 linkbreakers/models/workflow_steps_service_create_body.py
 linkbreakers/models/workflow_steps_service_update_body.py
 linkbreakers/models/workspace.py
