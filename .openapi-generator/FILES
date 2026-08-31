@@ -292,6 +292,7 @@ linkbreakers/models/publish_qrcode_template_response.py
 linkbreakers/models/qrcode_design.py
 linkbreakers/models/qrcode_design_service_update_body.py
 linkbreakers/models/qrcode_template.py
+linkbreakers/models/qrcode_template_scope.py
 linkbreakers/models/qrcode_templates_service_update_qrcode_template_body.py
 linkbreakers/models/redirect_trace_data.py
 linkbreakers/models/request_workspace_enrollment_request.py
