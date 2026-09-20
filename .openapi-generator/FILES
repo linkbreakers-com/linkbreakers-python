@@ -14,6 +14,7 @@ linkbreakers/api/link_settings_api.py
 linkbreakers/api/links_api.py
 linkbreakers/api/media_api.py
 linkbreakers/api/members_api.py
+linkbreakers/api/page_theme_templates_api.py
 linkbreakers/api/page_themes_api.py
 linkbreakers/api/qr_code_designs_api.py
 linkbreakers/api/qr_code_templates_api.py
@@ -47,6 +48,8 @@ linkbreakers/models/analytics_dashboard_service_generate_widget_summary_body.py
 linkbreakers/models/analytics_dashboard_service_update_dashboard_body.py
 linkbreakers/models/analytics_widget_result.py
 linkbreakers/models/api_tag.py
+linkbreakers/models/apply_page_theme_template_request.py
+linkbreakers/models/apply_page_theme_template_response.py
 linkbreakers/models/apply_qrcode_template_request.py
 linkbreakers/models/apply_qrcode_template_response.py
 linkbreakers/models/attribute_value_data_point.py
@@ -91,6 +94,8 @@ linkbreakers/models/create_link_request.py
 linkbreakers/models/create_link_response.py
 linkbreakers/models/create_media_request.py
 linkbreakers/models/create_media_response.py
+linkbreakers/models/create_page_theme_template_request.py
+linkbreakers/models/create_page_theme_template_response.py
 linkbreakers/models/create_qrcode_template_request.py
 linkbreakers/models/create_qrcode_template_response.py
 linkbreakers/models/create_thank_you_link_request.py
@@ -165,6 +170,7 @@ linkbreakers/models/events_service_create_event_trace_body.py
 linkbreakers/models/events_service_update_device_body.py
 linkbreakers/models/events_time_series.py
 linkbreakers/models/events_time_series_data.py
+linkbreakers/models/find_matching_page_theme_template_response.py
 linkbreakers/models/font_config.py
 linkbreakers/models/form_field.py
 linkbreakers/models/form_field_option.py
@@ -225,6 +231,8 @@ linkbreakers/models/http_method.py
 linkbreakers/models/identify_request.py
 linkbreakers/models/identify_response.py
 linkbreakers/models/identify_visitor_trace_data.py
+linkbreakers/models/import_page_theme_template_request.py
+linkbreakers/models/import_page_theme_template_response.py
 linkbreakers/models/import_qrcode_template_request.py
 linkbreakers/models/import_qrcode_template_response.py
 linkbreakers/models/invite_member_request.py
@@ -245,6 +253,7 @@ linkbreakers/models/list_events_json_response.py
 linkbreakers/models/list_events_response.py
 linkbreakers/models/list_links_response.py
 linkbreakers/models/list_media_response.py
+linkbreakers/models/list_page_theme_templates_response.py
 linkbreakers/models/list_page_themes_response.py
 linkbreakers/models/list_qrcode_templates_response.py
 linkbreakers/models/list_response.py
@@ -277,6 +286,11 @@ linkbreakers/models/page_theme_border_style.py
 linkbreakers/models/page_theme_canvas_cover_mode.py
 linkbreakers/models/page_theme_container_variant.py
 linkbreakers/models/page_theme_font_family.py
+linkbreakers/models/page_theme_styling.py
+linkbreakers/models/page_theme_template.py
+linkbreakers/models/page_theme_template_scope.py
+linkbreakers/models/page_theme_templates_service_update_page_theme_template_body.py
+linkbreakers/models/page_theme_templates_service_update_page_theme_template_styling_body.py
 linkbreakers/models/page_themes_service_update_page_theme_body.py
 linkbreakers/models/password_payload.py
 linkbreakers/models/password_trace_data.py
@@ -285,9 +299,12 @@ linkbreakers/models/protobuf_any.py
 linkbreakers/models/protobuf_null_value.py
 linkbreakers/models/public_create_qrcode_design_request.py
 linkbreakers/models/public_create_qrcode_design_response.py
+linkbreakers/models/public_list_page_theme_templates_response.py
 linkbreakers/models/public_list_qrcode_templates_response.py
+linkbreakers/models/public_page_theme_template.py
 linkbreakers/models/public_qrcode_template.py
 linkbreakers/models/public_workspace.py
+linkbreakers/models/publish_page_theme_template_response.py
 linkbreakers/models/publish_qrcode_template_response.py
 linkbreakers/models/qrcode_design.py
 linkbreakers/models/qrcode_design_service_update_body.py
@@ -340,6 +357,8 @@ linkbreakers/models/update_link_response.py
 linkbreakers/models/update_link_setting_response.py
 linkbreakers/models/update_me_request.py
 linkbreakers/models/update_page_theme_response.py
+linkbreakers/models/update_page_theme_template_response.py
+linkbreakers/models/update_page_theme_template_styling_response.py
 linkbreakers/models/update_qrcode_design_response.py
 linkbreakers/models/update_qrcode_template_response.py
 linkbreakers/models/update_slack_integration_request.py
