@@ -19,7 +19,6 @@ linkbreakers/api/page_themes_api.py
 linkbreakers/api/qr_code_designs_api.py
 linkbreakers/api/qr_code_templates_api.py
 linkbreakers/api/slack_integrations_api.py
-linkbreakers/api/support_api.py
 linkbreakers/api/tags_api.py
 linkbreakers/api/time_series_api.py
 linkbreakers/api/visitors_api.py
@@ -69,8 +68,6 @@ linkbreakers/models/complete_slack_o_auth_response.py
 linkbreakers/models/connect_workflow_step_response.py
 linkbreakers/models/contact_card_trace_card.py
 linkbreakers/models/contact_card_trace_data.py
-linkbreakers/models/contact_support_request.py
-linkbreakers/models/contact_support_response.py
 linkbreakers/models/container_config.py
 linkbreakers/models/corners_dot_options.py
 linkbreakers/models/corners_dot_type.py
