@@ -260,6 +260,7 @@ linkbreakers/models/list_tags_response.py
 linkbreakers/models/list_visitor_attribute_keys_response.py
 linkbreakers/models/list_visitors_csv_response.py
 linkbreakers/models/list_visitors_json_response.py
+linkbreakers/models/list_visitors_request.py
 linkbreakers/models/list_visitors_response.py
 linkbreakers/models/list_webhooks_response.py
 linkbreakers/models/list_workflow_steps_response.py
@@ -403,6 +404,9 @@ linkbreakers/models/visit_type_condition_trace_data.py
 linkbreakers/models/visit_type_condition_trace_option.py
 linkbreakers/models/visitor.py
 linkbreakers/models/visitor_attribute.py
+linkbreakers/models/visitor_attribute_filter.py
+linkbreakers/models/visitor_attribute_filter_operator.py
+linkbreakers/models/visitor_attribute_key.py
 linkbreakers/models/visitor_attribute_type.py
 linkbreakers/models/visitor_data_condition_option.py
 linkbreakers/models/visitor_data_condition_payload.py
