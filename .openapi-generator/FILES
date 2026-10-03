@@ -50,8 +50,11 @@ linkbreakers/models/assistant_mark_conversation_read_request.py
 linkbreakers/models/assistant_mark_conversation_read_response.py
 linkbreakers/models/assistant_upload_file_request.py
 linkbreakers/models/assistant_upload_file_response.py
+linkbreakers/models/attribute_capture.py
 linkbreakers/models/attribute_value_data_point.py
 linkbreakers/models/attribute_value_entry.py
+linkbreakers/models/attribute_write.py
+linkbreakers/models/attribute_write_mode.py
 linkbreakers/models/auto_layout_workflow_response.py
 linkbreakers/models/background_options.py
 linkbreakers/models/breakdown_data_point.py
