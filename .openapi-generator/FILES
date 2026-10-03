@@ -237,6 +237,7 @@ linkbreakers/models/import_page_theme_template_response.py
 linkbreakers/models/import_qrcode_template_request.py
 linkbreakers/models/import_qrcode_template_response.py
 linkbreakers/models/invite_member_request.py
+linkbreakers/models/journey_progress.py
 linkbreakers/models/lead_score.py
 linkbreakers/models/lead_score_breakdown.py
 linkbreakers/models/link.py
