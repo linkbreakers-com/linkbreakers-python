@@ -3,7 +3,7 @@ name = "linkbreakers"
 version = "1.158.0"
 description = "Linkbreakers API"
 authors = [
-  {name = "Linkbreakers Support",email = "team@openapitools.org"},
+  {name = "Linkbreakers Support",email = "support@linkbreakers.com"},
 ]
 readme = "README.md"
 keywords = ["OpenAPI", "OpenAPI-Generator", "Linkbreakers API"]
@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [project.urls]
-Repository = "https://github.com/GIT_USER_ID/GIT_REPO_ID"
+Repository = "https://github.com/linkbreakers-com/linkbreakers-python"
 
 [tool.poetry]
 requires-poetry = ">=2.0"

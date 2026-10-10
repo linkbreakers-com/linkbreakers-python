@@ -104,8 +104,11 @@ jobs:
             -g python \
             -o . \
             --skip-validate-spec \
+            --git-host github.com \
+            --git-user-id linkbreakers-com \
+            --git-repo-id linkbreakers-python \
             --global-property apiTests=false,modelTests=false,apiDocs=false,modelDocs=false \
-            --additional-properties=packageName=linkbreakers,projectName=linkbreakers,packageVersion=$NEW_VERSION,library=urllib3
+            --additional-properties=packageName=linkbreakers,projectName=linkbreakers,packageVersion=$NEW_VERSION,library=urllib3,infoEmail=support@linkbreakers.com
 
           # Restore custom files (overwrite the generated ones)
           cp .backup/safe_config.py linkbreakers/ 2>/dev/null || true
