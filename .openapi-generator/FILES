@@ -2,6 +2,7 @@
 .travis.yml
 git_push.sh
 linkbreakers/api/__init__.py
+linkbreakers/api/allowances_api.py
 linkbreakers/api/analytics_dashboard_api.py
 linkbreakers/api/analytics_data_api.py
 linkbreakers/api/api_scopes_api.py
@@ -169,6 +170,7 @@ linkbreakers/models/digest_frequency.py
 linkbreakers/models/directories_service_update_body.py
 linkbreakers/models/directory.py
 linkbreakers/models/disconnect_workflow_step_response.py
+linkbreakers/models/dismiss_allowance_notice_request.py
 linkbreakers/models/dns_provider.py
 linkbreakers/models/dns_record_purpose.py
 linkbreakers/models/dns_record_type.py
@@ -257,6 +259,7 @@ linkbreakers/models/link_setting.py
 linkbreakers/models/link_sort_field.py
 linkbreakers/models/link_view.py
 linkbreakers/models/links_service_update_body.py
+linkbreakers/models/list_allowances_response.py
 linkbreakers/models/list_api_scopes_response.py
 linkbreakers/models/list_custom_domains_response.py
 linkbreakers/models/list_dashboards_response.py
@@ -470,6 +473,7 @@ linkbreakers/models/workflow_steps_service_connect_step_body.py
 linkbreakers/models/workflow_steps_service_create_body.py
 linkbreakers/models/workflow_steps_service_update_body.py
 linkbreakers/models/workspace.py
+linkbreakers/models/workspace_allowance.py
 linkbreakers/models/workspace_insight.py
 linkbreakers/models/workspace_metric.py
 linkbreakers/models/workspace_token.py
