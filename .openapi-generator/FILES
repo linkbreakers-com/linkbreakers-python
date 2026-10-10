@@ -499,6 +499,7 @@ linkbreakers/models/workspace_token_key_type.py
 linkbreakers/models/workspace_tokens_service_update_body.py
 linkbreakers/py.typed
 linkbreakers/rest.py
+linkbreakers/safe_config.py
 pyproject.toml
 requirements.txt
 setup.cfg
