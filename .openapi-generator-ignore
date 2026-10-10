@@ -1,5 +1,2 @@
-# Files the generator must not write. Everything else, including setup.py,
-# pyproject.toml and README.md (from templates/README.mustache), is
-# regenerated on every release. linkbreakers/safe_config.py is hand-written.
+# Everything else is regenerated on every release from openapi-config.yaml and templates/.
 .github/
-linkbreakers/safe_config.py

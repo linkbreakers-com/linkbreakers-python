@@ -4,3 +4,8 @@ additionalProperties:
   library: urllib3
   infoName: Linkbreakers
   infoEmail: support@linkbreakers.com
+files:
+  safe_config.mustache:
+    folder: linkbreakers
+    destinationFilename: safe_config.py
+    templateType: SupportingFiles

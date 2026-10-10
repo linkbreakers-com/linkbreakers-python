@@ -75,7 +75,7 @@ jobs:
           curl -fsS https://api.linkbreakers.com/internal/openapi/api/v1/api.swagger.json \
             | jq '.openapi = "3.1.0" | del(.jsonSchemaDialect) | .info.license = {"name": "MIT"}' > openapi-3.1.json
 
-          find linkbreakers -mindepth 1 ! -name safe_config.py -delete
+          rm -rf linkbreakers
           openapi-generator-cli generate \
             -i openapi-3.1.json \
             -g python \
@@ -88,11 +88,6 @@ jobs:
             --git-repo-id linkbreakers-python \
             --global-property apiTests=false,modelTests=false,apiDocs=false,modelDocs=false \
             --additional-properties=packageVersion=$PACKAGE_VERSION
-
-          cat >> linkbreakers/__init__.py <<'PY'
-
-          from linkbreakers.safe_config import Configuration as Configuration  # noqa: F811
-          PY
 
           echo "$API_VERSION" > OPENAPI_VERSION
           rm openapi-3.1.json
