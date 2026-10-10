@@ -320,6 +320,7 @@ linkbreakers/models/plan_limit.py
 linkbreakers/models/plan_limit_key.py
 linkbreakers/models/plan_limit_kind.py
 linkbreakers/models/plan_price.py
+linkbreakers/models/plan_trial.py
 linkbreakers/models/preferred_link_type.py
 linkbreakers/models/pricing_plan.py
 linkbreakers/models/pricing_plan_id.py
