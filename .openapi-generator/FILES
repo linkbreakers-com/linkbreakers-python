@@ -1,6 +1,9 @@
+.gitignore
 .gitlab-ci.yml
 .travis.yml
+README.md
 git_push.sh
+linkbreakers/__init__.py
 linkbreakers/api/__init__.py
 linkbreakers/api/agent_identity_api.py
 linkbreakers/api/allowances_api.py
@@ -499,5 +502,6 @@ linkbreakers/rest.py
 pyproject.toml
 requirements.txt
 setup.cfg
+setup.py
 test-requirements.txt
 tox.ini

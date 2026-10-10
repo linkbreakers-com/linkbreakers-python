@@ -1,10 +1,11 @@
 [project]
 name = "linkbreakers"
-version = "1.159.0"
+version = "1.159.0.post1"
 description = "Linkbreakers API"
 authors = [
   {name = "Linkbreakers Support",email = "support@linkbreakers.com"},
 ]
+license = { text = "MIT" }
 readme = "README.md"
 keywords = ["OpenAPI", "OpenAPI-Generator", "Linkbreakers API"]
 requires-python = ">=3.9"
