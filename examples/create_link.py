@@ -43,7 +43,6 @@ def create_basic_link():
             print('✓ Basic link created')
             print(f'  - Short URL: {response.link.shortlink}')
             print(f'  - Link ID: {response.link.id}')
-            print(f'  - Destination: {response.link.destination}')
 
             return response.link
 

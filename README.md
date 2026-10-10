@@ -14,7 +14,7 @@ pip install linkbreakers
 ## Usage
 
 ```python
-from linkbreakers import Configuration, ApiClient, LinksApi
+from linkbreakers import Configuration, ApiClient, LinksApi, CreateLinkRequest
 
 # Configure API client with Bearer token authentication
 configuration = Configuration(
@@ -27,12 +27,14 @@ with ApiClient(configuration) as api_client:
     links_api = LinksApi(api_client)
 
     # Create a shortened link
-    link = links_api.create_link({
-        'destination': 'https://example.com',
-        'name': 'My Link'
-    })
+    response = links_api.links_service_create(
+        create_link_request=CreateLinkRequest(
+            destination='https://example.com',
+            name='My Link'
+        )
+    )
 
-    print(f'Short link: {link.shortlink}')
+    print(f'Short link: {response.link.shortlink}')
 ```
 
 ### Authentication
@@ -155,10 +157,10 @@ with ApiClient(configuration) as api_client:
 
 ### Full API Support
 
-The SDK provides type-safe methods for all API operations:
+The SDK provides type-safe methods for all API operations. Method names follow the API's operation IDs (`links_service_create`, `links_service_list`, `visitors_service_identify`, ...), and request bodies are passed as the keyword named after their model (`create_link_request`, `links_service_update_body`, ...):
 
 ```python
-from linkbreakers import Configuration, ApiClient, LinksApi
+from linkbreakers import Configuration, ApiClient, LinksApi, LinksServiceUpdateBody
 
 configuration = Configuration(
     access_token='your-api-token',
@@ -169,21 +171,21 @@ with ApiClient(configuration) as api_client:
     links_api = LinksApi(api_client)
 
     # Get a link by ID
-    link = links_api.get_link(id='link-id')
+    link = links_api.links_service_get(id='link-id').link
 
     # Update a link
-    updated = links_api.update_link(
+    updated = links_api.links_service_update(
         id='link-id',
-        update_link_request={
-            'name': 'Updated Name'
-        }
+        links_service_update_body=LinksServiceUpdateBody(
+            name='Updated Name'
+        )
     )
 
     # Delete a link
-    links_api.delete_link(id='link-id')
+    links_api.links_service_delete(id='link-id')
 
     # List links with filtering
-    links = links_api.list_links(
+    links = links_api.links_service_list(
         page_size=50,
         search='my-search',
         tags=['tag1', 'tag2']

@@ -9,4 +9,3 @@ OPENAPI_VERSION
 
 # Keep our safe configuration wrapper
 linkbreakers/safe_config.py
-linkbreakers/__init__.py

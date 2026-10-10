@@ -93,7 +93,6 @@ jobs:
 
           # Backup custom files that we want to preserve
           mkdir -p .backup
-          cp linkbreakers/__init__.py .backup/ 2>/dev/null || true
           cp linkbreakers/safe_config.py .backup/ 2>/dev/null || true
 
           # Remove existing generated code
@@ -109,8 +108,15 @@ jobs:
             --additional-properties=packageName=linkbreakers,projectName=linkbreakers,packageVersion=$NEW_VERSION,library=urllib3
 
           # Restore custom files (overwrite the generated ones)
-          cp .backup/__init__.py linkbreakers/ 2>/dev/null || true
           cp .backup/safe_config.py linkbreakers/ 2>/dev/null || true
+
+          # __init__.py is generated so it exports exactly the models that
+          # exist; only the Configuration override is ours
+          cat >> linkbreakers/__init__.py <<'PY'
+
+          # Override Configuration with the safe wrapper that refuses api_key
+          from linkbreakers.safe_config import Configuration as Configuration  # noqa: F811
+          PY
 
           # Clean up
           rm -rf .backup
@@ -126,9 +132,6 @@ jobs:
           # Update OPENAPI_VERSION file
           echo "$NEW_VERSION" > OPENAPI_VERSION
 
-          # Update __version__ in __init__.py
-          sed -i "s/__version__ = '.*'/__version__ = '$NEW_VERSION'/" linkbreakers/__init__.py
-
           echo "✅ Version files updated to $NEW_VERSION"
 
       - name: Build distribution
@@ -136,6 +139,14 @@ jobs:
         run: |
           python setup.py sdist bdist_wheel
           echo "✅ Distribution built"
+
+      - name: Check the built package imports and matches the docs
+        if: steps.compare.outputs.needs_update == 'true'
+        run: |
+          python -m venv /tmp/sdk-check
+          /tmp/sdk-check/bin/pip install dist/*.whl
+          cd /tmp && /tmp/sdk-check/bin/python -c "import linkbreakers"
+          /tmp/sdk-check/bin/python -I "$GITHUB_WORKSPACE/scripts/check_docs.py"
 
       - name: Configure Git
         if: steps.compare.outputs.needs_update == 'true'
