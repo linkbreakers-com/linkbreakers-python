@@ -35,13 +35,14 @@ def list_all_visitors():
                 page_size=50,  # Max: 200
                 # page_token='next-page-token',  # For pagination
             )
+            page = response.var_json
 
             print('✓ Retrieved visitors')
-            print(f'  - Total in this page: {len(response.visitors) if response.visitors else 0}')
-            print(f'  - Next page token: {response.next_page_token or "None (last page)"}')
+            print(f'  - Total in this page: {len(page.visitors) if page.visitors else 0}')
+            print(f'  - Next page token: {page.next_page_token or "None (last page)"}')
 
-            if response.visitors:
-                for visitor in response.visitors:
+            if page.visitors:
+                for visitor in page.visitors:
                     email = visitor.email or 'Anonymous'
                     print(f'\n  Visitor: {email}')
                     print(f'    - ID: {visitor.id}')
@@ -71,9 +72,10 @@ def find_visitor_by_email(email):
                 email=email,  # Exact match filter
                 page_size=1
             )
+            page = response.var_json
 
-            if response.visitors and len(response.visitors) > 0:
-                visitor = response.visitors[0]
+            if page.visitors and len(page.visitors) > 0:
+                visitor = page.visitors[0]
                 print('✓ Found visitor')
                 print(f'  - ID: {visitor.id}')
                 print(f'  - Email: {visitor.email}')
@@ -104,20 +106,24 @@ def search_visitors(query):
                 search=query,  # Fuzzy search across name, email, attributes
                 page_size=50
             )
+            page = response.var_json
 
-            visitor_count = len(response.visitors) if response.visitors else 0
+            visitor_count = len(page.visitors) if page.visitors else 0
             print(f'✓ Search results for "{query}"')
             print(f'  - Found {visitor_count} visitors')
 
-            if response.visitors:
-                for visitor in response.visitors:
+            if page.visitors:
+                for visitor in page.visitors:
                     email = visitor.email or 'Anonymous'
                     print(f'\n  {email}')
                     print(f'    Name: {visitor.first_name} {visitor.last_name}')
-                    company = visitor.attributes.get('company') if visitor.attributes else None
+                    company = next(
+                        (attribute.value for attribute in visitor.attributes or [] if attribute.key == 'company'),
+                        None
+                    )
                     print(f'    Company: {company or "N/A"}')
 
-            return response.visitors
+            return page.visitors
 
         except Exception as error:
             print(f'✗ Search failed: {error}')
@@ -141,19 +147,20 @@ def get_visitors_by_link(link_id):
                 page_size=100,
                 include=['events']  # Include event data
             )
+            page = response.var_json
 
-            visitor_count = len(response.visitors) if response.visitors else 0
+            visitor_count = len(page.visitors) if page.visitors else 0
             print(f'✓ Visitors who clicked link {link_id}')
             print(f'  - Total visitors: {visitor_count}')
 
-            if response.visitors:
-                for visitor in response.visitors:
+            if page.visitors:
+                for visitor in page.visitors:
                     email = visitor.email or 'Anonymous'
                     event_count = len(visitor.events) if visitor.events else 0
                     print(f'\n  {email}')
                     print(f'    Events: {event_count}')
 
-            return response.visitors
+            return page.visitors
 
         except Exception as error:
             print(f'✗ Failed to get visitors by link: {error}')
@@ -183,12 +190,13 @@ def get_all_visitors_paginated():
                     page_size=200,  # Max page size
                     page_token=page_token
                 )
+                page = response.var_json
 
-                if response.visitors:
-                    all_visitors.extend(response.visitors)
-                    print(f'  ✓ Retrieved {len(response.visitors)} visitors')
+                if page.visitors:
+                    all_visitors.extend(page.visitors)
+                    print(f'  ✓ Retrieved {len(page.visitors)} visitors')
 
-                page_token = response.next_page_token
+                page_token = page.next_page_token
                 page_num += 1
 
                 # Break if no more pages
@@ -225,16 +233,17 @@ def export_visitors_to_csv():
             )
 
             print('✓ Exported visitors to CSV')
-            print(f'  - CSV data length: {len(response.csv) if response.csv else 0}')
+            csv_data = response.csv.csv_data if response.csv and response.csv.csv_data else ''
+            print(f'  - CSV data length: {len(csv_data)}')
 
             # Save to file
             from datetime import date
             filename = f'visitors-export-{date.today()}.csv'
             with open(filename, 'w') as f:
-                f.write(response.csv)
+                f.write(csv_data)
             print(f'  - Saved to: {filename}')
 
-            return response.csv
+            return csv_data
 
         except Exception as error:
             print(f'✗ Failed to export visitors: {error}')
