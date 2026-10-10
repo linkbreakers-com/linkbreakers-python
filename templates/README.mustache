@@ -1,0 +1,230 @@
+# linkbreakers
+
+Official Python SDK for the Linkbreakers API.
+
+[![PyPI version](https://badge.fury.io/py/linkbreakers.svg)](https://pypi.org/project/linkbreakers/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+## Installation
+
+```bash
+pip install linkbreakers
+```
+
+## Usage
+
+```python
+from linkbreakers import Configuration, ApiClient, LinksApi, CreateLinkRequest
+
+# Configure API client with Bearer token authentication
+configuration = Configuration(
+    access_token='your-api-token',
+    host='https://api.linkbreakers.com'
+)
+
+# Create API client
+with ApiClient(configuration) as api_client:
+    links_api = LinksApi(api_client)
+
+    # Create a shortened link
+    response = links_api.links_service_create(
+        create_link_request=CreateLinkRequest(
+            destination='https://example.com',
+            name='My Link'
+        )
+    )
+
+    print(f'Short link: {response.link.shortlink}')
+```
+
+### Authentication
+
+**Important:** The Linkbreakers API uses Bearer token authentication. The SDK's `Configuration` class is designed to only accept the `access_token` parameter:
+
+```python
+# ✅ CORRECT - Uses Bearer token authentication
+configuration = Configuration(
+    access_token='your-workspace-token',
+    host='https://api.linkbreakers.com'
+)
+
+# ❌ ERROR - Will raise ValueError
+configuration = Configuration(
+    api_key={'ApiKeyAuth': 'your-token'}  # This will raise an error!
+)
+```
+
+The SDK prevents you from accidentally using the wrong authentication method and will raise a clear error message with a link to the help documentation.
+
+Get your workspace API token from the [Linkbreakers dashboard](https://app.linkbreakers.com/settings/api).
+
+For more information, see: https://linkbreakers.com/help/article/api-authentication-accesstoken-vs-apikey
+
+### Identifying Visitors
+
+Use the `VisitorsApi` to identify and update visitor profiles. The `identify` method finds or creates a visitor using their LBID (from tracking) and merges attributes:
+
+```python
+from linkbreakers import (
+    Configuration,
+    ApiClient,
+    VisitorsApi,
+    IdentifyRequest,
+    VisitorInput
+)
+
+configuration = Configuration(
+    access_token='your-api-token',
+    host='https://api.linkbreakers.com'
+)
+
+with ApiClient(configuration) as api_client:
+    visitors_api = VisitorsApi(api_client)
+
+    # Identify a visitor using their LBID (from tracking cookie/parameter)
+    response = visitors_api.visitors_service_identify(
+        identify_request=IdentifyRequest(
+            lbid='visitor-lbid-from-tracking',  # Base64 encoded event ID from click/scan
+            visitor=VisitorInput(
+                data={
+                    # System fields (prefixed with "$")
+                    '$email': 'user@example.com',
+                    '$phone': '+1234567890',
+                    '$firstName': 'John',
+                    '$lastName': 'Doe',
+
+                    # Custom attributes (no "$" prefix)
+                    'company': 'Acme Corp',
+                    'plan': 'premium',
+                    'signupDate': '2024-01-01'
+                }
+            ),
+            set_once=False  # If True, only sets empty fields (won't overwrite existing)
+        )
+    )
+
+    print(f'Created new profile: {response.created}')
+    print(f'Visitor: {response.visitor}')
+```
+
+**Update an existing visitor by UUID:**
+
+```python
+from linkbreakers import VisitorsServiceUpdateBody, VisitorInput
+
+with ApiClient(configuration) as api_client:
+    visitors_api = VisitorsApi(api_client)
+
+    # When you have the visitor's UUID (from your database)
+    visitor = visitors_api.visitors_service_update(
+        id='visitor-uuid',
+        visitors_service_update_body=VisitorsServiceUpdateBody(
+            visitor=VisitorInput(
+                data={
+                    '$email': 'updated@example.com',
+                    'plan': 'enterprise'
+                }
+            )
+        )
+    )
+```
+
+**Get visitor details:**
+
+```python
+with ApiClient(configuration) as api_client:
+    visitors_api = VisitorsApi(api_client)
+
+    visitor = visitors_api.visitors_service_get(
+        id='visitor-uuid',
+        include=['devices', 'events', 'links']  # Optional: include related data
+    )
+```
+
+**List visitors:**
+
+```python
+with ApiClient(configuration) as api_client:
+    visitors_api = VisitorsApi(api_client)
+
+    visitors = visitors_api.visitors_service_list(
+        page_size=50,
+        email='user@example.com',  # Optional filters
+        link_id='link-uuid',
+        search='Acme Corp'
+    )
+```
+
+### Full API Support
+
+The SDK provides type-safe methods for all API operations. Method names follow the API's operation IDs (`links_service_create`, `links_service_list`, `visitors_service_identify`, ...), and request bodies are passed as the keyword named after their model (`create_link_request`, `links_service_update_body`, ...):
+
+```python
+from linkbreakers import Configuration, ApiClient, LinksApi, LinksServiceUpdateBody
+
+configuration = Configuration(
+    access_token='your-api-token',
+    host='https://api.linkbreakers.com'
+)
+
+with ApiClient(configuration) as api_client:
+    links_api = LinksApi(api_client)
+
+    # Get a link by ID
+    link = links_api.links_service_get(id='link-id').link
+
+    # Update a link
+    updated = links_api.links_service_update(
+        id='link-id',
+        links_service_update_body=LinksServiceUpdateBody(
+            name='Updated Name'
+        )
+    )
+
+    # Delete a link
+    links_api.links_service_delete(id='link-id')
+
+    # List links with filtering
+    links = links_api.links_service_list(
+        page_size=50,
+        search='my-search',
+        tags=['tag1', 'tag2']
+    )
+```
+
+## Features
+
+- ✅ Full type hints and autocompletion support
+- ✅ Python 3.7+ support
+- ✅ Auto-generated from OpenAPI specification
+- ✅ Automatically updated when API changes
+
+## Examples
+
+For complete, runnable code examples, see the [examples/](./examples) directory:
+
+- **[identify_visitor.py](./examples/identify_visitor.py)** - Identify visitors using LBID (most important!)
+- **[update_visitor.py](./examples/update_visitor.py)** - Update visitors by UUID
+- **[create_link.py](./examples/create_link.py)** - Create shortened links with various options
+- **[list_visitors.py](./examples/list_visitors.py)** - Query and filter visitors
+
+Each example is complete, well-documented, and ready to run. See [examples/README.md](./examples/README.md) for details.
+
+## Documentation
+
+For complete API documentation, visit [https://docs.linkbreakers.com](https://docs.linkbreakers.com)
+
+## Auto-Generated SDK
+
+This SDK is automatically generated from the Linkbreakers OpenAPI specification. When the API is updated, this SDK is automatically regenerated and published.
+
+**Current API Version:** See [OPENAPI_VERSION](./OPENAPI_VERSION)
+
+## Support
+
+- **Issues:** [GitHub Issues](https://github.com/linkbreakers-com/linkbreakers-python/issues)
+- **Documentation:** [https://docs.linkbreakers.com](https://docs.linkbreakers.com)
+
+## License
+
+MIT License - see [LICENSE](./LICENSE) for details.

@@ -1,11 +1,5 @@
-# Prevent OpenAPI Generator from creating or modifying GitHub Actions workflows
+# Files the generator must not write. Everything else, including setup.py,
+# pyproject.toml and README.md (from templates/README.mustache), is
+# regenerated on every release. linkbreakers/safe_config.py is hand-written.
 .github/
-
-# Keep our custom configuration files
-setup.py
-README.md
-OPENAPI_VERSION
-.gitignore
-
-# Keep our safe configuration wrapper
 linkbreakers/safe_config.py

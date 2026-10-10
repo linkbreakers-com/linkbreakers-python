@@ -3,14 +3,20 @@ name: Update and Publish SDK
 on:
   repository_dispatch:
     types: [update-sdk]
-  workflow_dispatch:  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      republish:
+        description: "Publish a .postN release even if PyPI already has the API version (to replace a broken upload)."
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   update-and-publish:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      packages: write
+      issues: write
 
     steps:
       - name: Checkout repository
@@ -24,172 +30,137 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install setuptools wheel twine
+        run: python -m pip install --upgrade pip build twine
 
       - name: Install OpenAPI Generator
-        run: |
-          npm install -g @openapitools/openapi-generator-cli
+        run: npm install -g @openapitools/openapi-generator-cli
 
-      - name: Fetch current version from swagger
-        id: fetch-version
+      - name: Choose the version to publish
+        id: version
+        env:
+          REPUBLISH: ${{ github.event_name == 'workflow_dispatch' && inputs.republish || 'false' }}
         run: |
-          SWAGGER_URL="https://api.linkbreakers.com/internal/openapi/api/v1/api.swagger.json"
-          NEW_VERSION=$(curl -s "$SWAGGER_URL" | python -c "import sys, json; print(json.load(sys.stdin)['info']['version'])")
-          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "Swagger version: $NEW_VERSION"
-
-      - name: Read current OPENAPI_VERSION
-        id: current-version
-        run: |
-          if [ -f OPENAPI_VERSION ]; then
-            CURRENT_VERSION=$(cat OPENAPI_VERSION)
-          else
-            CURRENT_VERSION="0.0.0"
+          API_VERSION=$(curl -fsS https://api.linkbreakers.com/internal/openapi/api/v1/api.swagger.json | jq -r '.info.version')
+          echo "Swagger version: $API_VERSION"
+          on_pypi() {
+            CODE=$(curl -sS -o /dev/null -w '%{http_code}' "https://pypi.org/pypi/linkbreakers/$1/json")
+            case "$CODE" in
+              200) return 0 ;;
+              404) return 1 ;;
+              *) echo "Unexpected HTTP $CODE from PyPI" >&2; exit 1 ;;
+            esac
+          }
+          PACKAGE_VERSION="$API_VERSION"
+          if on_pypi "$API_VERSION"; then
+            if [ "$REPUBLISH" != "true" ]; then
+              echo "needs_update=false" >> $GITHUB_OUTPUT
+              echo "PyPI already has $API_VERSION"
+              exit 0
+            fi
+            N=1
+            while on_pypi "$API_VERSION.post$N"; do N=$((N + 1)); done
+            PACKAGE_VERSION="$API_VERSION.post$N"
           fi
-          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          echo "Current version: $CURRENT_VERSION"
+          echo "needs_update=true" >> $GITHUB_OUTPUT
+          echo "api_version=$API_VERSION" >> $GITHUB_OUTPUT
+          echo "package_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+          echo "Publishing $PACKAGE_VERSION"
 
-      - name: Compare versions
-        id: compare
+      - name: Generate SDK
+        if: steps.version.outputs.needs_update == 'true'
+        env:
+          API_VERSION: ${{ steps.version.outputs.api_version }}
+          PACKAGE_VERSION: ${{ steps.version.outputs.package_version }}
         run: |
-          if [ "${{ steps.fetch-version.outputs.new_version }}" == "${{ steps.current-version.outputs.current_version }}" ]; then
-            echo "needs_update=false" >> $GITHUB_OUTPUT
-            echo "✅ Versions match. No update needed."
-          else
-            echo "needs_update=true" >> $GITHUB_OUTPUT
-            echo "🔄 Version changed: ${{ steps.current-version.outputs.current_version }} → ${{ steps.fetch-version.outputs.new_version }}"
-          fi
+          curl -fsS https://api.linkbreakers.com/internal/openapi/api/v1/api.swagger.json \
+            | jq '.openapi = "3.1.0" | del(.jsonSchemaDialect) | .info.license = {"name": "MIT"}' > openapi-3.1.json
 
-      - name: Download and convert OpenAPI spec to 3.1
-        if: steps.compare.outputs.needs_update == 'true'
-        run: |
-          # Download OpenAPI 3.2.0 spec
-          curl -o openapi-3.2.json https://api.linkbreakers.com/internal/openapi/api/v1/api.swagger.json
-
-          # Convert OpenAPI 3.2 to 3.1 (remove 3.2-specific fields)
-          python -c "
-          import json
-          with open('openapi-3.2.json', 'r') as f:
-              spec = json.load(f)
-
-          # Change version to 3.1.0
-          spec['openapi'] = '3.1.0'
-
-          # Remove 3.2-specific fields
-          spec.pop('jsonSchemaDialect', None)
-
-          with open('openapi-3.1.json', 'w') as f:
-              json.dump(spec, f, indent=2)
-          "
-
-          echo "✅ OpenAPI spec converted from 3.2 to 3.1"
-
-      - name: Generate SDK using OpenAPI Generator
-        if: steps.compare.outputs.needs_update == 'true'
-        run: |
-          NEW_VERSION="${{ steps.fetch-version.outputs.new_version }}"
-
-          # Backup custom files that we want to preserve
-          mkdir -p .backup
-          cp linkbreakers/safe_config.py .backup/ 2>/dev/null || true
-
-          # Remove existing generated code
-          find linkbreakers -mindepth 1 -delete || true
-
-          # Generate SDK using OpenAPI Generator with python generator (creates proper SDK classes)
+          find linkbreakers -mindepth 1 ! -name safe_config.py -delete
           openapi-generator-cli generate \
             -i openapi-3.1.json \
             -g python \
             -o . \
+            -c openapi-config.yaml \
+            -t templates \
             --skip-validate-spec \
             --git-host github.com \
             --git-user-id linkbreakers-com \
             --git-repo-id linkbreakers-python \
             --global-property apiTests=false,modelTests=false,apiDocs=false,modelDocs=false \
-            --additional-properties=packageName=linkbreakers,projectName=linkbreakers,packageVersion=$NEW_VERSION,library=urllib3,infoEmail=support@linkbreakers.com
+            --additional-properties=packageVersion=$PACKAGE_VERSION
 
-          # Restore custom files (overwrite the generated ones)
-          cp .backup/safe_config.py linkbreakers/ 2>/dev/null || true
-
-          # __init__.py is generated so it exports exactly the models that
-          # exist; only the Configuration override is ours
           cat >> linkbreakers/__init__.py <<'PY'
 
-          # Override Configuration with the safe wrapper that refuses api_key
           from linkbreakers.safe_config import Configuration as Configuration  # noqa: F811
           PY
 
-          # Clean up
-          rm -rf .backup
-          rm openapi-3.2.json openapi-3.1.json
-
-          echo "✅ SDK generated successfully with version $NEW_VERSION"
-
-      - name: Update version files
-        if: steps.compare.outputs.needs_update == 'true'
-        run: |
-          NEW_VERSION="${{ steps.fetch-version.outputs.new_version }}"
-
-          # Update OPENAPI_VERSION file
-          echo "$NEW_VERSION" > OPENAPI_VERSION
-
-          echo "✅ Version files updated to $NEW_VERSION"
+          echo "$API_VERSION" > OPENAPI_VERSION
+          rm openapi-3.1.json
 
       - name: Build distribution
-        if: steps.compare.outputs.needs_update == 'true'
+        if: steps.version.outputs.needs_update == 'true'
         run: |
-          python setup.py sdist bdist_wheel
-          echo "✅ Distribution built"
+          rm -rf dist build
+          python -m build
 
-      - name: Check the built package imports and matches the docs
-        if: steps.compare.outputs.needs_update == 'true'
+      - name: Smoke check the built package
+        if: steps.version.outputs.needs_update == 'true'
         run: |
           python -m venv /tmp/sdk-check
           /tmp/sdk-check/bin/pip install dist/*.whl
-          cd /tmp && /tmp/sdk-check/bin/python -c "import linkbreakers"
+          cd /tmp && /tmp/sdk-check/bin/python -I -c "
+          import linkbreakers
+          from linkbreakers import ApiClient, Configuration, LinksApi
+          LinksApi(ApiClient(Configuration(access_token='smoke')))
+          "
           /tmp/sdk-check/bin/python -I "$GITHUB_WORKSPACE/scripts/check_docs.py"
 
-      - name: Configure Git
-        if: steps.compare.outputs.needs_update == 'true'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Commit changes
-        if: steps.compare.outputs.needs_update == 'true'
-        run: |
-          NEW_VERSION="${{ steps.fetch-version.outputs.new_version }}"
-
-          git add .
-          git commit -m "chore: update SDK to API version $NEW_VERSION"
-
-          echo "✅ Changes committed"
-
-      - name: Create and push tag
-        if: steps.compare.outputs.needs_update == 'true'
-        run: |
-          NEW_VERSION="${{ steps.fetch-version.outputs.new_version }}"
-
-          git tag "v$NEW_VERSION"
-          git push origin main
-          git push origin "v$NEW_VERSION"
-
-          echo "✅ Tag v$NEW_VERSION created and pushed"
-
       - name: Publish to PyPI
-        if: steps.compare.outputs.needs_update == 'true'
+        if: steps.version.outputs.needs_update == 'true'
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          twine upload dist/*
-          echo "✅ Published linkbreakers==${{ steps.fetch-version.outputs.new_version }} to PyPI"
+        run: twine upload dist/*
 
-      - name: Summary
-        if: steps.compare.outputs.needs_update == 'true'
+      - name: Commit, tag and push
+        if: steps.version.outputs.needs_update == 'true'
+        env:
+          PACKAGE_VERSION: ${{ steps.version.outputs.package_version }}
         run: |
-          echo "🎉 SDK successfully updated and published!"
-          echo "Version: ${{ steps.fetch-version.outputs.new_version }}"
-          echo "Package: https://pypi.org/project/linkbreakers/"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update SDK to version $PACKAGE_VERSION"
+          fi
+          git tag "v$PACKAGE_VERSION"
+          git push --atomic origin main "v$PACKAGE_VERSION"
+
+      - name: Close release failure issues
+        if: success() && steps.version.outputs.needs_update == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE_VERSION: ${{ steps.version.outputs.package_version }}
+        run: |
+          for number in $(gh issue list --repo "$GITHUB_REPOSITORY" --state open --label release-failure --json number --jq '.[].number'); do
+            gh issue close "$number" --repo "$GITHUB_REPOSITORY" --comment "Published $PACKAGE_VERSION."
+          done
+
+      - name: Report failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE_VERSION: ${{ steps.version.outputs.package_version || 'unknown' }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          MESSAGE="Publishing linkbreakers $PACKAGE_VERSION to PyPI failed. Run: $RUN_URL"
+          echo "::error title=Release failed::$MESSAGE"
+          gh label create release-failure --repo "$GITHUB_REPOSITORY" --color B60205 \
+            --description "The update and publish workflow failed" --force
+          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --label release-failure --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --repo "$GITHUB_REPOSITORY" --body "$MESSAGE"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --label release-failure \
+              --title "SDK release failing" --body "$MESSAGE"
+          fi

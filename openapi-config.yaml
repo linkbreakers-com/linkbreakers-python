@@ -1,0 +1,6 @@
+additionalProperties:
+  packageName: linkbreakers
+  projectName: linkbreakers
+  library: urllib3
+  infoName: Linkbreakers
+  infoEmail: support@linkbreakers.com
