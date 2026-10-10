@@ -118,7 +118,6 @@ __all__ = [
     "GetCustomDomainResponse",
     "GetEventsTimeSeriesRequest",
     "GetEventsTimeSeriesResponse",
-    "GetLeadScoreExplanationResponse",
     "GetLinkResponse",
     "GetLinkSettingResponse",
     "GetMediaResponse",
@@ -135,8 +134,6 @@ __all__ = [
     "ImportQrcodeTemplateRequest",
     "ImportQrcodeTemplateResponse",
     "InviteMemberRequest",
-    "LeadScore",
-    "LeadScoreBreakdown",
     "Link",
     "LinkSetting",
     "LinkSortField",
@@ -368,7 +365,6 @@ from linkbreakers.models.form_trace_data_field import FormTraceDataField as Form
 from linkbreakers.models.get_custom_domain_response import GetCustomDomainResponse as GetCustomDomainResponse
 from linkbreakers.models.get_events_time_series_request import GetEventsTimeSeriesRequest as GetEventsTimeSeriesRequest
 from linkbreakers.models.get_events_time_series_response import GetEventsTimeSeriesResponse as GetEventsTimeSeriesResponse
-from linkbreakers.models.get_lead_score_explanation_response import GetLeadScoreExplanationResponse as GetLeadScoreExplanationResponse
 from linkbreakers.models.get_link_response import GetLinkResponse as GetLinkResponse
 from linkbreakers.models.get_link_setting_response import GetLinkSettingResponse as GetLinkSettingResponse
 from linkbreakers.models.get_media_response import GetMediaResponse as GetMediaResponse
@@ -385,8 +381,6 @@ from linkbreakers.models.identify_visitor_trace_data import IdentifyVisitorTrace
 from linkbreakers.models.import_qrcode_template_request import ImportQrcodeTemplateRequest as ImportQrcodeTemplateRequest
 from linkbreakers.models.import_qrcode_template_response import ImportQrcodeTemplateResponse as ImportQrcodeTemplateResponse
 from linkbreakers.models.invite_member_request import InviteMemberRequest as InviteMemberRequest
-from linkbreakers.models.lead_score import LeadScore as LeadScore
-from linkbreakers.models.lead_score_breakdown import LeadScoreBreakdown as LeadScoreBreakdown
 from linkbreakers.models.link import Link as Link
 from linkbreakers.models.link_setting import LinkSetting as LinkSetting
 from linkbreakers.models.link_sort_field import LinkSortField as LinkSortField
