@@ -414,6 +414,7 @@ linkbreakers/models/time_series_point.py
 linkbreakers/models/time_series_series.py
 linkbreakers/models/top_link_data_point.py
 linkbreakers/models/triggered_by.py
+linkbreakers/models/type_date.py
 linkbreakers/models/update_custom_domain_response.py
 linkbreakers/models/update_dashboard_response.py
 linkbreakers/models/update_device_response.py
