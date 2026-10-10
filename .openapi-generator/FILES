@@ -107,6 +107,10 @@ linkbreakers/models/create_workflow_step_response.py
 linkbreakers/models/create_workspace_token_request.py
 linkbreakers/models/create_workspace_token_response.py
 linkbreakers/models/custom_domain.py
+linkbreakers/models/custom_domain_dns_record.py
+linkbreakers/models/custom_domain_one_click_setup.py
+linkbreakers/models/custom_domain_setup_guide.py
+linkbreakers/models/custom_domain_setup_hint.py
 linkbreakers/models/custom_domain_status.py
 linkbreakers/models/custom_domains_service_update_body.py
 linkbreakers/models/dashboard_config.py
@@ -158,6 +162,9 @@ linkbreakers/models/digest_frequency.py
 linkbreakers/models/directories_service_update_body.py
 linkbreakers/models/directory.py
 linkbreakers/models/disconnect_workflow_step_response.py
+linkbreakers/models/dns_provider.py
+linkbreakers/models/dns_record_purpose.py
+linkbreakers/models/dns_record_type.py
 linkbreakers/models/dots_options.py
 linkbreakers/models/dots_type.py
 linkbreakers/models/entry_access_trace_data.py
@@ -192,6 +199,7 @@ linkbreakers/models/get_attribute_values_response.py
 linkbreakers/models/get_breakdown_request.py
 linkbreakers/models/get_breakdown_response.py
 linkbreakers/models/get_custom_domain_response.py
+linkbreakers/models/get_custom_domain_setup_guide_response.py
 linkbreakers/models/get_device_distribution_request.py
 linkbreakers/models/get_device_distribution_response.py
 linkbreakers/models/get_directory_response.py
