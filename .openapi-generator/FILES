@@ -288,6 +288,7 @@ linkbreakers/models/list_events_json_response.py
 linkbreakers/models/list_events_response.py
 linkbreakers/models/list_links_response.py
 linkbreakers/models/list_media_response.py
+linkbreakers/models/list_my_workspaces_response.py
 linkbreakers/models/list_page_theme_templates_response.py
 linkbreakers/models/list_page_themes_response.py
 linkbreakers/models/list_pricing_plans_response.py
@@ -309,6 +310,7 @@ linkbreakers/models/media_selection.py
 linkbreakers/models/media_type.py
 linkbreakers/models/media_visibility.py
 linkbreakers/models/member.py
+linkbreakers/models/members_service_switch_workspace_body.py
 linkbreakers/models/members_service_update_body.py
 linkbreakers/models/message_page_navigation_type.py
 linkbreakers/models/message_page_payload.py
@@ -318,6 +320,7 @@ linkbreakers/models/multi_link_payload.py
 linkbreakers/models/multi_link_trace_button.py
 linkbreakers/models/multi_link_trace_data.py
 linkbreakers/models/multi_link_trace_selected_button.py
+linkbreakers/models/my_workspace.py
 linkbreakers/models/output_file_format.py
 linkbreakers/models/page_theme.py
 linkbreakers/models/page_theme_badge_shape.py
@@ -404,6 +407,7 @@ linkbreakers/models/specific_date_condition_trace_data.py
 linkbreakers/models/specific_date_condition_trace_option.py
 linkbreakers/models/specific_date_option.py
 linkbreakers/models/subscription_type.py
+linkbreakers/models/switch_workspace_response.py
 linkbreakers/models/sync_google_forms_response.py
 linkbreakers/models/test_slack_integration_response.py
 linkbreakers/models/thank_you_page_payload.py
