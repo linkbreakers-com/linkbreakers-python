@@ -70,6 +70,7 @@ linkbreakers/models/attribute_value_entry.py
 linkbreakers/models/attribute_write.py
 linkbreakers/models/attribute_write_mode.py
 linkbreakers/models/auto_layout_workflow_response.py
+linkbreakers/models/back_button.py
 linkbreakers/models/background_options.py
 linkbreakers/models/billing_interval.py
 linkbreakers/models/breakdown_data_point.py
@@ -82,6 +83,7 @@ linkbreakers/models/claim_agent_workspace_request.py
 linkbreakers/models/client_redirect_payload.py
 linkbreakers/models/complete_google_forms_o_auth_request.py
 linkbreakers/models/complete_google_forms_o_auth_response.py
+linkbreakers/models/complete_media_upload_response.py
 linkbreakers/models/complete_slack_o_auth_request.py
 linkbreakers/models/complete_slack_o_auth_response.py
 linkbreakers/models/connect_workflow_step_response.py
@@ -107,10 +109,14 @@ linkbreakers/models/create_dashboard_response.py
 linkbreakers/models/create_directory_request.py
 linkbreakers/models/create_directory_response.py
 linkbreakers/models/create_event_trace_response.py
+linkbreakers/models/create_file_link_request.py
+linkbreakers/models/create_file_link_response.py
 linkbreakers/models/create_link_request.py
 linkbreakers/models/create_link_response.py
 linkbreakers/models/create_media_request.py
 linkbreakers/models/create_media_response.py
+linkbreakers/models/create_media_upload_request.py
+linkbreakers/models/create_media_upload_response.py
 linkbreakers/models/create_page_theme_template_request.py
 linkbreakers/models/create_page_theme_template_response.py
 linkbreakers/models/create_qrcode_template_request.py
@@ -198,6 +204,8 @@ linkbreakers/models/events_service_create_event_trace_body.py
 linkbreakers/models/events_service_update_device_body.py
 linkbreakers/models/events_time_series.py
 linkbreakers/models/events_time_series_data.py
+linkbreakers/models/file_payload.py
+linkbreakers/models/file_trace_data.py
 linkbreakers/models/find_matching_page_theme_template_response.py
 linkbreakers/models/font_config.py
 linkbreakers/models/form_field.py
@@ -306,8 +314,11 @@ linkbreakers/models/list_webhooks_response.py
 linkbreakers/models/list_workflow_steps_response.py
 linkbreakers/models/list_workspace_tokens_response.py
 linkbreakers/models/media.py
+linkbreakers/models/media_kind.py
 linkbreakers/models/media_selection.py
+linkbreakers/models/media_status.py
 linkbreakers/models/media_type.py
+linkbreakers/models/media_usage.py
 linkbreakers/models/media_visibility.py
 linkbreakers/models/member.py
 linkbreakers/models/members_service_switch_workspace_body.py
