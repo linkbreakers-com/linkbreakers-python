@@ -109,14 +109,14 @@ linkbreakers/models/create_dashboard_response.py
 linkbreakers/models/create_directory_request.py
 linkbreakers/models/create_directory_response.py
 linkbreakers/models/create_event_trace_response.py
-linkbreakers/models/create_file_link_request.py
-linkbreakers/models/create_file_link_response.py
 linkbreakers/models/create_link_request.py
 linkbreakers/models/create_link_response.py
 linkbreakers/models/create_media_request.py
 linkbreakers/models/create_media_response.py
 linkbreakers/models/create_media_upload_request.py
 linkbreakers/models/create_media_upload_response.py
+linkbreakers/models/create_open_media_link_request.py
+linkbreakers/models/create_open_media_link_response.py
 linkbreakers/models/create_page_theme_template_request.py
 linkbreakers/models/create_page_theme_template_response.py
 linkbreakers/models/create_qrcode_template_request.py
@@ -204,8 +204,6 @@ linkbreakers/models/events_service_create_event_trace_body.py
 linkbreakers/models/events_service_update_device_body.py
 linkbreakers/models/events_time_series.py
 linkbreakers/models/events_time_series_data.py
-linkbreakers/models/file_payload.py
-linkbreakers/models/file_trace_data.py
 linkbreakers/models/find_matching_page_theme_template_response.py
 linkbreakers/models/font_config.py
 linkbreakers/models/form_field.py
@@ -319,7 +317,9 @@ linkbreakers/models/media_reference.py
 linkbreakers/models/media_reference_type.py
 linkbreakers/models/media_selection.py
 linkbreakers/models/media_status.py
+linkbreakers/models/media_trace_data.py
 linkbreakers/models/media_type.py
+linkbreakers/models/media_upload_origin.py
 linkbreakers/models/media_usage.py
 linkbreakers/models/media_visibility.py
 linkbreakers/models/member.py
@@ -334,6 +334,7 @@ linkbreakers/models/multi_link_trace_button.py
 linkbreakers/models/multi_link_trace_data.py
 linkbreakers/models/multi_link_trace_selected_button.py
 linkbreakers/models/my_workspace.py
+linkbreakers/models/open_media_payload.py
 linkbreakers/models/output_file_format.py
 linkbreakers/models/page_theme.py
 linkbreakers/models/page_theme_badge_shape.py
