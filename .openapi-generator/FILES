@@ -86,6 +86,7 @@ linkbreakers/models/claim_agent_workspace_request.py
 linkbreakers/models/client_redirect_payload.py
 linkbreakers/models/complete_google_forms_o_auth_request.py
 linkbreakers/models/complete_google_forms_o_auth_response.py
+linkbreakers/models/complete_media_replace_response.py
 linkbreakers/models/complete_media_upload_response.py
 linkbreakers/models/complete_slack_o_auth_request.py
 linkbreakers/models/complete_slack_o_auth_response.py
@@ -114,6 +115,7 @@ linkbreakers/models/create_directory_response.py
 linkbreakers/models/create_event_trace_response.py
 linkbreakers/models/create_link_request.py
 linkbreakers/models/create_link_response.py
+linkbreakers/models/create_media_replace_upload_response.py
 linkbreakers/models/create_media_request.py
 linkbreakers/models/create_media_response.py
 linkbreakers/models/create_media_upload_request.py
@@ -321,6 +323,8 @@ linkbreakers/models/media_kind.py
 linkbreakers/models/media_reference.py
 linkbreakers/models/media_reference_type.py
 linkbreakers/models/media_selection.py
+linkbreakers/models/media_service_create_replace_upload_body.py
+linkbreakers/models/media_service_replace_import_body.py
 linkbreakers/models/media_status.py
 linkbreakers/models/media_trace_data.py
 linkbreakers/models/media_type.py
@@ -383,6 +387,7 @@ linkbreakers/models/qrcode_template_scope.py
 linkbreakers/models/qrcode_templates_service_update_qrcode_template_body.py
 linkbreakers/models/redirect_trace_data.py
 linkbreakers/models/redirect_trace_data_fallback_reason.py
+linkbreakers/models/replace_media_import_response.py
 linkbreakers/models/request_workspace_enrollment_request.py
 linkbreakers/models/resolve_page_theme_template_images_request.py
 linkbreakers/models/resolve_page_theme_template_images_response.py
