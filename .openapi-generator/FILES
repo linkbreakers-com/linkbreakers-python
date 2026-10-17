@@ -56,7 +56,10 @@ linkbreakers/models/apply_page_theme_template_request.py
 linkbreakers/models/apply_page_theme_template_response.py
 linkbreakers/models/apply_qrcode_template_request.py
 linkbreakers/models/apply_qrcode_template_response.py
+linkbreakers/models/assistant_complete_attachment_upload_response.py
 linkbreakers/models/assistant_context_type.py
+linkbreakers/models/assistant_create_attachment_upload_request.py
+linkbreakers/models/assistant_create_attachment_upload_response.py
 linkbreakers/models/assistant_display_message.py
 linkbreakers/models/assistant_display_message_attachment.py
 linkbreakers/models/assistant_get_conversation_response.py
@@ -266,6 +269,8 @@ linkbreakers/models/http_method.py
 linkbreakers/models/identify_request.py
 linkbreakers/models/identify_response.py
 linkbreakers/models/identify_visitor_trace_data.py
+linkbreakers/models/import_media_request.py
+linkbreakers/models/import_media_response.py
 linkbreakers/models/import_page_theme_template_request.py
 linkbreakers/models/import_page_theme_template_response.py
 linkbreakers/models/import_qrcode_template_request.py
