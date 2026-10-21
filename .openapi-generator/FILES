@@ -11,6 +11,7 @@ linkbreakers/api/analytics_dashboard_api.py
 linkbreakers/api/analytics_data_api.py
 linkbreakers/api/api_scopes_api.py
 linkbreakers/api/assistant_api.py
+linkbreakers/api/auth_api.py
 linkbreakers/api/custom_domains_api.py
 linkbreakers/api/directories_api.py
 linkbreakers/api/events_api.py
@@ -388,6 +389,7 @@ linkbreakers/models/qrcode_templates_service_update_qrcode_template_body.py
 linkbreakers/models/redirect_trace_data.py
 linkbreakers/models/redirect_trace_data_fallback_reason.py
 linkbreakers/models/replace_media_import_response.py
+linkbreakers/models/request_email_verification_request.py
 linkbreakers/models/request_workspace_enrollment_request.py
 linkbreakers/models/resolve_page_theme_template_images_request.py
 linkbreakers/models/resolve_page_theme_template_images_response.py
