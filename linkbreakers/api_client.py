@@ -19,7 +19,9 @@ import decimal
 import json
 import mimetypes
 import os
+import platform
 import re
+import sys
 import tempfile
 import uuid
 
@@ -73,6 +75,20 @@ class ApiClient:
     }
     _pool = None
 
+    # Linkbreakers: identifies this SDK to the API. Overridable with
+    # set_default_header or header_name/header_value.
+    @staticmethod
+    def linkbreakers_client() -> str:
+        if sys.platform.startswith('linux'):
+            os_family = 'linux'
+        elif sys.platform == 'darwin':
+            os_family = 'darwin'
+        elif sys.platform in ('win32', 'cygwin'):
+            os_family = 'windows'
+        else:
+            os_family = 'other'
+        return 'sdk-python/1.183.3 (python %s; %s)' % (platform.python_version(), os_family)
+
     def __init__(
         self,
         configuration=None,
@@ -86,12 +102,13 @@ class ApiClient:
         self.configuration = configuration
 
         self.rest_client = rest.RESTClientObject(configuration)
-        self.default_headers = {}
+        self.default_headers = {
+            'User-Agent': 'linkbreakers-python-sdk/1.183.3',
+            'Linkbreakers-Client': self.linkbreakers_client(),
+        }
         if header_name is not None:
             self.default_headers[header_name] = header_value
         self.cookie = cookie
-        # Set default User-Agent.
-        self.user_agent = 'OpenAPI-Generator/1.183.3/python'
         self.client_side_validation = configuration.client_side_validation
 
     def __enter__(self):
