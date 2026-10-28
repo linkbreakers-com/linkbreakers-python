@@ -210,6 +210,8 @@ For complete, runnable code examples, see the [examples/](./examples) directory:
 
 Each example is complete, well-documented, and ready to run. See [examples/README.md](./examples/README.md) for details.
 
+**Whole projects** live in [linkbreakers-com/examples](https://github.com/linkbreakers-com/examples), each a small repo you can run as is. Start with [bulk dynamic QR codes from a CSV](https://github.com/linkbreakers-com/examples/tree/main/bulk-dynamic-qr-codes-from-csv-python): a CSV of destinations in, one dynamic QR code (SVG) and short link per row out, then the scan counts written back to the CSV.
+
 ## Documentation
 
 For complete API documentation, visit [https://docs.linkbreakers.com](https://docs.linkbreakers.com)
