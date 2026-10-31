@@ -4,9 +4,9 @@
 """
     Linkbreakers API
 
-    This is a documentation of all the APIs of Linkbreakers  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 600 requests per 60 seconds, per token. - Dashboard session or OAuth token: 500 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.
+    This is a documentation of all the APIs of Linkbreakers  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.
 
-    The version of the OpenAPI document: 1.183.3
+    The version of the OpenAPI document: 1.186.2
     Contact: support@linkbreakers.com
     Generated by OpenAPI Generator (https://openapi-generator.tech)
 
@@ -93,14 +93,14 @@ from linkbreakers.models.create_media_request import CreateMediaRequest
 from linkbreakers.models.create_media_response import CreateMediaResponse
 from linkbreakers.models.create_media_upload_request import CreateMediaUploadRequest
 from linkbreakers.models.create_media_upload_response import CreateMediaUploadResponse
+from linkbreakers.models.create_my_workspace_request import CreateMyWorkspaceRequest
+from linkbreakers.models.create_my_workspace_response import CreateMyWorkspaceResponse
 from linkbreakers.models.create_open_media_link_request import CreateOpenMediaLinkRequest
 from linkbreakers.models.create_open_media_link_response import CreateOpenMediaLinkResponse
 from linkbreakers.models.create_page_theme_template_request import CreatePageThemeTemplateRequest
 from linkbreakers.models.create_page_theme_template_response import CreatePageThemeTemplateResponse
 from linkbreakers.models.create_qrcode_template_request import CreateQrcodeTemplateRequest
 from linkbreakers.models.create_qrcode_template_response import CreateQrcodeTemplateResponse
-from linkbreakers.models.create_sandbox_request import CreateSandboxRequest
-from linkbreakers.models.create_sandbox_response import CreateSandboxResponse
 from linkbreakers.models.create_thank_you_link_request import CreateThankYouLinkRequest
 from linkbreakers.models.create_thank_you_link_response import CreateThankYouLinkResponse
 from linkbreakers.models.create_webhook_request import CreateWebhookRequest
@@ -205,6 +205,7 @@ from linkbreakers.models.get_breakdown_request import GetBreakdownRequest
 from linkbreakers.models.get_breakdown_response import GetBreakdownResponse
 from linkbreakers.models.get_custom_domain_response import GetCustomDomainResponse
 from linkbreakers.models.get_custom_domain_setup_guide_response import GetCustomDomainSetupGuideResponse
+from linkbreakers.models.get_data_collection_response import GetDataCollectionResponse
 from linkbreakers.models.get_device_distribution_request import GetDeviceDistributionRequest
 from linkbreakers.models.get_device_distribution_response import GetDeviceDistributionResponse
 from linkbreakers.models.get_directory_response import GetDirectoryResponse
@@ -212,6 +213,7 @@ from linkbreakers.models.get_events_time_series_request import GetEventsTimeSeri
 from linkbreakers.models.get_events_time_series_response import GetEventsTimeSeriesResponse
 from linkbreakers.models.get_geo_breakdown_request import GetGeoBreakdownRequest
 from linkbreakers.models.get_geo_breakdown_response import GetGeoBreakdownResponse
+from linkbreakers.models.get_google_analytics_integration_response import GetGoogleAnalyticsIntegrationResponse
 from linkbreakers.models.get_google_forms_integration_response import GetGoogleFormsIntegrationResponse
 from linkbreakers.models.get_google_forms_o_auth_url_response import GetGoogleFormsOAuthURLResponse
 from linkbreakers.models.get_grouped_time_series_request import GetGroupedTimeSeriesRequest
@@ -223,6 +225,7 @@ from linkbreakers.models.get_link_setting_response import GetLinkSettingResponse
 from linkbreakers.models.get_media_response import GetMediaResponse
 from linkbreakers.models.get_page_theme_response import GetPageThemeResponse
 from linkbreakers.models.get_qrcode_design_response import GetQrcodeDesignResponse
+from linkbreakers.models.get_retargeting_pixels_response import GetRetargetingPixelsResponse
 from linkbreakers.models.get_slack_integration_response import GetSlackIntegrationResponse
 from linkbreakers.models.get_slack_o_auth_url_response import GetSlackOAuthURLResponse
 from linkbreakers.models.get_step_funnel_request import GetStepFunnelRequest
@@ -235,6 +238,7 @@ from linkbreakers.models.get_webhook_response import GetWebhookResponse
 from linkbreakers.models.get_widget_summary_response import GetWidgetSummaryResponse
 from linkbreakers.models.get_workflow_step_response import GetWorkflowStepResponse
 from linkbreakers.models.get_workspace_token_response import GetWorkspaceTokenResponse
+from linkbreakers.models.google_analytics_integration import GoogleAnalyticsIntegration
 from linkbreakers.models.google_forms_integration import GoogleFormsIntegration
 from linkbreakers.models.google_forms_integration_status import GoogleFormsIntegrationStatus
 from linkbreakers.models.googlerpc_status import GooglerpcStatus
@@ -256,6 +260,10 @@ from linkbreakers.models.job_error import JobError
 from linkbreakers.models.job_status import JobStatus
 from linkbreakers.models.job_type import JobType
 from linkbreakers.models.journey_progress import JourneyProgress
+from linkbreakers.models.language_condition_outcome import LanguageConditionOutcome
+from linkbreakers.models.language_condition_payload import LanguageConditionPayload
+from linkbreakers.models.language_condition_trace_data import LanguageConditionTraceData
+from linkbreakers.models.language_condition_trace_option import LanguageConditionTraceOption
 from linkbreakers.models.link import Link
 from linkbreakers.models.link_setting import LinkSetting
 from linkbreakers.models.link_sort_field import LinkSortField
@@ -280,7 +288,6 @@ from linkbreakers.models.list_page_themes_response import ListPageThemesResponse
 from linkbreakers.models.list_pricing_plans_response import ListPricingPlansResponse
 from linkbreakers.models.list_qrcode_templates_response import ListQrcodeTemplatesResponse
 from linkbreakers.models.list_response import ListResponse
-from linkbreakers.models.list_sandboxes_response import ListSandboxesResponse
 from linkbreakers.models.list_slack_channels_response import ListSlackChannelsResponse
 from linkbreakers.models.list_tags_response import ListTagsResponse
 from linkbreakers.models.list_visitor_attribute_keys_response import ListVisitorAttributeKeysResponse
@@ -291,6 +298,9 @@ from linkbreakers.models.list_visitors_response import ListVisitorsResponse
 from linkbreakers.models.list_webhooks_response import ListWebhooksResponse
 from linkbreakers.models.list_workflow_steps_response import ListWorkflowStepsResponse
 from linkbreakers.models.list_workspace_tokens_response import ListWorkspaceTokensResponse
+from linkbreakers.models.location_request_outcome import LocationRequestOutcome
+from linkbreakers.models.location_request_payload import LocationRequestPayload
+from linkbreakers.models.location_request_trace_data import LocationRequestTraceData
 from linkbreakers.models.media import Media
 from linkbreakers.models.media_kind import MediaKind
 from linkbreakers.models.media_reference import MediaReference
@@ -361,6 +371,7 @@ from linkbreakers.models.qrcode_templates_service_update_qrcode_template_body im
 from linkbreakers.models.redirect_trace_data import RedirectTraceData
 from linkbreakers.models.redirect_trace_data_fallback_reason import RedirectTraceDataFallbackReason
 from linkbreakers.models.replace_media_import_response import ReplaceMediaImportResponse
+from linkbreakers.models.report_step_search_miss_request import ReportStepSearchMissRequest
 from linkbreakers.models.request_email_verification_request import RequestEmailVerificationRequest
 from linkbreakers.models.request_workspace_enrollment_request import RequestWorkspaceEnrollmentRequest
 from linkbreakers.models.resolve_page_theme_template_images_request import ResolvePageThemeTemplateImagesRequest
@@ -371,8 +382,8 @@ from linkbreakers.models.resolve_qrcode_template_images_request import ResolveQr
 from linkbreakers.models.resolve_qrcode_template_images_response import ResolveQrcodeTemplateImagesResponse
 from linkbreakers.models.resolve_step_collisions_response import ResolveStepCollisionsResponse
 from linkbreakers.models.response_format import ResponseFormat
+from linkbreakers.models.retargeting_pixels import RetargetingPixels
 from linkbreakers.models.role import Role
-from linkbreakers.models.sandbox import Sandbox
 from linkbreakers.models.settings_service_update_link_setting_body import SettingsServiceUpdateLinkSettingBody
 from linkbreakers.models.shape import Shape
 from linkbreakers.models.shortlink_availability_response import ShortlinkAvailabilityResponse
@@ -408,6 +419,7 @@ from linkbreakers.models.specific_date_option import SpecificDateOption
 from linkbreakers.models.subscription_type import SubscriptionType
 from linkbreakers.models.switch_workspace_response import SwitchWorkspaceResponse
 from linkbreakers.models.sync_google_forms_response import SyncGoogleFormsResponse
+from linkbreakers.models.test_google_analytics_integration_response import TestGoogleAnalyticsIntegrationResponse
 from linkbreakers.models.test_slack_integration_response import TestSlackIntegrationResponse
 from linkbreakers.models.thank_you_page_payload import ThankYouPagePayload
 from linkbreakers.models.theme_color import ThemeColor
@@ -423,8 +435,12 @@ from linkbreakers.models.triggered_by import TriggeredBy
 from linkbreakers.models.type_date import TypeDate
 from linkbreakers.models.update_custom_domain_response import UpdateCustomDomainResponse
 from linkbreakers.models.update_dashboard_response import UpdateDashboardResponse
+from linkbreakers.models.update_data_collection_request import UpdateDataCollectionRequest
+from linkbreakers.models.update_data_collection_response import UpdateDataCollectionResponse
 from linkbreakers.models.update_device_response import UpdateDeviceResponse
 from linkbreakers.models.update_directory_response import UpdateDirectoryResponse
+from linkbreakers.models.update_google_analytics_integration_request import UpdateGoogleAnalyticsIntegrationRequest
+from linkbreakers.models.update_google_analytics_integration_response import UpdateGoogleAnalyticsIntegrationResponse
 from linkbreakers.models.update_google_forms_integration_request import UpdateGoogleFormsIntegrationRequest
 from linkbreakers.models.update_google_forms_integration_response import UpdateGoogleFormsIntegrationResponse
 from linkbreakers.models.update_link_response import UpdateLinkResponse
@@ -435,6 +451,8 @@ from linkbreakers.models.update_page_theme_template_response import UpdatePageTh
 from linkbreakers.models.update_page_theme_template_styling_response import UpdatePageThemeTemplateStylingResponse
 from linkbreakers.models.update_qrcode_design_response import UpdateQrcodeDesignResponse
 from linkbreakers.models.update_qrcode_template_response import UpdateQrcodeTemplateResponse
+from linkbreakers.models.update_retargeting_pixels_request import UpdateRetargetingPixelsRequest
+from linkbreakers.models.update_retargeting_pixels_response import UpdateRetargetingPixelsResponse
 from linkbreakers.models.update_slack_integration_request import UpdateSlackIntegrationRequest
 from linkbreakers.models.update_slack_integration_response import UpdateSlackIntegrationResponse
 from linkbreakers.models.update_webhook_response import UpdateWebhookResponse
