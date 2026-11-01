@@ -3,6 +3,7 @@
 # import apis into api package
 from linkbreakers.api.api_scopes_api import APIScopesApi
 from linkbreakers.api.agent_identity_api import AgentIdentityApi
+from linkbreakers.api.agents_api import AgentsApi
 from linkbreakers.api.allowances_api import AllowancesApi
 from linkbreakers.api.analytics_dashboard_api import AnalyticsDashboardApi
 from linkbreakers.api.analytics_data_api import AnalyticsDataApi
