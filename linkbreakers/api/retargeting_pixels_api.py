@@ -1,9 +1,9 @@
 """
     Linkbreakers API
 
-    This is a documentation of all the APIs of Linkbreakers  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.
+    This is a documentation of all the APIs of Linkbreakers  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
 
-    The version of the OpenAPI document: 1.186.2
+    The version of the OpenAPI document: 1.187.0
     Contact: support@linkbreakers.com
     Generated by OpenAPI Generator (https://openapi-generator.tech)
 
@@ -16,10 +16,11 @@ from pydantic import validate_call, Field, StrictFloat, StrictStr, StrictInt
 from typing import Any, Dict, List, Optional, Tuple, Union
 from typing_extensions import Annotated
 
-from pydantic import Field
+from pydantic import Field, StrictStr
 from typing import Optional
 from typing_extensions import Annotated
 from linkbreakers.models.get_retargeting_pixels_response import GetRetargetingPixelsResponse
+from linkbreakers.models.list_retargeting_pixels_for_link_response import ListRetargetingPixelsForLinkResponse
 from linkbreakers.models.update_retargeting_pixels_request import UpdateRetargetingPixelsRequest
 from linkbreakers.models.update_retargeting_pixels_response import UpdateRetargetingPixelsResponse
 
@@ -59,7 +60,7 @@ class RetargetingPixelsApi:
     ) -> GetRetargetingPixelsResponse:
         """Get retargeting pixels
 
-        Return the ad platform pixels the workspace fires on every visit to its links.  Requires the `integrations:read` scope.
+        Return the ad platform pixels the workspace fires on visits to its links, and which links each one fires on.  Requires the `integrations:read` scope.
 
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -123,7 +124,7 @@ class RetargetingPixelsApi:
     ) -> ApiResponse[GetRetargetingPixelsResponse]:
         """Get retargeting pixels
 
-        Return the ad platform pixels the workspace fires on every visit to its links.  Requires the `integrations:read` scope.
+        Return the ad platform pixels the workspace fires on visits to its links, and which links each one fires on.  Requires the `integrations:read` scope.
 
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -187,7 +188,7 @@ class RetargetingPixelsApi:
     ) -> RESTResponseType:
         """Get retargeting pixels
 
-        Return the ad platform pixels the workspace fires on every visit to its links.  Requires the `integrations:read` scope.
+        Return the ad platform pixels the workspace fires on visits to its links, and which links each one fires on.  Requires the `integrations:read` scope.
 
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -292,6 +293,271 @@ class RetargetingPixelsApi:
 
 
     @validate_call
+    def retargeting_pixels_service_list_for_link(
+        self,
+        link_id: Annotated[StrictStr, Field(description="The link to check.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ListRetargetingPixelsForLinkResponse:
+        """List retargeting pixels for a link
+
+        Return the pixels that fire on a person's visit to this link: those scoped to every link, and those whose selected links, directories or tags cover it.  Requires the `integrations:read` scope.
+
+        :param link_id: The link to check. (required)
+        :type link_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._retargeting_pixels_service_list_for_link_serialize(
+            link_id=link_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "ListRetargetingPixelsForLinkResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def retargeting_pixels_service_list_for_link_with_http_info(
+        self,
+        link_id: Annotated[StrictStr, Field(description="The link to check.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[ListRetargetingPixelsForLinkResponse]:
+        """List retargeting pixels for a link
+
+        Return the pixels that fire on a person's visit to this link: those scoped to every link, and those whose selected links, directories or tags cover it.  Requires the `integrations:read` scope.
+
+        :param link_id: The link to check. (required)
+        :type link_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._retargeting_pixels_service_list_for_link_serialize(
+            link_id=link_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "ListRetargetingPixelsForLinkResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def retargeting_pixels_service_list_for_link_without_preload_content(
+        self,
+        link_id: Annotated[StrictStr, Field(description="The link to check.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """List retargeting pixels for a link
+
+        Return the pixels that fire on a person's visit to this link: those scoped to every link, and those whose selected links, directories or tags cover it.  Requires the `integrations:read` scope.
+
+        :param link_id: The link to check. (required)
+        :type link_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._retargeting_pixels_service_list_for_link_serialize(
+            link_id=link_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "ListRetargetingPixelsForLinkResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _retargeting_pixels_service_list_for_link_serialize(
+        self,
+        link_id,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if link_id is not None:
+            _path_params['linkId'] = link_id
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+
+        # set the HTTP header `Accept`
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'oauth2', 
+            'bearerAuth'
+        ]
+
+        return self.api_client.param_serialize(
+            method='GET',
+            resource_path='/v1/retargeting-pixels/links/{linkId}',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
     def retargeting_pixels_service_update(
         self,
         update_retargeting_pixels_request: UpdateRetargetingPixelsRequest,
@@ -311,7 +577,7 @@ class RetargetingPixelsApi:
     ) -> UpdateRetargetingPixelsResponse:
         """Update retargeting pixels
 
-        Set, change or remove the ad platform pixels fired on every link visit. Omitted fields keep their value and an empty string removes a pixel. Once any pixel is set, link visits go through a short browser page that fires the pixels and then redirects, which adds a short delay.  Requires the `integrations:write` scope.
+        Set, change or remove the ad platform pixels fired on link visits, and which links each fires on. Omitted fields keep their value and an empty string removes a pixel. A pixel fires on every link by default; a scope with SELECTED_LINKS limits it to some links, directories (with their sub-directories) and tags, and a pixel left out of scopes keeps its scope. Visits a pixel fires on go through a short browser page that fires the pixels and then redirects, which adds a short delay; visits no pixel fires on redirect instantly.  Requires the `integrations:write` scope.
 
         :param update_retargeting_pixels_request: (required)
         :type update_retargeting_pixels_request: UpdateRetargetingPixelsRequest
@@ -383,7 +649,7 @@ class RetargetingPixelsApi:
     ) -> ApiResponse[UpdateRetargetingPixelsResponse]:
         """Update retargeting pixels
 
-        Set, change or remove the ad platform pixels fired on every link visit. Omitted fields keep their value and an empty string removes a pixel. Once any pixel is set, link visits go through a short browser page that fires the pixels and then redirects, which adds a short delay.  Requires the `integrations:write` scope.
+        Set, change or remove the ad platform pixels fired on link visits, and which links each fires on. Omitted fields keep their value and an empty string removes a pixel. A pixel fires on every link by default; a scope with SELECTED_LINKS limits it to some links, directories (with their sub-directories) and tags, and a pixel left out of scopes keeps its scope. Visits a pixel fires on go through a short browser page that fires the pixels and then redirects, which adds a short delay; visits no pixel fires on redirect instantly.  Requires the `integrations:write` scope.
 
         :param update_retargeting_pixels_request: (required)
         :type update_retargeting_pixels_request: UpdateRetargetingPixelsRequest
@@ -455,7 +721,7 @@ class RetargetingPixelsApi:
     ) -> RESTResponseType:
         """Update retargeting pixels
 
-        Set, change or remove the ad platform pixels fired on every link visit. Omitted fields keep their value and an empty string removes a pixel. Once any pixel is set, link visits go through a short browser page that fires the pixels and then redirects, which adds a short delay.  Requires the `integrations:write` scope.
+        Set, change or remove the ad platform pixels fired on link visits, and which links each fires on. Omitted fields keep their value and an empty string removes a pixel. A pixel fires on every link by default; a scope with SELECTED_LINKS limits it to some links, directories (with their sub-directories) and tags, and a pixel left out of scopes keeps its scope. Visits a pixel fires on go through a short browser page that fires the pixels and then redirects, which adds a short delay; visits no pixel fires on redirect instantly.  Requires the `integrations:write` scope.
 
         :param update_retargeting_pixels_request: (required)
         :type update_retargeting_pixels_request: UpdateRetargetingPixelsRequest
