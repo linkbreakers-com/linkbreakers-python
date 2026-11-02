@@ -445,6 +445,7 @@ linkbreakers/models/redirect_trace_data_fallback_reason.py
 linkbreakers/models/render_qrcode_images_response.py
 linkbreakers/models/rendered_qrcode.py
 linkbreakers/models/replace_media_import_response.py
+linkbreakers/models/report_integration_search_miss_request.py
 linkbreakers/models/report_step_search_miss_request.py
 linkbreakers/models/request_email_verification_request.py
 linkbreakers/models/request_workspace_enrollment_request.py
