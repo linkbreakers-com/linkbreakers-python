@@ -288,6 +288,7 @@ linkbreakers/models/get_page_theme_response.py
 linkbreakers/models/get_qrcode_design_response.py
 linkbreakers/models/get_retargeting_pixels_response.py
 linkbreakers/models/get_review_reward_offer_response.py
+linkbreakers/models/get_shared_locations_response.py
 linkbreakers/models/get_slack_integration_response.py
 linkbreakers/models/get_slack_o_auth_url_response.py
 linkbreakers/models/get_step_funnel_request.py
@@ -318,6 +319,8 @@ linkbreakers/models/import_page_theme_template_request.py
 linkbreakers/models/import_page_theme_template_response.py
 linkbreakers/models/import_qrcode_template_request.py
 linkbreakers/models/import_qrcode_template_response.py
+linkbreakers/models/in_app_browser.py
+linkbreakers/models/in_app_browser_details.py
 linkbreakers/models/invite_member_request.py
 linkbreakers/models/job.py
 linkbreakers/models/job_error.py
@@ -469,6 +472,7 @@ linkbreakers/models/review_reward_status.py
 linkbreakers/models/role.py
 linkbreakers/models/settings_service_update_link_setting_body.py
 linkbreakers/models/shape.py
+linkbreakers/models/shared_location.py
 linkbreakers/models/shortlink_availability_response.py
 linkbreakers/models/shortlink_random_response.py
 linkbreakers/models/slack_channel.py
