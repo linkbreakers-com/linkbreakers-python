@@ -99,6 +99,17 @@ linkbreakers/models/back_button.py
 linkbreakers/models/background_options.py
 linkbreakers/models/billing_interval.py
 linkbreakers/models/breakdown_data_point.py
+linkbreakers/models/bulk_edit_status.py
+linkbreakers/models/bulk_insert_workflow_step_override.py
+linkbreakers/models/bulk_insert_workflow_step_request.py
+linkbreakers/models/bulk_insert_workflow_step_response.py
+linkbreakers/models/bulk_insert_workflow_step_result.py
+linkbreakers/models/bulk_page_theme_change.py
+linkbreakers/models/bulk_page_theme_result.py
+linkbreakers/models/bulk_page_theme_values.py
+linkbreakers/models/bulk_step_branch.py
+linkbreakers/models/bulk_update_page_themes_request.py
+linkbreakers/models/bulk_update_page_themes_response.py
 linkbreakers/models/canvas_position.py
 linkbreakers/models/chat_bot_collected_value.py
 linkbreakers/models/chat_bot_message_author.py
