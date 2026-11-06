@@ -306,6 +306,8 @@ linkbreakers/models/get_step_funnel_request.py
 linkbreakers/models/get_step_funnel_response.py
 linkbreakers/models/get_top_links_request.py
 linkbreakers/models/get_top_links_response.py
+linkbreakers/models/get_traffic_split_results_request.py
+linkbreakers/models/get_traffic_split_results_response.py
 linkbreakers/models/get_visitor_trends_request.py
 linkbreakers/models/get_visitor_trends_response.py
 linkbreakers/models/get_wallet_pass_support_response.py
@@ -461,6 +463,7 @@ linkbreakers/models/rendered_qrcode.py
 linkbreakers/models/replace_media_import_response.py
 linkbreakers/models/report_integration_search_miss_request.py
 linkbreakers/models/report_step_search_miss_request.py
+linkbreakers/models/report_step_search_request.py
 linkbreakers/models/request_email_verification_request.py
 linkbreakers/models/request_workspace_enrollment_request.py
 linkbreakers/models/resolve_page_theme_template_images_request.py
@@ -531,6 +534,10 @@ linkbreakers/models/time_of_day_range.py
 linkbreakers/models/time_series_point.py
 linkbreakers/models/time_series_series.py
 linkbreakers/models/top_link_data_point.py
+linkbreakers/models/traffic_split_payload.py
+linkbreakers/models/traffic_split_trace_data.py
+linkbreakers/models/traffic_split_variant.py
+linkbreakers/models/traffic_split_variant_result.py
 linkbreakers/models/triggered_by.py
 linkbreakers/models/type_date.py
 linkbreakers/models/update_agent_knowledge_document_response.py
