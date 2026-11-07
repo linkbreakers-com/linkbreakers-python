@@ -12,6 +12,7 @@ from linkbreakers.api.auth_api import AuthApi
 from linkbreakers.api.custom_domains_api import CustomDomainsApi
 from linkbreakers.api.directories_api import DirectoriesApi
 from linkbreakers.api.events_api import EventsApi
+from linkbreakers.api.form_integrations_api import FormIntegrationsApi
 from linkbreakers.api.google_analytics_integrations_api import GoogleAnalyticsIntegrationsApi
 from linkbreakers.api.google_forms_integrations_api import GoogleFormsIntegrationsApi
 from linkbreakers.api.integrations_api import IntegrationsApi
