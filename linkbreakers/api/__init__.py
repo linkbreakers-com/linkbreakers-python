@@ -14,6 +14,7 @@ from linkbreakers.api.directories_api import DirectoriesApi
 from linkbreakers.api.events_api import EventsApi
 from linkbreakers.api.google_analytics_integrations_api import GoogleAnalyticsIntegrationsApi
 from linkbreakers.api.google_forms_integrations_api import GoogleFormsIntegrationsApi
+from linkbreakers.api.integrations_api import IntegrationsApi
 from linkbreakers.api.integrations_service_api import IntegrationsServiceApi
 from linkbreakers.api.jobs_api import JobsApi
 from linkbreakers.api.link_settings_api import LinkSettingsApi

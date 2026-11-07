@@ -18,6 +18,7 @@ linkbreakers/api/directories_api.py
 linkbreakers/api/events_api.py
 linkbreakers/api/google_analytics_integrations_api.py
 linkbreakers/api/google_forms_integrations_api.py
+linkbreakers/api/integrations_api.py
 linkbreakers/api/integrations_service_api.py
 linkbreakers/api/jobs_api.py
 linkbreakers/api/link_settings_api.py
@@ -334,6 +335,8 @@ linkbreakers/models/import_qrcode_template_request.py
 linkbreakers/models/import_qrcode_template_response.py
 linkbreakers/models/in_app_browser.py
 linkbreakers/models/in_app_browser_details.py
+linkbreakers/models/integration_delivery.py
+linkbreakers/models/integration_visitor_data.py
 linkbreakers/models/invite_member_request.py
 linkbreakers/models/job.py
 linkbreakers/models/job_error.py
@@ -345,6 +348,8 @@ linkbreakers/models/language_condition_payload.py
 linkbreakers/models/language_condition_trace_data.py
 linkbreakers/models/language_condition_trace_option.py
 linkbreakers/models/link.py
+linkbreakers/models/link_integration.py
+linkbreakers/models/link_integration_kind.py
 linkbreakers/models/link_setting.py
 linkbreakers/models/link_sort_field.py
 linkbreakers/models/link_view.py
@@ -363,6 +368,7 @@ linkbreakers/models/list_event_traces_response.py
 linkbreakers/models/list_events_csv_response.py
 linkbreakers/models/list_events_json_response.py
 linkbreakers/models/list_events_response.py
+linkbreakers/models/list_link_integrations_response.py
 linkbreakers/models/list_links_response.py
 linkbreakers/models/list_media_response.py
 linkbreakers/models/list_my_workspaces_response.py
