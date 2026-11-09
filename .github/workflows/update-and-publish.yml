@@ -89,6 +89,13 @@ jobs:
             --global-property apiTests=false,modelTests=false,apiDocs=false,modelDocs=false \
             --additional-properties=packageVersion=$PACKAGE_VERSION
 
+          # The generator takes the spec title ("Linkbreakers API") as the package
+          # summary; PyPI shows the brand line instead (growth/shared/brand.md).
+          sed -i 's/^description = "Linkbreakers API"/description = "QR codes and links that capture, qualify and route leads: the Python SDK for the Linkbreakers API."/' pyproject.toml
+          sed -i 's/^keywords = \[.*\]/keywords = ["linkbreakers", "qr-code", "short-links", "lead-capture", "api", "sdk"]/' pyproject.toml
+          sed -i 's/    description="Linkbreakers API",/    description="QR codes and links that capture, qualify and route leads: the Python SDK for the Linkbreakers API.",/' setup.py
+          sed -i 's/    keywords=\[.*\],/    keywords=["linkbreakers", "qr-code", "short-links", "lead-capture", "api", "sdk"],/' setup.py
+
           echo "$API_VERSION" > OPENAPI_VERSION
           rm openapi-3.1.json
 

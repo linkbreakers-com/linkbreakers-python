@@ -1,13 +1,13 @@
 [project]
 name = "linkbreakers"
 version = "1.195.7"
-description = "Linkbreakers API"
+description = "QR codes and links that capture, qualify and route leads: the Python SDK for the Linkbreakers API."
 authors = [
   {name = "Linkbreakers Support",email = "support@linkbreakers.com"},
 ]
 license = { text = "MIT" }
 readme = "README.md"
-keywords = ["OpenAPI", "OpenAPI-Generator", "Linkbreakers API"]
+keywords = ["linkbreakers", "qr-code", "short-links", "lead-capture", "api", "sdk"]
 requires-python = ">=3.9"
 
 dependencies = [

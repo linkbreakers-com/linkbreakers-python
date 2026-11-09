@@ -32,11 +32,11 @@ REQUIRES = [
 setup(
     name=NAME,
     version=VERSION,
-    description="Linkbreakers API",
+    description="QR codes and links that capture, qualify and route leads: the Python SDK for the Linkbreakers API.",
     author="Linkbreakers Support",
     author_email="support@linkbreakers.com",
     url="",
-    keywords=["OpenAPI", "OpenAPI-Generator", "Linkbreakers API"],
+    keywords=["linkbreakers", "qr-code", "short-links", "lead-capture", "api", "sdk"],
     install_requires=REQUIRES,
     packages=find_packages(exclude=["test", "tests"]),
     include_package_data=True,
