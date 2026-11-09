@@ -9,6 +9,7 @@ from linkbreakers.api.analytics_dashboard_api import AnalyticsDashboardApi
 from linkbreakers.api.analytics_data_api import AnalyticsDataApi
 from linkbreakers.api.assistant_api import AssistantApi
 from linkbreakers.api.auth_api import AuthApi
+from linkbreakers.api.contact_integrations_api import ContactIntegrationsApi
 from linkbreakers.api.custom_domains_api import CustomDomainsApi
 from linkbreakers.api.directories_api import DirectoriesApi
 from linkbreakers.api.events_api import EventsApi

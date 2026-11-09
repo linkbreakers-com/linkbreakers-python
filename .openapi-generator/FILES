@@ -13,6 +13,7 @@ linkbreakers/api/analytics_data_api.py
 linkbreakers/api/api_scopes_api.py
 linkbreakers/api/assistant_api.py
 linkbreakers/api/auth_api.py
+linkbreakers/api/contact_integrations_api.py
 linkbreakers/api/custom_domains_api.py
 linkbreakers/api/directories_api.py
 linkbreakers/api/events_api.py
@@ -133,10 +134,23 @@ linkbreakers/models/complete_media_replace_response.py
 linkbreakers/models/complete_media_upload_response.py
 linkbreakers/models/complete_slack_o_auth_request.py
 linkbreakers/models/complete_slack_o_auth_response.py
+linkbreakers/models/connect_contact_tool_response.py
 linkbreakers/models/connect_form_tool_response.py
 linkbreakers/models/connect_workflow_step_response.py
 linkbreakers/models/contact_card_trace_card.py
 linkbreakers/models/contact_card_trace_data.py
+linkbreakers/models/contact_connection.py
+linkbreakers/models/contact_field.py
+linkbreakers/models/contact_field_mapping.py
+linkbreakers/models/contact_integrations_service_connect_tool_body.py
+linkbreakers/models/contact_integrations_service_update_body.py
+linkbreakers/models/contact_list.py
+linkbreakers/models/contact_pipeline.py
+linkbreakers/models/contact_pipeline_stage.py
+linkbreakers/models/contact_record_kind.py
+linkbreakers/models/contact_sync_options.py
+linkbreakers/models/contact_tool.py
+linkbreakers/models/contact_tool_capabilities.py
 linkbreakers/models/container_config.py
 linkbreakers/models/corners_dot_options.py
 linkbreakers/models/corners_dot_type.py
@@ -287,6 +301,7 @@ linkbreakers/models/get_attribute_values_request.py
 linkbreakers/models/get_attribute_values_response.py
 linkbreakers/models/get_breakdown_request.py
 linkbreakers/models/get_breakdown_response.py
+linkbreakers/models/get_contact_connection_response.py
 linkbreakers/models/get_custom_domain_response.py
 linkbreakers/models/get_custom_domain_setup_guide_response.py
 linkbreakers/models/get_data_collection_response.py
@@ -374,6 +389,10 @@ linkbreakers/models/list_agent_presets_response.py
 linkbreakers/models/list_agents_response.py
 linkbreakers/models/list_allowances_response.py
 linkbreakers/models/list_api_scopes_response.py
+linkbreakers/models/list_contact_connections_response.py
+linkbreakers/models/list_contact_tool_fields_response.py
+linkbreakers/models/list_contact_tool_lists_response.py
+linkbreakers/models/list_contact_tool_pipelines_response.py
 linkbreakers/models/list_custom_domains_response.py
 linkbreakers/models/list_dashboards_response.py
 linkbreakers/models/list_detected_google_forms_response.py
@@ -397,6 +416,7 @@ linkbreakers/models/list_retargeting_pixels_for_link_response.py
 linkbreakers/models/list_slack_channels_response.py
 linkbreakers/models/list_tags_response.py
 linkbreakers/models/list_visitor_attribute_keys_response.py
+linkbreakers/models/list_visitor_consents_response.py
 linkbreakers/models/list_visitor_countries_response.py
 linkbreakers/models/list_visitors_csv_response.py
 linkbreakers/models/list_visitors_json_response.py
@@ -544,6 +564,7 @@ linkbreakers/models/submit_review_reward_response.py
 linkbreakers/models/subscription_type.py
 linkbreakers/models/switch_workspace_response.py
 linkbreakers/models/sync_google_forms_response.py
+linkbreakers/models/test_contact_connection_response.py
 linkbreakers/models/test_google_analytics_integration_response.py
 linkbreakers/models/test_slack_integration_response.py
 linkbreakers/models/thank_you_page_payload.py
@@ -564,6 +585,7 @@ linkbreakers/models/triggered_by.py
 linkbreakers/models/type_date.py
 linkbreakers/models/update_agent_knowledge_document_response.py
 linkbreakers/models/update_agent_response.py
+linkbreakers/models/update_contact_connection_response.py
 linkbreakers/models/update_custom_domain_response.py
 linkbreakers/models/update_dashboard_response.py
 linkbreakers/models/update_data_collection_request.py
@@ -612,6 +634,7 @@ linkbreakers/models/visitor_attribute_filter.py
 linkbreakers/models/visitor_attribute_filter_operator.py
 linkbreakers/models/visitor_attribute_key.py
 linkbreakers/models/visitor_attribute_type.py
+linkbreakers/models/visitor_consent.py
 linkbreakers/models/visitor_country.py
 linkbreakers/models/visitor_data_condition_option.py
 linkbreakers/models/visitor_data_condition_payload.py
