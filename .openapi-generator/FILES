@@ -127,6 +127,7 @@ linkbreakers/models/chat_ui_option.py
 linkbreakers/models/check_custom_domain_response.py
 linkbreakers/models/claim_agent_workspace_request.py
 linkbreakers/models/client_redirect_payload.py
+linkbreakers/models/complete_contact_tool_o_auth_response.py
 linkbreakers/models/complete_form_tool_o_auth_response.py
 linkbreakers/models/complete_google_forms_o_auth_request.py
 linkbreakers/models/complete_google_forms_o_auth_response.py
@@ -142,15 +143,19 @@ linkbreakers/models/contact_card_trace_data.py
 linkbreakers/models/contact_connection.py
 linkbreakers/models/contact_field.py
 linkbreakers/models/contact_field_mapping.py
+linkbreakers/models/contact_integrations_service_complete_o_auth_body.py
 linkbreakers/models/contact_integrations_service_connect_tool_body.py
+linkbreakers/models/contact_integrations_service_start_o_auth_body.py
 linkbreakers/models/contact_integrations_service_update_body.py
 linkbreakers/models/contact_list.py
+linkbreakers/models/contact_o_auth_environment.py
 linkbreakers/models/contact_pipeline.py
 linkbreakers/models/contact_pipeline_stage.py
 linkbreakers/models/contact_record_kind.py
 linkbreakers/models/contact_sync_options.py
 linkbreakers/models/contact_tool.py
 linkbreakers/models/contact_tool_capabilities.py
+linkbreakers/models/contact_tool_info.py
 linkbreakers/models/container_config.py
 linkbreakers/models/corners_dot_options.py
 linkbreakers/models/corners_dot_type.py
@@ -302,6 +307,7 @@ linkbreakers/models/get_attribute_values_response.py
 linkbreakers/models/get_breakdown_request.py
 linkbreakers/models/get_breakdown_response.py
 linkbreakers/models/get_contact_connection_response.py
+linkbreakers/models/get_contact_tool_response.py
 linkbreakers/models/get_custom_domain_response.py
 linkbreakers/models/get_custom_domain_setup_guide_response.py
 linkbreakers/models/get_data_collection_response.py
@@ -559,6 +565,7 @@ linkbreakers/models/specific_date_condition_payload.py
 linkbreakers/models/specific_date_condition_trace_data.py
 linkbreakers/models/specific_date_condition_trace_option.py
 linkbreakers/models/specific_date_option.py
+linkbreakers/models/start_contact_tool_o_auth_response.py
 linkbreakers/models/submit_review_reward_request.py
 linkbreakers/models/submit_review_reward_response.py
 linkbreakers/models/subscription_type.py
