@@ -1,9 +1,9 @@
 """
     Linkbreakers API
 
-    This is a documentation of all the APIs of Linkbreakers  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
+    The Linkbreakers REST API: links, QR codes, workflows, visitors and analytics, as JSON over HTTPS. Send a workspace API token as `Authorization: Bearer <token>`.  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  A renamed operation keeps answering its former path until that path's sunset. Responses on a former path carry the same `Deprecation`, `Sunset` and `Link` header fields; this document lists only the current path, and the policy lists the former ones.  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
 
-    The version of the OpenAPI document: 1.198.0
+    The version of the OpenAPI document: 1.198.1
     Contact: support@linkbreakers.com
     Generated by OpenAPI Generator (https://openapi-generator.tech)
 
@@ -19,22 +19,24 @@ from typing_extensions import Annotated
 from pydantic import Field, StrictStr
 from typing import Any, Dict, Optional
 from typing_extensions import Annotated
-from linkbreakers.models.complete_google_forms_o_auth_request import CompleteGoogleFormsOAuthRequest
-from linkbreakers.models.complete_google_forms_o_auth_response import CompleteGoogleFormsOAuthResponse
-from linkbreakers.models.get_google_forms_integration_response import GetGoogleFormsIntegrationResponse
-from linkbreakers.models.get_google_forms_o_auth_url_response import GetGoogleFormsOAuthURLResponse
-from linkbreakers.models.google_forms_integrations_service_choose_form_link_body import GoogleFormsIntegrationsServiceChooseFormLinkBody
-from linkbreakers.models.list_detected_google_forms_response import ListDetectedGoogleFormsResponse
-from linkbreakers.models.sync_google_forms_response import SyncGoogleFormsResponse
-from linkbreakers.models.update_google_forms_integration_request import UpdateGoogleFormsIntegrationRequest
-from linkbreakers.models.update_google_forms_integration_response import UpdateGoogleFormsIntegrationResponse
+from linkbreakers.models.connect_contact_tool_response import ConnectContactToolResponse
+from linkbreakers.models.contact_integrations_service_connect_tool_body import ContactIntegrationsServiceConnectToolBody
+from linkbreakers.models.contact_integrations_service_update_body import ContactIntegrationsServiceUpdateBody
+from linkbreakers.models.get_contact_connection_response import GetContactConnectionResponse
+from linkbreakers.models.get_contact_tool_response import GetContactToolResponse
+from linkbreakers.models.list_contact_connections_response import ListContactConnectionsResponse
+from linkbreakers.models.list_contact_tool_fields_response import ListContactToolFieldsResponse
+from linkbreakers.models.list_contact_tool_lists_response import ListContactToolListsResponse
+from linkbreakers.models.list_contact_tool_pipelines_response import ListContactToolPipelinesResponse
+from linkbreakers.models.test_contact_connection_response import TestContactConnectionResponse
+from linkbreakers.models.update_contact_connection_response import UpdateContactConnectionResponse
 
 from linkbreakers.api_client import ApiClient, RequestSerialized
 from linkbreakers.api_response import ApiResponse
 from linkbreakers.rest import RESTResponseType
 
 
-class GoogleFormsIntegrationsApi:
+class IntegrationsContactToolsApi:
     """NOTE: This class is auto generated by OpenAPI Generator
     Ref: https://openapi-generator.tech
 
@@ -48,11 +50,11 @@ class GoogleFormsIntegrationsApi:
 
 
     @validate_call
-    def google_forms_integrations_service_choose_form_link(
+    def contact_integrations_service_connect_tool(
         self,
-        form_id: Annotated[StrictStr, Field(description="The Google Form.")],
-        google_forms_integrations_service_choose_form_link_body: GoogleFormsIntegrationsServiceChooseFormLinkBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        tool: Annotated[StrictStr, Field(description="The tool to connect.")],
+        contact_integrations_service_connect_tool_body: ContactIntegrationsServiceConnectToolBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -65,16 +67,16 @@ class GoogleFormsIntegrationsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> object:
-        """Choose a Google Form's link
+    ) -> ConnectContactToolResponse:
+        """Connect a contact tool
 
-        When the same Google Form is behind several links, timing cannot tell which link a response came from. This records the link its responses belong to.  Requires the `integrations:write` scope.
+        Connect a contact tool with its credential, or replace the stored one. The credential is checked against the tool first. Identified visitors are then created or updated as contacts there, at every step of every link until the delivery setting narrows it.  Requires the `integrations:write` scope.
 
-        :param form_id: The Google Form. (required)
-        :type form_id: str
-        :param google_forms_integrations_service_choose_form_link_body: (required)
-        :type google_forms_integrations_service_choose_form_link_body: GoogleFormsIntegrationsServiceChooseFormLinkBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param tool: The tool to connect. (required)
+        :type tool: str
+        :param contact_integrations_service_connect_tool_body: (required)
+        :type contact_integrations_service_connect_tool_body: ContactIntegrationsServiceConnectToolBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -98,9 +100,9 @@ class GoogleFormsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_forms_integrations_service_choose_form_link_serialize(
-            form_id=form_id,
-            google_forms_integrations_service_choose_form_link_body=google_forms_integrations_service_choose_form_link_body,
+        _param = self._contact_integrations_service_connect_tool_serialize(
+            tool=tool,
+            contact_integrations_service_connect_tool_body=contact_integrations_service_connect_tool_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -109,7 +111,7 @@ class GoogleFormsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "object",
+            '200': "ConnectContactToolResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -124,11 +126,11 @@ class GoogleFormsIntegrationsApi:
 
 
     @validate_call
-    def google_forms_integrations_service_choose_form_link_with_http_info(
+    def contact_integrations_service_connect_tool_with_http_info(
         self,
-        form_id: Annotated[StrictStr, Field(description="The Google Form.")],
-        google_forms_integrations_service_choose_form_link_body: GoogleFormsIntegrationsServiceChooseFormLinkBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        tool: Annotated[StrictStr, Field(description="The tool to connect.")],
+        contact_integrations_service_connect_tool_body: ContactIntegrationsServiceConnectToolBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -141,16 +143,16 @@ class GoogleFormsIntegrationsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[object]:
-        """Choose a Google Form's link
+    ) -> ApiResponse[ConnectContactToolResponse]:
+        """Connect a contact tool
 
-        When the same Google Form is behind several links, timing cannot tell which link a response came from. This records the link its responses belong to.  Requires the `integrations:write` scope.
+        Connect a contact tool with its credential, or replace the stored one. The credential is checked against the tool first. Identified visitors are then created or updated as contacts there, at every step of every link until the delivery setting narrows it.  Requires the `integrations:write` scope.
 
-        :param form_id: The Google Form. (required)
-        :type form_id: str
-        :param google_forms_integrations_service_choose_form_link_body: (required)
-        :type google_forms_integrations_service_choose_form_link_body: GoogleFormsIntegrationsServiceChooseFormLinkBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param tool: The tool to connect. (required)
+        :type tool: str
+        :param contact_integrations_service_connect_tool_body: (required)
+        :type contact_integrations_service_connect_tool_body: ContactIntegrationsServiceConnectToolBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -174,9 +176,9 @@ class GoogleFormsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_forms_integrations_service_choose_form_link_serialize(
-            form_id=form_id,
-            google_forms_integrations_service_choose_form_link_body=google_forms_integrations_service_choose_form_link_body,
+        _param = self._contact_integrations_service_connect_tool_serialize(
+            tool=tool,
+            contact_integrations_service_connect_tool_body=contact_integrations_service_connect_tool_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -185,7 +187,7 @@ class GoogleFormsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "object",
+            '200': "ConnectContactToolResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -200,11 +202,11 @@ class GoogleFormsIntegrationsApi:
 
 
     @validate_call
-    def google_forms_integrations_service_choose_form_link_without_preload_content(
+    def contact_integrations_service_connect_tool_without_preload_content(
         self,
-        form_id: Annotated[StrictStr, Field(description="The Google Form.")],
-        google_forms_integrations_service_choose_form_link_body: GoogleFormsIntegrationsServiceChooseFormLinkBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        tool: Annotated[StrictStr, Field(description="The tool to connect.")],
+        contact_integrations_service_connect_tool_body: ContactIntegrationsServiceConnectToolBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -218,15 +220,15 @@ class GoogleFormsIntegrationsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Choose a Google Form's link
+        """Connect a contact tool
 
-        When the same Google Form is behind several links, timing cannot tell which link a response came from. This records the link its responses belong to.  Requires the `integrations:write` scope.
+        Connect a contact tool with its credential, or replace the stored one. The credential is checked against the tool first. Identified visitors are then created or updated as contacts there, at every step of every link until the delivery setting narrows it.  Requires the `integrations:write` scope.
 
-        :param form_id: The Google Form. (required)
-        :type form_id: str
-        :param google_forms_integrations_service_choose_form_link_body: (required)
-        :type google_forms_integrations_service_choose_form_link_body: GoogleFormsIntegrationsServiceChooseFormLinkBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param tool: The tool to connect. (required)
+        :type tool: str
+        :param contact_integrations_service_connect_tool_body: (required)
+        :type contact_integrations_service_connect_tool_body: ContactIntegrationsServiceConnectToolBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -250,9 +252,9 @@ class GoogleFormsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_forms_integrations_service_choose_form_link_serialize(
-            form_id=form_id,
-            google_forms_integrations_service_choose_form_link_body=google_forms_integrations_service_choose_form_link_body,
+        _param = self._contact_integrations_service_connect_tool_serialize(
+            tool=tool,
+            contact_integrations_service_connect_tool_body=contact_integrations_service_connect_tool_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -261,7 +263,7 @@ class GoogleFormsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "object",
+            '200': "ConnectContactToolResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -271,10 +273,10 @@ class GoogleFormsIntegrationsApi:
         return response_data.response
 
 
-    def _google_forms_integrations_service_choose_form_link_serialize(
+    def _contact_integrations_service_connect_tool_serialize(
         self,
-        form_id,
-        google_forms_integrations_service_choose_form_link_body,
+        tool,
+        contact_integrations_service_connect_tool_body,
         idempotency_key,
         _request_auth,
         _content_type,
@@ -297,16 +299,16 @@ class GoogleFormsIntegrationsApi:
         _body_params: Optional[bytes] = None
 
         # process the path parameters
-        if form_id is not None:
-            _path_params['formId'] = form_id
+        if tool is not None:
+            _path_params['tool'] = tool
         # process the query parameters
         # process the header parameters
         if idempotency_key is not None:
             _header_params['Idempotency-Key'] = idempotency_key
         # process the form parameters
         # process the body parameter
-        if google_forms_integrations_service_choose_form_link_body is not None:
-            _body_params = google_forms_integrations_service_choose_form_link_body
+        if contact_integrations_service_connect_tool_body is not None:
+            _body_params = contact_integrations_service_connect_tool_body
 
 
         # set the HTTP header `Accept`
@@ -339,7 +341,7 @@ class GoogleFormsIntegrationsApi:
 
         return self.api_client.param_serialize(
             method='POST',
-            resource_path='/v1/google-forms-integrations/forms/{formId}/link',
+            resource_path='/v1/integrations/contacts/{tool}/connect',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -356,301 +358,9 @@ class GoogleFormsIntegrationsApi:
 
 
     @validate_call
-    def google_forms_integrations_service_complete_o_auth(
+    def contact_integrations_service_disconnect(
         self,
-        complete_google_forms_o_auth_request: CompleteGoogleFormsOAuthRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> CompleteGoogleFormsOAuthResponse:
-        """Complete Google OAuth
-
-        Exchanges the Google authorization code for tokens and creates the workspace integration.  Requires the `integrations:write` scope.
-
-        :param complete_google_forms_o_auth_request: (required)
-        :type complete_google_forms_o_auth_request: CompleteGoogleFormsOAuthRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
-        :type idempotency_key: str
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._google_forms_integrations_service_complete_o_auth_serialize(
-            complete_google_forms_o_auth_request=complete_google_forms_o_auth_request,
-            idempotency_key=idempotency_key,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "CompleteGoogleFormsOAuthResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        ).data
-
-
-    @validate_call
-    def google_forms_integrations_service_complete_o_auth_with_http_info(
-        self,
-        complete_google_forms_o_auth_request: CompleteGoogleFormsOAuthRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[CompleteGoogleFormsOAuthResponse]:
-        """Complete Google OAuth
-
-        Exchanges the Google authorization code for tokens and creates the workspace integration.  Requires the `integrations:write` scope.
-
-        :param complete_google_forms_o_auth_request: (required)
-        :type complete_google_forms_o_auth_request: CompleteGoogleFormsOAuthRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
-        :type idempotency_key: str
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._google_forms_integrations_service_complete_o_auth_serialize(
-            complete_google_forms_o_auth_request=complete_google_forms_o_auth_request,
-            idempotency_key=idempotency_key,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "CompleteGoogleFormsOAuthResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        )
-
-
-    @validate_call
-    def google_forms_integrations_service_complete_o_auth_without_preload_content(
-        self,
-        complete_google_forms_o_auth_request: CompleteGoogleFormsOAuthRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> RESTResponseType:
-        """Complete Google OAuth
-
-        Exchanges the Google authorization code for tokens and creates the workspace integration.  Requires the `integrations:write` scope.
-
-        :param complete_google_forms_o_auth_request: (required)
-        :type complete_google_forms_o_auth_request: CompleteGoogleFormsOAuthRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
-        :type idempotency_key: str
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._google_forms_integrations_service_complete_o_auth_serialize(
-            complete_google_forms_o_auth_request=complete_google_forms_o_auth_request,
-            idempotency_key=idempotency_key,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "CompleteGoogleFormsOAuthResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        return response_data.response
-
-
-    def _google_forms_integrations_service_complete_o_auth_serialize(
-        self,
-        complete_google_forms_o_auth_request,
-        idempotency_key,
-        _request_auth,
-        _content_type,
-        _headers,
-        _host_index,
-    ) -> RequestSerialized:
-
-        _host = None
-
-        _collection_formats: Dict[str, str] = {
-        }
-
-        _path_params: Dict[str, str] = {}
-        _query_params: List[Tuple[str, str]] = []
-        _header_params: Dict[str, Optional[str]] = _headers or {}
-        _form_params: List[Tuple[str, str]] = []
-        _files: Dict[
-            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
-        ] = {}
-        _body_params: Optional[bytes] = None
-
-        # process the path parameters
-        # process the query parameters
-        # process the header parameters
-        if idempotency_key is not None:
-            _header_params['Idempotency-Key'] = idempotency_key
-        # process the form parameters
-        # process the body parameter
-        if complete_google_forms_o_auth_request is not None:
-            _body_params = complete_google_forms_o_auth_request
-
-
-        # set the HTTP header `Accept`
-        if 'Accept' not in _header_params:
-            _header_params['Accept'] = self.api_client.select_header_accept(
-                [
-                    'application/json'
-                ]
-            )
-
-        # set the HTTP header `Content-Type`
-        if _content_type:
-            _header_params['Content-Type'] = _content_type
-        else:
-            _default_content_type = (
-                self.api_client.select_header_content_type(
-                    [
-                        'application/json'
-                    ]
-                )
-            )
-            if _default_content_type is not None:
-                _header_params['Content-Type'] = _default_content_type
-
-        # authentication setting
-        _auth_settings: List[str] = [
-            'oauth2', 
-            'bearerAuth'
-        ]
-
-        return self.api_client.param_serialize(
-            method='POST',
-            resource_path='/v1/google-forms-integrations/oauth/complete',
-            path_params=_path_params,
-            query_params=_query_params,
-            header_params=_header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
-            auth_settings=_auth_settings,
-            collection_formats=_collection_formats,
-            _host=_host,
-            _request_auth=_request_auth
-        )
-
-
-
-
-    @validate_call
-    def google_forms_integrations_service_delete(
-        self,
+        tool: Annotated[StrictStr, Field(description="The tool to disconnect.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -664,10 +374,12 @@ class GoogleFormsIntegrationsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> object:
-        """Disconnect Google Forms integration
+        """Disconnect a contact tool
 
-        Disconnect and remove the Google Forms integration from the workspace.  Requires the `integrations:write` scope.
+        Stop syncing visitors to the tool and delete the stored credential. Contacts already synced are left as they are.  Requires the `integrations:write` scope.
 
+        :param tool: The tool to disconnect. (required)
+        :type tool: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -690,7 +402,8 @@ class GoogleFormsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_forms_integrations_service_delete_serialize(
+        _param = self._contact_integrations_service_disconnect_serialize(
+            tool=tool,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -713,8 +426,9 @@ class GoogleFormsIntegrationsApi:
 
 
     @validate_call
-    def google_forms_integrations_service_delete_with_http_info(
+    def contact_integrations_service_disconnect_with_http_info(
         self,
+        tool: Annotated[StrictStr, Field(description="The tool to disconnect.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -728,10 +442,12 @@ class GoogleFormsIntegrationsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ApiResponse[object]:
-        """Disconnect Google Forms integration
+        """Disconnect a contact tool
 
-        Disconnect and remove the Google Forms integration from the workspace.  Requires the `integrations:write` scope.
+        Stop syncing visitors to the tool and delete the stored credential. Contacts already synced are left as they are.  Requires the `integrations:write` scope.
 
+        :param tool: The tool to disconnect. (required)
+        :type tool: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -754,7 +470,8 @@ class GoogleFormsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_forms_integrations_service_delete_serialize(
+        _param = self._contact_integrations_service_disconnect_serialize(
+            tool=tool,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -777,8 +494,9 @@ class GoogleFormsIntegrationsApi:
 
 
     @validate_call
-    def google_forms_integrations_service_delete_without_preload_content(
+    def contact_integrations_service_disconnect_without_preload_content(
         self,
+        tool: Annotated[StrictStr, Field(description="The tool to disconnect.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -792,10 +510,12 @@ class GoogleFormsIntegrationsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Disconnect Google Forms integration
+        """Disconnect a contact tool
 
-        Disconnect and remove the Google Forms integration from the workspace.  Requires the `integrations:write` scope.
+        Stop syncing visitors to the tool and delete the stored credential. Contacts already synced are left as they are.  Requires the `integrations:write` scope.
 
+        :param tool: The tool to disconnect. (required)
+        :type tool: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -818,7 +538,8 @@ class GoogleFormsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_forms_integrations_service_delete_serialize(
+        _param = self._contact_integrations_service_disconnect_serialize(
+            tool=tool,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -836,8 +557,9 @@ class GoogleFormsIntegrationsApi:
         return response_data.response
 
 
-    def _google_forms_integrations_service_delete_serialize(
+    def _contact_integrations_service_disconnect_serialize(
         self,
+        tool,
         _request_auth,
         _content_type,
         _headers,
@@ -859,6 +581,8 @@ class GoogleFormsIntegrationsApi:
         _body_params: Optional[bytes] = None
 
         # process the path parameters
+        if tool is not None:
+            _path_params['tool'] = tool
         # process the query parameters
         # process the header parameters
         # process the form parameters
@@ -882,7 +606,7 @@ class GoogleFormsIntegrationsApi:
 
         return self.api_client.param_serialize(
             method='DELETE',
-            resource_path='/v1/google-forms-integrations',
+            resource_path='/v1/integrations/contacts/{tool}',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -899,8 +623,9 @@ class GoogleFormsIntegrationsApi:
 
 
     @validate_call
-    def google_forms_integrations_service_get(
+    def contact_integrations_service_get(
         self,
+        tool: Annotated[StrictStr, Field(description="The tool.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -913,11 +638,13 @@ class GoogleFormsIntegrationsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> GetGoogleFormsIntegrationResponse:
-        """Get Google Forms integration
+    ) -> GetContactConnectionResponse:
+        """Get a contact integration
 
-        Retrieve the Google Forms integration for the workspace.  Requires the `integrations:read` scope.
+        Return the workspace's connection to one contact tool, without its credential.  Requires the `integrations:read` scope.
 
+        :param tool: The tool. (required)
+        :type tool: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -940,7 +667,8 @@ class GoogleFormsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_forms_integrations_service_get_serialize(
+        _param = self._contact_integrations_service_get_serialize(
+            tool=tool,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -948,7 +676,7 @@ class GoogleFormsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetGoogleFormsIntegrationResponse",
+            '200': "GetContactConnectionResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -963,8 +691,9 @@ class GoogleFormsIntegrationsApi:
 
 
     @validate_call
-    def google_forms_integrations_service_get_with_http_info(
+    def contact_integrations_service_get_with_http_info(
         self,
+        tool: Annotated[StrictStr, Field(description="The tool.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -977,11 +706,13 @@ class GoogleFormsIntegrationsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[GetGoogleFormsIntegrationResponse]:
-        """Get Google Forms integration
+    ) -> ApiResponse[GetContactConnectionResponse]:
+        """Get a contact integration
 
-        Retrieve the Google Forms integration for the workspace.  Requires the `integrations:read` scope.
+        Return the workspace's connection to one contact tool, without its credential.  Requires the `integrations:read` scope.
 
+        :param tool: The tool. (required)
+        :type tool: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1004,7 +735,8 @@ class GoogleFormsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_forms_integrations_service_get_serialize(
+        _param = self._contact_integrations_service_get_serialize(
+            tool=tool,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1012,7 +744,7 @@ class GoogleFormsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetGoogleFormsIntegrationResponse",
+            '200': "GetContactConnectionResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -1027,8 +759,9 @@ class GoogleFormsIntegrationsApi:
 
 
     @validate_call
-    def google_forms_integrations_service_get_without_preload_content(
+    def contact_integrations_service_get_without_preload_content(
         self,
+        tool: Annotated[StrictStr, Field(description="The tool.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1042,9 +775,402 @@ class GoogleFormsIntegrationsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Get Google Forms integration
+        """Get a contact integration
 
-        Retrieve the Google Forms integration for the workspace.  Requires the `integrations:read` scope.
+        Return the workspace's connection to one contact tool, without its credential.  Requires the `integrations:read` scope.
+
+        :param tool: The tool. (required)
+        :type tool: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._contact_integrations_service_get_serialize(
+            tool=tool,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "GetContactConnectionResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _contact_integrations_service_get_serialize(
+        self,
+        tool,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if tool is not None:
+            _path_params['tool'] = tool
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+
+        # set the HTTP header `Accept`
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'oauth2', 
+            'bearerAuth'
+        ]
+
+        return self.api_client.param_serialize(
+            method='GET',
+            resource_path='/v1/integrations/contacts/{tool}',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def contact_integrations_service_get_tool(
+        self,
+        tool: Annotated[StrictStr, Field(description="The tool, connected or not.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> GetContactToolResponse:
+        """Get a contact tool
+
+        Return how a contact tool connects, with no connection needed: its capabilities, whether it connects with OAuth, and the URLs where an admin installs Linkbreakers' app first (Salesforce's package), for production and sandbox. Empty URLs when no install is needed.  Requires the `integrations:read` scope.
+
+        :param tool: The tool, connected or not. (required)
+        :type tool: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._contact_integrations_service_get_tool_serialize(
+            tool=tool,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "GetContactToolResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def contact_integrations_service_get_tool_with_http_info(
+        self,
+        tool: Annotated[StrictStr, Field(description="The tool, connected or not.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[GetContactToolResponse]:
+        """Get a contact tool
+
+        Return how a contact tool connects, with no connection needed: its capabilities, whether it connects with OAuth, and the URLs where an admin installs Linkbreakers' app first (Salesforce's package), for production and sandbox. Empty URLs when no install is needed.  Requires the `integrations:read` scope.
+
+        :param tool: The tool, connected or not. (required)
+        :type tool: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._contact_integrations_service_get_tool_serialize(
+            tool=tool,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "GetContactToolResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def contact_integrations_service_get_tool_without_preload_content(
+        self,
+        tool: Annotated[StrictStr, Field(description="The tool, connected or not.")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Get a contact tool
+
+        Return how a contact tool connects, with no connection needed: its capabilities, whether it connects with OAuth, and the URLs where an admin installs Linkbreakers' app first (Salesforce's package), for production and sandbox. Empty URLs when no install is needed.  Requires the `integrations:read` scope.
+
+        :param tool: The tool, connected or not. (required)
+        :type tool: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._contact_integrations_service_get_tool_serialize(
+            tool=tool,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "GetContactToolResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _contact_integrations_service_get_tool_serialize(
+        self,
+        tool,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if tool is not None:
+            _path_params['tool'] = tool
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+
+        # set the HTTP header `Accept`
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'oauth2', 
+            'bearerAuth'
+        ]
+
+        return self.api_client.param_serialize(
+            method='GET',
+            resource_path='/v1/integrations/contacts/{tool}/info',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def contact_integrations_service_list(
+        self,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ListContactConnectionsResponse:
+        """List contact integrations
+
+        Return every contact tool the workspace syncs identified visitors to, without credentials.  Requires the `integrations:read` scope.
 
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1068,7 +1194,7 @@ class GoogleFormsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_forms_integrations_service_get_serialize(
+        _param = self._contact_integrations_service_list_serialize(
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1076,7 +1202,135 @@ class GoogleFormsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetGoogleFormsIntegrationResponse",
+            '200': "ListContactConnectionsResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def contact_integrations_service_list_with_http_info(
+        self,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[ListContactConnectionsResponse]:
+        """List contact integrations
+
+        Return every contact tool the workspace syncs identified visitors to, without credentials.  Requires the `integrations:read` scope.
+
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._contact_integrations_service_list_serialize(
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "ListContactConnectionsResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def contact_integrations_service_list_without_preload_content(
+        self,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """List contact integrations
+
+        Return every contact tool the workspace syncs identified visitors to, without credentials.  Requires the `integrations:read` scope.
+
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._contact_integrations_service_list_serialize(
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "ListContactConnectionsResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -1086,7 +1340,7 @@ class GoogleFormsIntegrationsApi:
         return response_data.response
 
 
-    def _google_forms_integrations_service_get_serialize(
+    def _contact_integrations_service_list_serialize(
         self,
         _request_auth,
         _content_type,
@@ -1132,7 +1386,7 @@ class GoogleFormsIntegrationsApi:
 
         return self.api_client.param_serialize(
             method='GET',
-            resource_path='/v1/google-forms-integrations',
+            resource_path='/v1/integrations/contacts',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -1149,8 +1403,9 @@ class GoogleFormsIntegrationsApi:
 
 
     @validate_call
-    def google_forms_integrations_service_get_o_auth_url(
+    def contact_integrations_service_list_fields(
         self,
+        tool: Annotated[StrictStr, Field(description="The connected tool.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1163,11 +1418,13 @@ class GoogleFormsIntegrationsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> GetGoogleFormsOAuthURLResponse:
-        """Get Google OAuth URL
+    ) -> ListContactToolFieldsResponse:
+        """List a contact tool's fields
 
-        Returns the Google OAuth authorization URL to initiate the connection flow.  Requires the `integrations:write` scope.
+        Return the custom fields of the connected tool, with their types.  Requires the `integrations:read` scope.
 
+        :param tool: The connected tool. (required)
+        :type tool: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1190,7 +1447,8 @@ class GoogleFormsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_forms_integrations_service_get_o_auth_url_serialize(
+        _param = self._contact_integrations_service_list_fields_serialize(
+            tool=tool,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1198,7 +1456,7 @@ class GoogleFormsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetGoogleFormsOAuthURLResponse",
+            '200': "ListContactToolFieldsResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -1213,8 +1471,9 @@ class GoogleFormsIntegrationsApi:
 
 
     @validate_call
-    def google_forms_integrations_service_get_o_auth_url_with_http_info(
+    def contact_integrations_service_list_fields_with_http_info(
         self,
+        tool: Annotated[StrictStr, Field(description="The connected tool.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1227,11 +1486,13 @@ class GoogleFormsIntegrationsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[GetGoogleFormsOAuthURLResponse]:
-        """Get Google OAuth URL
+    ) -> ApiResponse[ListContactToolFieldsResponse]:
+        """List a contact tool's fields
 
-        Returns the Google OAuth authorization URL to initiate the connection flow.  Requires the `integrations:write` scope.
+        Return the custom fields of the connected tool, with their types.  Requires the `integrations:read` scope.
 
+        :param tool: The connected tool. (required)
+        :type tool: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1254,7 +1515,8 @@ class GoogleFormsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_forms_integrations_service_get_o_auth_url_serialize(
+        _param = self._contact_integrations_service_list_fields_serialize(
+            tool=tool,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1262,7 +1524,7 @@ class GoogleFormsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetGoogleFormsOAuthURLResponse",
+            '200': "ListContactToolFieldsResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -1277,8 +1539,9 @@ class GoogleFormsIntegrationsApi:
 
 
     @validate_call
-    def google_forms_integrations_service_get_o_auth_url_without_preload_content(
+    def contact_integrations_service_list_fields_without_preload_content(
         self,
+        tool: Annotated[StrictStr, Field(description="The connected tool.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1292,10 +1555,12 @@ class GoogleFormsIntegrationsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Get Google OAuth URL
+        """List a contact tool's fields
 
-        Returns the Google OAuth authorization URL to initiate the connection flow.  Requires the `integrations:write` scope.
+        Return the custom fields of the connected tool, with their types.  Requires the `integrations:read` scope.
 
+        :param tool: The connected tool. (required)
+        :type tool: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1318,7 +1583,8 @@ class GoogleFormsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_forms_integrations_service_get_o_auth_url_serialize(
+        _param = self._contact_integrations_service_list_fields_serialize(
+            tool=tool,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1326,7 +1592,7 @@ class GoogleFormsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetGoogleFormsOAuthURLResponse",
+            '200': "ListContactToolFieldsResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -1336,8 +1602,9 @@ class GoogleFormsIntegrationsApi:
         return response_data.response
 
 
-    def _google_forms_integrations_service_get_o_auth_url_serialize(
+    def _contact_integrations_service_list_fields_serialize(
         self,
+        tool,
         _request_auth,
         _content_type,
         _headers,
@@ -1359,6 +1626,8 @@ class GoogleFormsIntegrationsApi:
         _body_params: Optional[bytes] = None
 
         # process the path parameters
+        if tool is not None:
+            _path_params['tool'] = tool
         # process the query parameters
         # process the header parameters
         # process the form parameters
@@ -1382,7 +1651,7 @@ class GoogleFormsIntegrationsApi:
 
         return self.api_client.param_serialize(
             method='GET',
-            resource_path='/v1/google-forms-integrations/oauth-url',
+            resource_path='/v1/integrations/contacts/{tool}/fields',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -1399,8 +1668,9 @@ class GoogleFormsIntegrationsApi:
 
 
     @validate_call
-    def google_forms_integrations_service_list_detected_forms(
+    def contact_integrations_service_list_lists(
         self,
+        tool: Annotated[StrictStr, Field(description="The connected tool.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1413,11 +1683,13 @@ class GoogleFormsIntegrationsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ListDetectedGoogleFormsResponse:
-        """List detected Google Forms
+    ) -> ListContactToolListsResponse:
+        """List a contact tool's lists
 
-        Returns Google Forms auto-detected from workspace links that have a Google Form as their redirect destination.  Requires the `integrations:read` scope.
+        Return the lists, audiences or groups of the connected tool.  Requires the `integrations:read` scope.
 
+        :param tool: The connected tool. (required)
+        :type tool: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1440,7 +1712,8 @@ class GoogleFormsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_forms_integrations_service_list_detected_forms_serialize(
+        _param = self._contact_integrations_service_list_lists_serialize(
+            tool=tool,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1448,7 +1721,7 @@ class GoogleFormsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ListDetectedGoogleFormsResponse",
+            '200': "ListContactToolListsResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -1463,8 +1736,9 @@ class GoogleFormsIntegrationsApi:
 
 
     @validate_call
-    def google_forms_integrations_service_list_detected_forms_with_http_info(
+    def contact_integrations_service_list_lists_with_http_info(
         self,
+        tool: Annotated[StrictStr, Field(description="The connected tool.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1477,11 +1751,13 @@ class GoogleFormsIntegrationsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[ListDetectedGoogleFormsResponse]:
-        """List detected Google Forms
+    ) -> ApiResponse[ListContactToolListsResponse]:
+        """List a contact tool's lists
 
-        Returns Google Forms auto-detected from workspace links that have a Google Form as their redirect destination.  Requires the `integrations:read` scope.
+        Return the lists, audiences or groups of the connected tool.  Requires the `integrations:read` scope.
 
+        :param tool: The connected tool. (required)
+        :type tool: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1504,7 +1780,8 @@ class GoogleFormsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_forms_integrations_service_list_detected_forms_serialize(
+        _param = self._contact_integrations_service_list_lists_serialize(
+            tool=tool,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1512,7 +1789,7 @@ class GoogleFormsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ListDetectedGoogleFormsResponse",
+            '200': "ListContactToolListsResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -1527,8 +1804,9 @@ class GoogleFormsIntegrationsApi:
 
 
     @validate_call
-    def google_forms_integrations_service_list_detected_forms_without_preload_content(
+    def contact_integrations_service_list_lists_without_preload_content(
         self,
+        tool: Annotated[StrictStr, Field(description="The connected tool.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1542,10 +1820,12 @@ class GoogleFormsIntegrationsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """List detected Google Forms
+        """List a contact tool's lists
 
-        Returns Google Forms auto-detected from workspace links that have a Google Form as their redirect destination.  Requires the `integrations:read` scope.
+        Return the lists, audiences or groups of the connected tool.  Requires the `integrations:read` scope.
 
+        :param tool: The connected tool. (required)
+        :type tool: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1568,7 +1848,8 @@ class GoogleFormsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_forms_integrations_service_list_detected_forms_serialize(
+        _param = self._contact_integrations_service_list_lists_serialize(
+            tool=tool,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1576,7 +1857,7 @@ class GoogleFormsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ListDetectedGoogleFormsResponse",
+            '200': "ListContactToolListsResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -1586,8 +1867,9 @@ class GoogleFormsIntegrationsApi:
         return response_data.response
 
 
-    def _google_forms_integrations_service_list_detected_forms_serialize(
+    def _contact_integrations_service_list_lists_serialize(
         self,
+        tool,
         _request_auth,
         _content_type,
         _headers,
@@ -1609,6 +1891,8 @@ class GoogleFormsIntegrationsApi:
         _body_params: Optional[bytes] = None
 
         # process the path parameters
+        if tool is not None:
+            _path_params['tool'] = tool
         # process the query parameters
         # process the header parameters
         # process the form parameters
@@ -1632,7 +1916,7 @@ class GoogleFormsIntegrationsApi:
 
         return self.api_client.param_serialize(
             method='GET',
-            resource_path='/v1/google-forms-integrations/detected-forms',
+            resource_path='/v1/integrations/contacts/{tool}/lists',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -1649,10 +1933,9 @@ class GoogleFormsIntegrationsApi:
 
 
     @validate_call
-    def google_forms_integrations_service_sync_now(
+    def contact_integrations_service_list_pipelines(
         self,
-        body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        tool: Annotated[StrictStr, Field(description="The connected CRM.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1665,15 +1948,13 @@ class GoogleFormsIntegrationsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> SyncGoogleFormsResponse:
-        """Sync now
+    ) -> ListContactToolPipelinesResponse:
+        """List a CRM's pipelines
 
-        Trigger an immediate sync of new Google Forms responses from all detected forms.  Requires the `integrations:write` scope.
+        Return the pipelines of the connected CRM and their stages.  Requires the `integrations:read` scope.
 
-        :param body: (required)
-        :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
-        :type idempotency_key: str
+        :param tool: The connected CRM. (required)
+        :type tool: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1696,9 +1977,8 @@ class GoogleFormsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_forms_integrations_service_sync_now_serialize(
-            body=body,
-            idempotency_key=idempotency_key,
+        _param = self._contact_integrations_service_list_pipelines_serialize(
+            tool=tool,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1706,7 +1986,7 @@ class GoogleFormsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "SyncGoogleFormsResponse",
+            '200': "ListContactToolPipelinesResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -1721,10 +2001,9 @@ class GoogleFormsIntegrationsApi:
 
 
     @validate_call
-    def google_forms_integrations_service_sync_now_with_http_info(
+    def contact_integrations_service_list_pipelines_with_http_info(
         self,
-        body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        tool: Annotated[StrictStr, Field(description="The connected CRM.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1737,15 +2016,13 @@ class GoogleFormsIntegrationsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[SyncGoogleFormsResponse]:
-        """Sync now
+    ) -> ApiResponse[ListContactToolPipelinesResponse]:
+        """List a CRM's pipelines
 
-        Trigger an immediate sync of new Google Forms responses from all detected forms.  Requires the `integrations:write` scope.
+        Return the pipelines of the connected CRM and their stages.  Requires the `integrations:read` scope.
 
-        :param body: (required)
-        :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
-        :type idempotency_key: str
+        :param tool: The connected CRM. (required)
+        :type tool: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1768,9 +2045,8 @@ class GoogleFormsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_forms_integrations_service_sync_now_serialize(
-            body=body,
-            idempotency_key=idempotency_key,
+        _param = self._contact_integrations_service_list_pipelines_serialize(
+            tool=tool,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1778,7 +2054,7 @@ class GoogleFormsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "SyncGoogleFormsResponse",
+            '200': "ListContactToolPipelinesResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -1793,10 +2069,9 @@ class GoogleFormsIntegrationsApi:
 
 
     @validate_call
-    def google_forms_integrations_service_sync_now_without_preload_content(
+    def contact_integrations_service_list_pipelines_without_preload_content(
         self,
-        body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        tool: Annotated[StrictStr, Field(description="The connected CRM.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1810,13 +2085,146 @@ class GoogleFormsIntegrationsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Sync now
+        """List a CRM's pipelines
 
-        Trigger an immediate sync of new Google Forms responses from all detected forms.  Requires the `integrations:write` scope.
+        Return the pipelines of the connected CRM and their stages.  Requires the `integrations:read` scope.
 
+        :param tool: The connected CRM. (required)
+        :type tool: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._contact_integrations_service_list_pipelines_serialize(
+            tool=tool,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "ListContactToolPipelinesResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _contact_integrations_service_list_pipelines_serialize(
+        self,
+        tool,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if tool is not None:
+            _path_params['tool'] = tool
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+
+        # set the HTTP header `Accept`
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'oauth2', 
+            'bearerAuth'
+        ]
+
+        return self.api_client.param_serialize(
+            method='GET',
+            resource_path='/v1/integrations/contacts/{tool}/pipelines',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def contact_integrations_service_test(
+        self,
+        tool: Annotated[StrictStr, Field(description="The connected tool.")],
+        body: Dict[str, Any],
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> TestContactConnectionResponse:
+        """Test a contact integration
+
+        Check the stored credential against the tool and list its custom field keys. Nothing is written to the tool.  Requires the `integrations:write` scope.
+
+        :param tool: The connected tool. (required)
+        :type tool: str
         :param body: (required)
         :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1840,7 +2248,8 @@ class GoogleFormsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_forms_integrations_service_sync_now_serialize(
+        _param = self._contact_integrations_service_test_serialize(
+            tool=tool,
             body=body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -1850,7 +2259,159 @@ class GoogleFormsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "SyncGoogleFormsResponse",
+            '200': "TestContactConnectionResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def contact_integrations_service_test_with_http_info(
+        self,
+        tool: Annotated[StrictStr, Field(description="The connected tool.")],
+        body: Dict[str, Any],
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[TestContactConnectionResponse]:
+        """Test a contact integration
+
+        Check the stored credential against the tool and list its custom field keys. Nothing is written to the tool.  Requires the `integrations:write` scope.
+
+        :param tool: The connected tool. (required)
+        :type tool: str
+        :param body: (required)
+        :type body: object
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
+        :type idempotency_key: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._contact_integrations_service_test_serialize(
+            tool=tool,
+            body=body,
+            idempotency_key=idempotency_key,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "TestContactConnectionResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def contact_integrations_service_test_without_preload_content(
+        self,
+        tool: Annotated[StrictStr, Field(description="The connected tool.")],
+        body: Dict[str, Any],
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Test a contact integration
+
+        Check the stored credential against the tool and list its custom field keys. Nothing is written to the tool.  Requires the `integrations:write` scope.
+
+        :param tool: The connected tool. (required)
+        :type tool: str
+        :param body: (required)
+        :type body: object
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
+        :type idempotency_key: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._contact_integrations_service_test_serialize(
+            tool=tool,
+            body=body,
+            idempotency_key=idempotency_key,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "TestContactConnectionResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -1860,8 +2421,9 @@ class GoogleFormsIntegrationsApi:
         return response_data.response
 
 
-    def _google_forms_integrations_service_sync_now_serialize(
+    def _contact_integrations_service_test_serialize(
         self,
+        tool,
         body,
         idempotency_key,
         _request_auth,
@@ -1885,6 +2447,8 @@ class GoogleFormsIntegrationsApi:
         _body_params: Optional[bytes] = None
 
         # process the path parameters
+        if tool is not None:
+            _path_params['tool'] = tool
         # process the query parameters
         # process the header parameters
         if idempotency_key is not None:
@@ -1925,7 +2489,7 @@ class GoogleFormsIntegrationsApi:
 
         return self.api_client.param_serialize(
             method='POST',
-            resource_path='/v1/google-forms-integrations/sync',
+            resource_path='/v1/integrations/contacts/{tool}/test',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -1942,10 +2506,11 @@ class GoogleFormsIntegrationsApi:
 
 
     @validate_call
-    def google_forms_integrations_service_update(
+    def contact_integrations_service_update(
         self,
-        update_google_forms_integration_request: UpdateGoogleFormsIntegrationRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        tool: Annotated[StrictStr, Field(description="The connected tool.")],
+        contact_integrations_service_update_body: ContactIntegrationsServiceUpdateBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1958,14 +2523,16 @@ class GoogleFormsIntegrationsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> UpdateGoogleFormsIntegrationResponse:
-        """Update Google Forms integration
+    ) -> UpdateContactConnectionResponse:
+        """Update a contact integration
 
-        Update the integration status (pause or resume syncing).  Requires the `integrations:write` scope.
+        Change the list or audience contacts are added to, and where, when and what is synced.  Requires the `integrations:write` scope.
 
-        :param update_google_forms_integration_request: (required)
-        :type update_google_forms_integration_request: UpdateGoogleFormsIntegrationRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param tool: The connected tool. (required)
+        :type tool: str
+        :param contact_integrations_service_update_body: (required)
+        :type contact_integrations_service_update_body: ContactIntegrationsServiceUpdateBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1989,8 +2556,9 @@ class GoogleFormsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_forms_integrations_service_update_serialize(
-            update_google_forms_integration_request=update_google_forms_integration_request,
+        _param = self._contact_integrations_service_update_serialize(
+            tool=tool,
+            contact_integrations_service_update_body=contact_integrations_service_update_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -1999,7 +2567,7 @@ class GoogleFormsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "UpdateGoogleFormsIntegrationResponse",
+            '200': "UpdateContactConnectionResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -2014,10 +2582,11 @@ class GoogleFormsIntegrationsApi:
 
 
     @validate_call
-    def google_forms_integrations_service_update_with_http_info(
+    def contact_integrations_service_update_with_http_info(
         self,
-        update_google_forms_integration_request: UpdateGoogleFormsIntegrationRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        tool: Annotated[StrictStr, Field(description="The connected tool.")],
+        contact_integrations_service_update_body: ContactIntegrationsServiceUpdateBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2030,14 +2599,16 @@ class GoogleFormsIntegrationsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[UpdateGoogleFormsIntegrationResponse]:
-        """Update Google Forms integration
+    ) -> ApiResponse[UpdateContactConnectionResponse]:
+        """Update a contact integration
 
-        Update the integration status (pause or resume syncing).  Requires the `integrations:write` scope.
+        Change the list or audience contacts are added to, and where, when and what is synced.  Requires the `integrations:write` scope.
 
-        :param update_google_forms_integration_request: (required)
-        :type update_google_forms_integration_request: UpdateGoogleFormsIntegrationRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param tool: The connected tool. (required)
+        :type tool: str
+        :param contact_integrations_service_update_body: (required)
+        :type contact_integrations_service_update_body: ContactIntegrationsServiceUpdateBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2061,8 +2632,9 @@ class GoogleFormsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_forms_integrations_service_update_serialize(
-            update_google_forms_integration_request=update_google_forms_integration_request,
+        _param = self._contact_integrations_service_update_serialize(
+            tool=tool,
+            contact_integrations_service_update_body=contact_integrations_service_update_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -2071,7 +2643,7 @@ class GoogleFormsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "UpdateGoogleFormsIntegrationResponse",
+            '200': "UpdateContactConnectionResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -2086,10 +2658,11 @@ class GoogleFormsIntegrationsApi:
 
 
     @validate_call
-    def google_forms_integrations_service_update_without_preload_content(
+    def contact_integrations_service_update_without_preload_content(
         self,
-        update_google_forms_integration_request: UpdateGoogleFormsIntegrationRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        tool: Annotated[StrictStr, Field(description="The connected tool.")],
+        contact_integrations_service_update_body: ContactIntegrationsServiceUpdateBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2103,13 +2676,15 @@ class GoogleFormsIntegrationsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Update Google Forms integration
+        """Update a contact integration
 
-        Update the integration status (pause or resume syncing).  Requires the `integrations:write` scope.
+        Change the list or audience contacts are added to, and where, when and what is synced.  Requires the `integrations:write` scope.
 
-        :param update_google_forms_integration_request: (required)
-        :type update_google_forms_integration_request: UpdateGoogleFormsIntegrationRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param tool: The connected tool. (required)
+        :type tool: str
+        :param contact_integrations_service_update_body: (required)
+        :type contact_integrations_service_update_body: ContactIntegrationsServiceUpdateBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2133,8 +2708,9 @@ class GoogleFormsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_forms_integrations_service_update_serialize(
-            update_google_forms_integration_request=update_google_forms_integration_request,
+        _param = self._contact_integrations_service_update_serialize(
+            tool=tool,
+            contact_integrations_service_update_body=contact_integrations_service_update_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -2143,7 +2719,7 @@ class GoogleFormsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "UpdateGoogleFormsIntegrationResponse",
+            '200': "UpdateContactConnectionResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -2153,9 +2729,10 @@ class GoogleFormsIntegrationsApi:
         return response_data.response
 
 
-    def _google_forms_integrations_service_update_serialize(
+    def _contact_integrations_service_update_serialize(
         self,
-        update_google_forms_integration_request,
+        tool,
+        contact_integrations_service_update_body,
         idempotency_key,
         _request_auth,
         _content_type,
@@ -2178,14 +2755,16 @@ class GoogleFormsIntegrationsApi:
         _body_params: Optional[bytes] = None
 
         # process the path parameters
+        if tool is not None:
+            _path_params['tool'] = tool
         # process the query parameters
         # process the header parameters
         if idempotency_key is not None:
             _header_params['Idempotency-Key'] = idempotency_key
         # process the form parameters
         # process the body parameter
-        if update_google_forms_integration_request is not None:
-            _body_params = update_google_forms_integration_request
+        if contact_integrations_service_update_body is not None:
+            _body_params = contact_integrations_service_update_body
 
 
         # set the HTTP header `Accept`
@@ -2218,7 +2797,7 @@ class GoogleFormsIntegrationsApi:
 
         return self.api_client.param_serialize(
             method='PATCH',
-            resource_path='/v1/google-forms-integrations',
+            resource_path='/v1/integrations/contacts/{tool}',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,

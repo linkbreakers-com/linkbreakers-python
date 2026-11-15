@@ -1,9 +1,9 @@
 """
     Linkbreakers API
 
-    This is a documentation of all the APIs of Linkbreakers  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
+    The Linkbreakers REST API: links, QR codes, workflows, visitors and analytics, as JSON over HTTPS. Send a workspace API token as `Authorization: Bearer <token>`.  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  A renamed operation keeps answering its former path until that path's sunset. Responses on a former path carry the same `Deprecation`, `Sunset` and `Link` header fields; this document lists only the current path, and the policy lists the former ones.  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
 
-    The version of the OpenAPI document: 1.198.0
+    The version of the OpenAPI document: 1.198.1
     Contact: support@linkbreakers.com
     Generated by OpenAPI Generator (https://openapi-generator.tech)
 
@@ -16,24 +16,23 @@ from pydantic import validate_call, Field, StrictFloat, StrictStr, StrictInt
 from typing import Any, Dict, List, Optional, Tuple, Union
 from typing_extensions import Annotated
 
-from pydantic import Field, StrictInt, StrictStr
+from pydantic import Field, StrictStr
 from typing import Any, Dict, Optional
 from typing_extensions import Annotated
-from linkbreakers.models.analytics_dashboard_service_generate_widget_summary_body import AnalyticsDashboardServiceGenerateWidgetSummaryBody
-from linkbreakers.models.analytics_dashboard_service_update_dashboard_body import AnalyticsDashboardServiceUpdateDashboardBody
-from linkbreakers.models.create_dashboard_request import CreateDashboardRequest
-from linkbreakers.models.create_dashboard_response import CreateDashboardResponse
-from linkbreakers.models.generate_widget_summary_response import GenerateWidgetSummaryResponse
-from linkbreakers.models.get_widget_summary_response import GetWidgetSummaryResponse
-from linkbreakers.models.list_dashboards_response import ListDashboardsResponse
-from linkbreakers.models.update_dashboard_response import UpdateDashboardResponse
+from linkbreakers.models.connect_form_tool_response import ConnectFormToolResponse
+from linkbreakers.models.form_integrations_service_connect_body import FormIntegrationsServiceConnectBody
+from linkbreakers.models.form_integrations_service_update_body import FormIntegrationsServiceUpdateBody
+from linkbreakers.models.get_form_connection_response import GetFormConnectionResponse
+from linkbreakers.models.list_form_connections_response import ListFormConnectionsResponse
+from linkbreakers.models.list_form_tool_forms_response import ListFormToolFormsResponse
+from linkbreakers.models.update_form_connection_response import UpdateFormConnectionResponse
 
 from linkbreakers.api_client import ApiClient, RequestSerialized
 from linkbreakers.api_response import ApiResponse
 from linkbreakers.rest import RESTResponseType
 
 
-class AnalyticsDashboardApi:
+class IntegrationsFormsApi:
     """NOTE: This class is auto generated by OpenAPI Generator
     Ref: https://openapi-generator.tech
 
@@ -47,10 +46,11 @@ class AnalyticsDashboardApi:
 
 
     @validate_call
-    def analytics_dashboard_service_create_dashboard(
+    def form_integrations_service_connect(
         self,
-        create_dashboard_request: CreateDashboardRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        tool: StrictStr,
+        form_integrations_service_connect_body: FormIntegrationsServiceConnectBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -63,14 +63,16 @@ class AnalyticsDashboardApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> CreateDashboardResponse:
-        """Create analytics dashboard
+    ) -> ConnectFormToolResponse:
+        """Connect a form tool with an API key
 
-        Requires the `analytics:write` scope.
+        Connect Tally, Jotform or Paperform with the account's API key. The forms behind the workspace's links are prepared at once: a hidden lbid field and a webhook.  Requires the `integrations:write` scope.
 
-        :param create_dashboard_request: (required)
-        :type create_dashboard_request: CreateDashboardRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param tool: (required)
+        :type tool: str
+        :param form_integrations_service_connect_body: (required)
+        :type form_integrations_service_connect_body: FormIntegrationsServiceConnectBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -94,8 +96,9 @@ class AnalyticsDashboardApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_dashboard_service_create_dashboard_serialize(
-            create_dashboard_request=create_dashboard_request,
+        _param = self._form_integrations_service_connect_serialize(
+            tool=tool,
+            form_integrations_service_connect_body=form_integrations_service_connect_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -104,7 +107,7 @@ class AnalyticsDashboardApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "CreateDashboardResponse",
+            '200': "ConnectFormToolResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -119,10 +122,11 @@ class AnalyticsDashboardApi:
 
 
     @validate_call
-    def analytics_dashboard_service_create_dashboard_with_http_info(
+    def form_integrations_service_connect_with_http_info(
         self,
-        create_dashboard_request: CreateDashboardRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        tool: StrictStr,
+        form_integrations_service_connect_body: FormIntegrationsServiceConnectBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -135,14 +139,16 @@ class AnalyticsDashboardApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[CreateDashboardResponse]:
-        """Create analytics dashboard
+    ) -> ApiResponse[ConnectFormToolResponse]:
+        """Connect a form tool with an API key
 
-        Requires the `analytics:write` scope.
+        Connect Tally, Jotform or Paperform with the account's API key. The forms behind the workspace's links are prepared at once: a hidden lbid field and a webhook.  Requires the `integrations:write` scope.
 
-        :param create_dashboard_request: (required)
-        :type create_dashboard_request: CreateDashboardRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param tool: (required)
+        :type tool: str
+        :param form_integrations_service_connect_body: (required)
+        :type form_integrations_service_connect_body: FormIntegrationsServiceConnectBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -166,8 +172,9 @@ class AnalyticsDashboardApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_dashboard_service_create_dashboard_serialize(
-            create_dashboard_request=create_dashboard_request,
+        _param = self._form_integrations_service_connect_serialize(
+            tool=tool,
+            form_integrations_service_connect_body=form_integrations_service_connect_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -176,7 +183,7 @@ class AnalyticsDashboardApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "CreateDashboardResponse",
+            '200': "ConnectFormToolResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -191,10 +198,11 @@ class AnalyticsDashboardApi:
 
 
     @validate_call
-    def analytics_dashboard_service_create_dashboard_without_preload_content(
+    def form_integrations_service_connect_without_preload_content(
         self,
-        create_dashboard_request: CreateDashboardRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        tool: StrictStr,
+        form_integrations_service_connect_body: FormIntegrationsServiceConnectBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -208,13 +216,15 @@ class AnalyticsDashboardApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Create analytics dashboard
+        """Connect a form tool with an API key
 
-        Requires the `analytics:write` scope.
+        Connect Tally, Jotform or Paperform with the account's API key. The forms behind the workspace's links are prepared at once: a hidden lbid field and a webhook.  Requires the `integrations:write` scope.
 
-        :param create_dashboard_request: (required)
-        :type create_dashboard_request: CreateDashboardRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param tool: (required)
+        :type tool: str
+        :param form_integrations_service_connect_body: (required)
+        :type form_integrations_service_connect_body: FormIntegrationsServiceConnectBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -238,8 +248,9 @@ class AnalyticsDashboardApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_dashboard_service_create_dashboard_serialize(
-            create_dashboard_request=create_dashboard_request,
+        _param = self._form_integrations_service_connect_serialize(
+            tool=tool,
+            form_integrations_service_connect_body=form_integrations_service_connect_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -248,7 +259,7 @@ class AnalyticsDashboardApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "CreateDashboardResponse",
+            '200': "ConnectFormToolResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -258,9 +269,10 @@ class AnalyticsDashboardApi:
         return response_data.response
 
 
-    def _analytics_dashboard_service_create_dashboard_serialize(
+    def _form_integrations_service_connect_serialize(
         self,
-        create_dashboard_request,
+        tool,
+        form_integrations_service_connect_body,
         idempotency_key,
         _request_auth,
         _content_type,
@@ -283,14 +295,16 @@ class AnalyticsDashboardApi:
         _body_params: Optional[bytes] = None
 
         # process the path parameters
+        if tool is not None:
+            _path_params['tool'] = tool
         # process the query parameters
         # process the header parameters
         if idempotency_key is not None:
             _header_params['Idempotency-Key'] = idempotency_key
         # process the form parameters
         # process the body parameter
-        if create_dashboard_request is not None:
-            _body_params = create_dashboard_request
+        if form_integrations_service_connect_body is not None:
+            _body_params = form_integrations_service_connect_body
 
 
         # set the HTTP header `Accept`
@@ -323,7 +337,7 @@ class AnalyticsDashboardApi:
 
         return self.api_client.param_serialize(
             method='POST',
-            resource_path='/v1/analytics/dashboards',
+            resource_path='/v1/form-integrations/{tool}/connect',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -340,9 +354,9 @@ class AnalyticsDashboardApi:
 
 
     @validate_call
-    def analytics_dashboard_service_delete_dashboard(
+    def form_integrations_service_disconnect(
         self,
-        id: StrictStr,
+        tool: StrictStr,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -356,12 +370,12 @@ class AnalyticsDashboardApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> object:
-        """Delete analytics dashboard
+        """Disconnect a form tool
 
-        Delete a dashboard and its associated assistant conversation.  Requires the `analytics:write` scope.
+        Remove our webhooks from its forms and forget the credential.  Requires the `integrations:write` scope.
 
-        :param id: (required)
-        :type id: str
+        :param tool: (required)
+        :type tool: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -384,8 +398,8 @@ class AnalyticsDashboardApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_dashboard_service_delete_dashboard_serialize(
-            id=id,
+        _param = self._form_integrations_service_disconnect_serialize(
+            tool=tool,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -408,9 +422,9 @@ class AnalyticsDashboardApi:
 
 
     @validate_call
-    def analytics_dashboard_service_delete_dashboard_with_http_info(
+    def form_integrations_service_disconnect_with_http_info(
         self,
-        id: StrictStr,
+        tool: StrictStr,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -424,12 +438,12 @@ class AnalyticsDashboardApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ApiResponse[object]:
-        """Delete analytics dashboard
+        """Disconnect a form tool
 
-        Delete a dashboard and its associated assistant conversation.  Requires the `analytics:write` scope.
+        Remove our webhooks from its forms and forget the credential.  Requires the `integrations:write` scope.
 
-        :param id: (required)
-        :type id: str
+        :param tool: (required)
+        :type tool: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -452,8 +466,8 @@ class AnalyticsDashboardApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_dashboard_service_delete_dashboard_serialize(
-            id=id,
+        _param = self._form_integrations_service_disconnect_serialize(
+            tool=tool,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -476,9 +490,9 @@ class AnalyticsDashboardApi:
 
 
     @validate_call
-    def analytics_dashboard_service_delete_dashboard_without_preload_content(
+    def form_integrations_service_disconnect_without_preload_content(
         self,
-        id: StrictStr,
+        tool: StrictStr,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -492,12 +506,12 @@ class AnalyticsDashboardApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Delete analytics dashboard
+        """Disconnect a form tool
 
-        Delete a dashboard and its associated assistant conversation.  Requires the `analytics:write` scope.
+        Remove our webhooks from its forms and forget the credential.  Requires the `integrations:write` scope.
 
-        :param id: (required)
-        :type id: str
+        :param tool: (required)
+        :type tool: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -520,8 +534,8 @@ class AnalyticsDashboardApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_dashboard_service_delete_dashboard_serialize(
-            id=id,
+        _param = self._form_integrations_service_disconnect_serialize(
+            tool=tool,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -539,9 +553,9 @@ class AnalyticsDashboardApi:
         return response_data.response
 
 
-    def _analytics_dashboard_service_delete_dashboard_serialize(
+    def _form_integrations_service_disconnect_serialize(
         self,
-        id,
+        tool,
         _request_auth,
         _content_type,
         _headers,
@@ -563,8 +577,8 @@ class AnalyticsDashboardApi:
         _body_params: Optional[bytes] = None
 
         # process the path parameters
-        if id is not None:
-            _path_params['id'] = id
+        if tool is not None:
+            _path_params['tool'] = tool
         # process the query parameters
         # process the header parameters
         # process the form parameters
@@ -588,7 +602,7 @@ class AnalyticsDashboardApi:
 
         return self.api_client.param_serialize(
             method='DELETE',
-            resource_path='/v1/analytics/dashboards/{id}',
+            resource_path='/v1/form-integrations/{tool}',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -605,12 +619,9 @@ class AnalyticsDashboardApi:
 
 
     @validate_call
-    def analytics_dashboard_service_generate_widget_summary(
+    def form_integrations_service_get(
         self,
-        dashboard_id: Annotated[StrictStr, Field(description="Dashboard holding the widget")],
-        widget_id: Annotated[StrictStr, Field(description="Widget whose values should be analysed")],
-        analytics_dashboard_service_generate_widget_summary_body: AnalyticsDashboardServiceGenerateWidgetSummaryBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        tool: StrictStr,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -623,19 +634,13 @@ class AnalyticsDashboardApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> GenerateWidgetSummaryResponse:
-        """Generate a widget assistant summary
+    ) -> GetFormConnectionResponse:
+        """Get a form tool connection
 
-        Analyses the widget's current values and stores the result. Consumes platform credits, so it runs only when requested.  Requires the `analytics:write` scope.
+        Return one form tool's connection, empty when it is not connected.  Requires the `integrations:read` scope.
 
-        :param dashboard_id: Dashboard holding the widget (required)
-        :type dashboard_id: str
-        :param widget_id: Widget whose values should be analysed (required)
-        :type widget_id: str
-        :param analytics_dashboard_service_generate_widget_summary_body: (required)
-        :type analytics_dashboard_service_generate_widget_summary_body: AnalyticsDashboardServiceGenerateWidgetSummaryBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
-        :type idempotency_key: str
+        :param tool: (required)
+        :type tool: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -658,11 +663,8 @@ class AnalyticsDashboardApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_dashboard_service_generate_widget_summary_serialize(
-            dashboard_id=dashboard_id,
-            widget_id=widget_id,
-            analytics_dashboard_service_generate_widget_summary_body=analytics_dashboard_service_generate_widget_summary_body,
-            idempotency_key=idempotency_key,
+        _param = self._form_integrations_service_get_serialize(
+            tool=tool,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -670,7 +672,7 @@ class AnalyticsDashboardApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GenerateWidgetSummaryResponse",
+            '200': "GetFormConnectionResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -685,12 +687,9 @@ class AnalyticsDashboardApi:
 
 
     @validate_call
-    def analytics_dashboard_service_generate_widget_summary_with_http_info(
+    def form_integrations_service_get_with_http_info(
         self,
-        dashboard_id: Annotated[StrictStr, Field(description="Dashboard holding the widget")],
-        widget_id: Annotated[StrictStr, Field(description="Widget whose values should be analysed")],
-        analytics_dashboard_service_generate_widget_summary_body: AnalyticsDashboardServiceGenerateWidgetSummaryBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        tool: StrictStr,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -703,19 +702,13 @@ class AnalyticsDashboardApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[GenerateWidgetSummaryResponse]:
-        """Generate a widget assistant summary
+    ) -> ApiResponse[GetFormConnectionResponse]:
+        """Get a form tool connection
 
-        Analyses the widget's current values and stores the result. Consumes platform credits, so it runs only when requested.  Requires the `analytics:write` scope.
+        Return one form tool's connection, empty when it is not connected.  Requires the `integrations:read` scope.
 
-        :param dashboard_id: Dashboard holding the widget (required)
-        :type dashboard_id: str
-        :param widget_id: Widget whose values should be analysed (required)
-        :type widget_id: str
-        :param analytics_dashboard_service_generate_widget_summary_body: (required)
-        :type analytics_dashboard_service_generate_widget_summary_body: AnalyticsDashboardServiceGenerateWidgetSummaryBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
-        :type idempotency_key: str
+        :param tool: (required)
+        :type tool: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -738,11 +731,8 @@ class AnalyticsDashboardApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_dashboard_service_generate_widget_summary_serialize(
-            dashboard_id=dashboard_id,
-            widget_id=widget_id,
-            analytics_dashboard_service_generate_widget_summary_body=analytics_dashboard_service_generate_widget_summary_body,
-            idempotency_key=idempotency_key,
+        _param = self._form_integrations_service_get_serialize(
+            tool=tool,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -750,7 +740,7 @@ class AnalyticsDashboardApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GenerateWidgetSummaryResponse",
+            '200': "GetFormConnectionResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -765,12 +755,9 @@ class AnalyticsDashboardApi:
 
 
     @validate_call
-    def analytics_dashboard_service_generate_widget_summary_without_preload_content(
+    def form_integrations_service_get_without_preload_content(
         self,
-        dashboard_id: Annotated[StrictStr, Field(description="Dashboard holding the widget")],
-        widget_id: Annotated[StrictStr, Field(description="Widget whose values should be analysed")],
-        analytics_dashboard_service_generate_widget_summary_body: AnalyticsDashboardServiceGenerateWidgetSummaryBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        tool: StrictStr,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -784,17 +771,661 @@ class AnalyticsDashboardApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Generate a widget assistant summary
+        """Get a form tool connection
 
-        Analyses the widget's current values and stores the result. Consumes platform credits, so it runs only when requested.  Requires the `analytics:write` scope.
+        Return one form tool's connection, empty when it is not connected.  Requires the `integrations:read` scope.
 
-        :param dashboard_id: Dashboard holding the widget (required)
-        :type dashboard_id: str
-        :param widget_id: Widget whose values should be analysed (required)
-        :type widget_id: str
-        :param analytics_dashboard_service_generate_widget_summary_body: (required)
-        :type analytics_dashboard_service_generate_widget_summary_body: AnalyticsDashboardServiceGenerateWidgetSummaryBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param tool: (required)
+        :type tool: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._form_integrations_service_get_serialize(
+            tool=tool,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "GetFormConnectionResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _form_integrations_service_get_serialize(
+        self,
+        tool,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if tool is not None:
+            _path_params['tool'] = tool
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+
+        # set the HTTP header `Accept`
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'oauth2', 
+            'bearerAuth'
+        ]
+
+        return self.api_client.param_serialize(
+            method='GET',
+            resource_path='/v1/form-integrations/{tool}',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def form_integrations_service_list(
+        self,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ListFormConnectionsResponse:
+        """List form tool connections
+
+        Return the workspace's connected form tools: Tally, Typeform, Jotform and Paperform.  Requires the `integrations:read` scope.
+
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._form_integrations_service_list_serialize(
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "ListFormConnectionsResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def form_integrations_service_list_with_http_info(
+        self,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[ListFormConnectionsResponse]:
+        """List form tool connections
+
+        Return the workspace's connected form tools: Tally, Typeform, Jotform and Paperform.  Requires the `integrations:read` scope.
+
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._form_integrations_service_list_serialize(
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "ListFormConnectionsResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def form_integrations_service_list_without_preload_content(
+        self,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """List form tool connections
+
+        Return the workspace's connected form tools: Tally, Typeform, Jotform and Paperform.  Requires the `integrations:read` scope.
+
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._form_integrations_service_list_serialize(
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "ListFormConnectionsResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _form_integrations_service_list_serialize(
+        self,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+
+        # set the HTTP header `Accept`
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'oauth2', 
+            'bearerAuth'
+        ]
+
+        return self.api_client.param_serialize(
+            method='GET',
+            resource_path='/v1/form-integrations',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def form_integrations_service_list_forms(
+        self,
+        tool: StrictStr,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ListFormToolFormsResponse:
+        """List the forms found behind links
+
+        Return the forms of a connected tool behind the workspace's links, each with whether it is ready.  Requires the `integrations:read` scope.
+
+        :param tool: (required)
+        :type tool: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._form_integrations_service_list_forms_serialize(
+            tool=tool,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "ListFormToolFormsResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def form_integrations_service_list_forms_with_http_info(
+        self,
+        tool: StrictStr,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[ListFormToolFormsResponse]:
+        """List the forms found behind links
+
+        Return the forms of a connected tool behind the workspace's links, each with whether it is ready.  Requires the `integrations:read` scope.
+
+        :param tool: (required)
+        :type tool: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._form_integrations_service_list_forms_serialize(
+            tool=tool,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "ListFormToolFormsResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def form_integrations_service_list_forms_without_preload_content(
+        self,
+        tool: StrictStr,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """List the forms found behind links
+
+        Return the forms of a connected tool behind the workspace's links, each with whether it is ready.  Requires the `integrations:read` scope.
+
+        :param tool: (required)
+        :type tool: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._form_integrations_service_list_forms_serialize(
+            tool=tool,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "ListFormToolFormsResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _form_integrations_service_list_forms_serialize(
+        self,
+        tool,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if tool is not None:
+            _path_params['tool'] = tool
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+
+        # set the HTTP header `Accept`
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'oauth2', 
+            'bearerAuth'
+        ]
+
+        return self.api_client.param_serialize(
+            method='GET',
+            resource_path='/v1/form-integrations/{tool}/forms',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def form_integrations_service_prepare_forms(
+        self,
+        tool: StrictStr,
+        body: Dict[str, Any],
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ListFormToolFormsResponse:
+        """Check the forms again
+
+        Add the hidden field and webhook to every form behind a link now, rather than at the next daily check.  Requires the `integrations:write` scope.
+
+        :param tool: (required)
+        :type tool: str
+        :param body: (required)
+        :type body: object
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -818,10 +1449,9 @@ class AnalyticsDashboardApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_dashboard_service_generate_widget_summary_serialize(
-            dashboard_id=dashboard_id,
-            widget_id=widget_id,
-            analytics_dashboard_service_generate_widget_summary_body=analytics_dashboard_service_generate_widget_summary_body,
+        _param = self._form_integrations_service_prepare_forms_serialize(
+            tool=tool,
+            body=body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -830,7 +1460,159 @@ class AnalyticsDashboardApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GenerateWidgetSummaryResponse",
+            '200': "ListFormToolFormsResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def form_integrations_service_prepare_forms_with_http_info(
+        self,
+        tool: StrictStr,
+        body: Dict[str, Any],
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[ListFormToolFormsResponse]:
+        """Check the forms again
+
+        Add the hidden field and webhook to every form behind a link now, rather than at the next daily check.  Requires the `integrations:write` scope.
+
+        :param tool: (required)
+        :type tool: str
+        :param body: (required)
+        :type body: object
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
+        :type idempotency_key: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._form_integrations_service_prepare_forms_serialize(
+            tool=tool,
+            body=body,
+            idempotency_key=idempotency_key,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "ListFormToolFormsResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def form_integrations_service_prepare_forms_without_preload_content(
+        self,
+        tool: StrictStr,
+        body: Dict[str, Any],
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Check the forms again
+
+        Add the hidden field and webhook to every form behind a link now, rather than at the next daily check.  Requires the `integrations:write` scope.
+
+        :param tool: (required)
+        :type tool: str
+        :param body: (required)
+        :type body: object
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
+        :type idempotency_key: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._form_integrations_service_prepare_forms_serialize(
+            tool=tool,
+            body=body,
+            idempotency_key=idempotency_key,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "ListFormToolFormsResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -840,11 +1622,10 @@ class AnalyticsDashboardApi:
         return response_data.response
 
 
-    def _analytics_dashboard_service_generate_widget_summary_serialize(
+    def _form_integrations_service_prepare_forms_serialize(
         self,
-        dashboard_id,
-        widget_id,
-        analytics_dashboard_service_generate_widget_summary_body,
+        tool,
+        body,
         idempotency_key,
         _request_auth,
         _content_type,
@@ -867,18 +1648,16 @@ class AnalyticsDashboardApi:
         _body_params: Optional[bytes] = None
 
         # process the path parameters
-        if dashboard_id is not None:
-            _path_params['dashboardId'] = dashboard_id
-        if widget_id is not None:
-            _path_params['widgetId'] = widget_id
+        if tool is not None:
+            _path_params['tool'] = tool
         # process the query parameters
         # process the header parameters
         if idempotency_key is not None:
             _header_params['Idempotency-Key'] = idempotency_key
         # process the form parameters
         # process the body parameter
-        if analytics_dashboard_service_generate_widget_summary_body is not None:
-            _body_params = analytics_dashboard_service_generate_widget_summary_body
+        if body is not None:
+            _body_params = body
 
 
         # set the HTTP header `Accept`
@@ -911,7 +1690,7 @@ class AnalyticsDashboardApi:
 
         return self.api_client.param_serialize(
             method='POST',
-            resource_path='/v1/analytics/dashboards/{dashboardId}/widgets/{widgetId}/summary',
+            resource_path='/v1/form-integrations/{tool}/forms/prepare',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -928,10 +1707,11 @@ class AnalyticsDashboardApi:
 
 
     @validate_call
-    def analytics_dashboard_service_get_widget_summary(
+    def form_integrations_service_update(
         self,
-        dashboard_id: StrictStr,
-        widget_id: StrictStr,
+        tool: StrictStr,
+        form_integrations_service_update_body: FormIntegrationsServiceUpdateBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -944,632 +1724,16 @@ class AnalyticsDashboardApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> GetWidgetSummaryResponse:
-        """Get a stored widget assistant summary
-
-        Returns the last generated analysis, and whether the underlying values have changed since.  Requires the `analytics:read` scope.
-
-        :param dashboard_id: (required)
-        :type dashboard_id: str
-        :param widget_id: (required)
-        :type widget_id: str
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._analytics_dashboard_service_get_widget_summary_serialize(
-            dashboard_id=dashboard_id,
-            widget_id=widget_id,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetWidgetSummaryResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        ).data
-
-
-    @validate_call
-    def analytics_dashboard_service_get_widget_summary_with_http_info(
-        self,
-        dashboard_id: StrictStr,
-        widget_id: StrictStr,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[GetWidgetSummaryResponse]:
-        """Get a stored widget assistant summary
-
-        Returns the last generated analysis, and whether the underlying values have changed since.  Requires the `analytics:read` scope.
-
-        :param dashboard_id: (required)
-        :type dashboard_id: str
-        :param widget_id: (required)
-        :type widget_id: str
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._analytics_dashboard_service_get_widget_summary_serialize(
-            dashboard_id=dashboard_id,
-            widget_id=widget_id,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetWidgetSummaryResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        )
-
-
-    @validate_call
-    def analytics_dashboard_service_get_widget_summary_without_preload_content(
-        self,
-        dashboard_id: StrictStr,
-        widget_id: StrictStr,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> RESTResponseType:
-        """Get a stored widget assistant summary
-
-        Returns the last generated analysis, and whether the underlying values have changed since.  Requires the `analytics:read` scope.
-
-        :param dashboard_id: (required)
-        :type dashboard_id: str
-        :param widget_id: (required)
-        :type widget_id: str
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._analytics_dashboard_service_get_widget_summary_serialize(
-            dashboard_id=dashboard_id,
-            widget_id=widget_id,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetWidgetSummaryResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        return response_data.response
-
-
-    def _analytics_dashboard_service_get_widget_summary_serialize(
-        self,
-        dashboard_id,
-        widget_id,
-        _request_auth,
-        _content_type,
-        _headers,
-        _host_index,
-    ) -> RequestSerialized:
-
-        _host = None
-
-        _collection_formats: Dict[str, str] = {
-        }
-
-        _path_params: Dict[str, str] = {}
-        _query_params: List[Tuple[str, str]] = []
-        _header_params: Dict[str, Optional[str]] = _headers or {}
-        _form_params: List[Tuple[str, str]] = []
-        _files: Dict[
-            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
-        ] = {}
-        _body_params: Optional[bytes] = None
-
-        # process the path parameters
-        if dashboard_id is not None:
-            _path_params['dashboardId'] = dashboard_id
-        if widget_id is not None:
-            _path_params['widgetId'] = widget_id
-        # process the query parameters
-        # process the header parameters
-        # process the form parameters
-        # process the body parameter
-
-
-        # set the HTTP header `Accept`
-        if 'Accept' not in _header_params:
-            _header_params['Accept'] = self.api_client.select_header_accept(
-                [
-                    'application/json'
-                ]
-            )
-
-
-        # authentication setting
-        _auth_settings: List[str] = [
-            'oauth2', 
-            'bearerAuth'
-        ]
-
-        return self.api_client.param_serialize(
-            method='GET',
-            resource_path='/v1/analytics/dashboards/{dashboardId}/widgets/{widgetId}/summary',
-            path_params=_path_params,
-            query_params=_query_params,
-            header_params=_header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
-            auth_settings=_auth_settings,
-            collection_formats=_collection_formats,
-            _host=_host,
-            _request_auth=_request_auth
-        )
-
-
-
-
-    @validate_call
-    def analytics_dashboard_service_list_dashboards(
-        self,
-        link_id: Annotated[Optional[StrictStr], Field(description="Restricts the result to the dashboard scoped to this link. Takes precedence over scope when both are set.")] = None,
-        scope: Annotated[Optional[StrictStr], Field(description="Restricts the result by scope. Unset returns every dashboard.   - DASHBOARD_SCOPE_UNSPECIFIED: Every dashboard in the workspace, link-scoped or not.  - DASHBOARD_SCOPE_WORKSPACE: Only the workspace-wide dashboard, the one with no link.  - DASHBOARD_SCOPE_LINK: Only dashboards tied to a link.")] = None,
-        page_size: Annotated[Optional[StrictInt], Field(description="Maximum number to return. Defaults to 100, capped at 1000.")] = None,
-        page_token: Annotated[Optional[StrictStr], Field(description="Cursor from a previous response's next_page_token. Empty starts at the first page. Pages are ordered by (created_at, id), which never change, so a record cannot move between pages while a client is walking them.")] = None,
-        cursor: Annotated[Optional[StrictStr], Field(description="Opaque cursor from the previous page's nextPageToken. Same as pageToken; when both are sent, pageToken wins.")] = None,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ListDashboardsResponse:
-        """List analytics dashboards
-
-        Requires the `analytics:read` scope.
-
-        :param link_id: Restricts the result to the dashboard scoped to this link. Takes precedence over scope when both are set.
-        :type link_id: str
-        :param scope: Restricts the result by scope. Unset returns every dashboard.   - DASHBOARD_SCOPE_UNSPECIFIED: Every dashboard in the workspace, link-scoped or not.  - DASHBOARD_SCOPE_WORKSPACE: Only the workspace-wide dashboard, the one with no link.  - DASHBOARD_SCOPE_LINK: Only dashboards tied to a link.
-        :type scope: str
-        :param page_size: Maximum number to return. Defaults to 100, capped at 1000.
-        :type page_size: int
-        :param page_token: Cursor from a previous response's next_page_token. Empty starts at the first page. Pages are ordered by (created_at, id), which never change, so a record cannot move between pages while a client is walking them.
-        :type page_token: str
-        :param cursor: Opaque cursor from the previous page's nextPageToken. Same as pageToken; when both are sent, pageToken wins.
-        :type cursor: str
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._analytics_dashboard_service_list_dashboards_serialize(
-            link_id=link_id,
-            scope=scope,
-            page_size=page_size,
-            page_token=page_token,
-            cursor=cursor,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ListDashboardsResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        ).data
-
-
-    @validate_call
-    def analytics_dashboard_service_list_dashboards_with_http_info(
-        self,
-        link_id: Annotated[Optional[StrictStr], Field(description="Restricts the result to the dashboard scoped to this link. Takes precedence over scope when both are set.")] = None,
-        scope: Annotated[Optional[StrictStr], Field(description="Restricts the result by scope. Unset returns every dashboard.   - DASHBOARD_SCOPE_UNSPECIFIED: Every dashboard in the workspace, link-scoped or not.  - DASHBOARD_SCOPE_WORKSPACE: Only the workspace-wide dashboard, the one with no link.  - DASHBOARD_SCOPE_LINK: Only dashboards tied to a link.")] = None,
-        page_size: Annotated[Optional[StrictInt], Field(description="Maximum number to return. Defaults to 100, capped at 1000.")] = None,
-        page_token: Annotated[Optional[StrictStr], Field(description="Cursor from a previous response's next_page_token. Empty starts at the first page. Pages are ordered by (created_at, id), which never change, so a record cannot move between pages while a client is walking them.")] = None,
-        cursor: Annotated[Optional[StrictStr], Field(description="Opaque cursor from the previous page's nextPageToken. Same as pageToken; when both are sent, pageToken wins.")] = None,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[ListDashboardsResponse]:
-        """List analytics dashboards
-
-        Requires the `analytics:read` scope.
-
-        :param link_id: Restricts the result to the dashboard scoped to this link. Takes precedence over scope when both are set.
-        :type link_id: str
-        :param scope: Restricts the result by scope. Unset returns every dashboard.   - DASHBOARD_SCOPE_UNSPECIFIED: Every dashboard in the workspace, link-scoped or not.  - DASHBOARD_SCOPE_WORKSPACE: Only the workspace-wide dashboard, the one with no link.  - DASHBOARD_SCOPE_LINK: Only dashboards tied to a link.
-        :type scope: str
-        :param page_size: Maximum number to return. Defaults to 100, capped at 1000.
-        :type page_size: int
-        :param page_token: Cursor from a previous response's next_page_token. Empty starts at the first page. Pages are ordered by (created_at, id), which never change, so a record cannot move between pages while a client is walking them.
-        :type page_token: str
-        :param cursor: Opaque cursor from the previous page's nextPageToken. Same as pageToken; when both are sent, pageToken wins.
-        :type cursor: str
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._analytics_dashboard_service_list_dashboards_serialize(
-            link_id=link_id,
-            scope=scope,
-            page_size=page_size,
-            page_token=page_token,
-            cursor=cursor,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ListDashboardsResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        )
-
-
-    @validate_call
-    def analytics_dashboard_service_list_dashboards_without_preload_content(
-        self,
-        link_id: Annotated[Optional[StrictStr], Field(description="Restricts the result to the dashboard scoped to this link. Takes precedence over scope when both are set.")] = None,
-        scope: Annotated[Optional[StrictStr], Field(description="Restricts the result by scope. Unset returns every dashboard.   - DASHBOARD_SCOPE_UNSPECIFIED: Every dashboard in the workspace, link-scoped or not.  - DASHBOARD_SCOPE_WORKSPACE: Only the workspace-wide dashboard, the one with no link.  - DASHBOARD_SCOPE_LINK: Only dashboards tied to a link.")] = None,
-        page_size: Annotated[Optional[StrictInt], Field(description="Maximum number to return. Defaults to 100, capped at 1000.")] = None,
-        page_token: Annotated[Optional[StrictStr], Field(description="Cursor from a previous response's next_page_token. Empty starts at the first page. Pages are ordered by (created_at, id), which never change, so a record cannot move between pages while a client is walking them.")] = None,
-        cursor: Annotated[Optional[StrictStr], Field(description="Opaque cursor from the previous page's nextPageToken. Same as pageToken; when both are sent, pageToken wins.")] = None,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> RESTResponseType:
-        """List analytics dashboards
-
-        Requires the `analytics:read` scope.
-
-        :param link_id: Restricts the result to the dashboard scoped to this link. Takes precedence over scope when both are set.
-        :type link_id: str
-        :param scope: Restricts the result by scope. Unset returns every dashboard.   - DASHBOARD_SCOPE_UNSPECIFIED: Every dashboard in the workspace, link-scoped or not.  - DASHBOARD_SCOPE_WORKSPACE: Only the workspace-wide dashboard, the one with no link.  - DASHBOARD_SCOPE_LINK: Only dashboards tied to a link.
-        :type scope: str
-        :param page_size: Maximum number to return. Defaults to 100, capped at 1000.
-        :type page_size: int
-        :param page_token: Cursor from a previous response's next_page_token. Empty starts at the first page. Pages are ordered by (created_at, id), which never change, so a record cannot move between pages while a client is walking them.
-        :type page_token: str
-        :param cursor: Opaque cursor from the previous page's nextPageToken. Same as pageToken; when both are sent, pageToken wins.
-        :type cursor: str
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._analytics_dashboard_service_list_dashboards_serialize(
-            link_id=link_id,
-            scope=scope,
-            page_size=page_size,
-            page_token=page_token,
-            cursor=cursor,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ListDashboardsResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        return response_data.response
-
-
-    def _analytics_dashboard_service_list_dashboards_serialize(
-        self,
-        link_id,
-        scope,
-        page_size,
-        page_token,
-        cursor,
-        _request_auth,
-        _content_type,
-        _headers,
-        _host_index,
-    ) -> RequestSerialized:
-
-        _host = None
-
-        _collection_formats: Dict[str, str] = {
-        }
-
-        _path_params: Dict[str, str] = {}
-        _query_params: List[Tuple[str, str]] = []
-        _header_params: Dict[str, Optional[str]] = _headers or {}
-        _form_params: List[Tuple[str, str]] = []
-        _files: Dict[
-            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
-        ] = {}
-        _body_params: Optional[bytes] = None
-
-        # process the path parameters
-        # process the query parameters
-        if link_id is not None:
-            
-            _query_params.append(('linkId', link_id))
-            
-        if scope is not None:
-            
-            _query_params.append(('scope', scope))
-            
-        if page_size is not None:
-            
-            _query_params.append(('pageSize', page_size))
-            
-        if page_token is not None:
-            
-            _query_params.append(('pageToken', page_token))
-            
-        if cursor is not None:
-            
-            _query_params.append(('cursor', cursor))
-            
-        # process the header parameters
-        # process the form parameters
-        # process the body parameter
-
-
-        # set the HTTP header `Accept`
-        if 'Accept' not in _header_params:
-            _header_params['Accept'] = self.api_client.select_header_accept(
-                [
-                    'application/json'
-                ]
-            )
-
-
-        # authentication setting
-        _auth_settings: List[str] = [
-            'oauth2', 
-            'bearerAuth'
-        ]
-
-        return self.api_client.param_serialize(
-            method='GET',
-            resource_path='/v1/analytics/dashboards',
-            path_params=_path_params,
-            query_params=_query_params,
-            header_params=_header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
-            auth_settings=_auth_settings,
-            collection_formats=_collection_formats,
-            _host=_host,
-            _request_auth=_request_auth
-        )
-
-
-
-
-    @validate_call
-    def analytics_dashboard_service_update_dashboard(
-        self,
-        id: Annotated[StrictStr, Field(description="ID of the dashboard to update.")],
-        analytics_dashboard_service_update_dashboard_body: AnalyticsDashboardServiceUpdateDashboardBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> UpdateDashboardResponse:
-        """Update analytics dashboard
-
-        Requires the `analytics:write` scope.
-
-        :param id: ID of the dashboard to update. (required)
-        :type id: str
-        :param analytics_dashboard_service_update_dashboard_body: (required)
-        :type analytics_dashboard_service_update_dashboard_body: AnalyticsDashboardServiceUpdateDashboardBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+    ) -> UpdateFormConnectionResponse:
+        """Update a form tool connection
+
+        Pause or resume it, or change which links' forms bring answers in and which answers are kept.  Requires the `integrations:write` scope.
+
+        :param tool: (required)
+        :type tool: str
+        :param form_integrations_service_update_body: (required)
+        :type form_integrations_service_update_body: FormIntegrationsServiceUpdateBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1593,9 +1757,9 @@ class AnalyticsDashboardApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_dashboard_service_update_dashboard_serialize(
-            id=id,
-            analytics_dashboard_service_update_dashboard_body=analytics_dashboard_service_update_dashboard_body,
+        _param = self._form_integrations_service_update_serialize(
+            tool=tool,
+            form_integrations_service_update_body=form_integrations_service_update_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -1604,7 +1768,7 @@ class AnalyticsDashboardApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "UpdateDashboardResponse",
+            '200': "UpdateFormConnectionResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -1619,11 +1783,11 @@ class AnalyticsDashboardApi:
 
 
     @validate_call
-    def analytics_dashboard_service_update_dashboard_with_http_info(
+    def form_integrations_service_update_with_http_info(
         self,
-        id: Annotated[StrictStr, Field(description="ID of the dashboard to update.")],
-        analytics_dashboard_service_update_dashboard_body: AnalyticsDashboardServiceUpdateDashboardBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        tool: StrictStr,
+        form_integrations_service_update_body: FormIntegrationsServiceUpdateBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1636,16 +1800,16 @@ class AnalyticsDashboardApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[UpdateDashboardResponse]:
-        """Update analytics dashboard
+    ) -> ApiResponse[UpdateFormConnectionResponse]:
+        """Update a form tool connection
 
-        Requires the `analytics:write` scope.
+        Pause or resume it, or change which links' forms bring answers in and which answers are kept.  Requires the `integrations:write` scope.
 
-        :param id: ID of the dashboard to update. (required)
-        :type id: str
-        :param analytics_dashboard_service_update_dashboard_body: (required)
-        :type analytics_dashboard_service_update_dashboard_body: AnalyticsDashboardServiceUpdateDashboardBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param tool: (required)
+        :type tool: str
+        :param form_integrations_service_update_body: (required)
+        :type form_integrations_service_update_body: FormIntegrationsServiceUpdateBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1669,9 +1833,9 @@ class AnalyticsDashboardApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_dashboard_service_update_dashboard_serialize(
-            id=id,
-            analytics_dashboard_service_update_dashboard_body=analytics_dashboard_service_update_dashboard_body,
+        _param = self._form_integrations_service_update_serialize(
+            tool=tool,
+            form_integrations_service_update_body=form_integrations_service_update_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -1680,7 +1844,7 @@ class AnalyticsDashboardApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "UpdateDashboardResponse",
+            '200': "UpdateFormConnectionResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -1695,11 +1859,11 @@ class AnalyticsDashboardApi:
 
 
     @validate_call
-    def analytics_dashboard_service_update_dashboard_without_preload_content(
+    def form_integrations_service_update_without_preload_content(
         self,
-        id: Annotated[StrictStr, Field(description="ID of the dashboard to update.")],
-        analytics_dashboard_service_update_dashboard_body: AnalyticsDashboardServiceUpdateDashboardBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        tool: StrictStr,
+        form_integrations_service_update_body: FormIntegrationsServiceUpdateBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1713,15 +1877,15 @@ class AnalyticsDashboardApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Update analytics dashboard
+        """Update a form tool connection
 
-        Requires the `analytics:write` scope.
+        Pause or resume it, or change which links' forms bring answers in and which answers are kept.  Requires the `integrations:write` scope.
 
-        :param id: ID of the dashboard to update. (required)
-        :type id: str
-        :param analytics_dashboard_service_update_dashboard_body: (required)
-        :type analytics_dashboard_service_update_dashboard_body: AnalyticsDashboardServiceUpdateDashboardBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param tool: (required)
+        :type tool: str
+        :param form_integrations_service_update_body: (required)
+        :type form_integrations_service_update_body: FormIntegrationsServiceUpdateBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1745,9 +1909,9 @@ class AnalyticsDashboardApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_dashboard_service_update_dashboard_serialize(
-            id=id,
-            analytics_dashboard_service_update_dashboard_body=analytics_dashboard_service_update_dashboard_body,
+        _param = self._form_integrations_service_update_serialize(
+            tool=tool,
+            form_integrations_service_update_body=form_integrations_service_update_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -1756,7 +1920,7 @@ class AnalyticsDashboardApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "UpdateDashboardResponse",
+            '200': "UpdateFormConnectionResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -1766,10 +1930,10 @@ class AnalyticsDashboardApi:
         return response_data.response
 
 
-    def _analytics_dashboard_service_update_dashboard_serialize(
+    def _form_integrations_service_update_serialize(
         self,
-        id,
-        analytics_dashboard_service_update_dashboard_body,
+        tool,
+        form_integrations_service_update_body,
         idempotency_key,
         _request_auth,
         _content_type,
@@ -1792,16 +1956,16 @@ class AnalyticsDashboardApi:
         _body_params: Optional[bytes] = None
 
         # process the path parameters
-        if id is not None:
-            _path_params['id'] = id
+        if tool is not None:
+            _path_params['tool'] = tool
         # process the query parameters
         # process the header parameters
         if idempotency_key is not None:
             _header_params['Idempotency-Key'] = idempotency_key
         # process the form parameters
         # process the body parameter
-        if analytics_dashboard_service_update_dashboard_body is not None:
-            _body_params = analytics_dashboard_service_update_dashboard_body
+        if form_integrations_service_update_body is not None:
+            _body_params = form_integrations_service_update_body
 
 
         # set the HTTP header `Accept`
@@ -1833,8 +1997,8 @@ class AnalyticsDashboardApi:
         ]
 
         return self.api_client.param_serialize(
-            method='PUT',
-            resource_path='/v1/analytics/dashboards/{id}',
+            method='PATCH',
+            resource_path='/v1/form-integrations/{tool}',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,

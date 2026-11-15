@@ -1,9 +1,9 @@
 """
     Linkbreakers API
 
-    This is a documentation of all the APIs of Linkbreakers  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
+    The Linkbreakers REST API: links, QR codes, workflows, visitors and analytics, as JSON over HTTPS. Send a workspace API token as `Authorization: Bearer <token>`.  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  A renamed operation keeps answering its former path until that path's sunset. Responses on a former path carry the same `Deprecation`, `Sunset` and `Link` header fields; this document lists only the current path, and the policy lists the former ones.  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
 
-    The version of the OpenAPI document: 1.198.0
+    The version of the OpenAPI document: 1.198.1
     Contact: support@linkbreakers.com
     Generated by OpenAPI Generator (https://openapi-generator.tech)
 
@@ -19,17 +19,18 @@ from typing_extensions import Annotated
 from pydantic import Field
 from typing import Any, Dict, Optional
 from typing_extensions import Annotated
-from linkbreakers.models.get_google_analytics_integration_response import GetGoogleAnalyticsIntegrationResponse
-from linkbreakers.models.test_google_analytics_integration_response import TestGoogleAnalyticsIntegrationResponse
-from linkbreakers.models.update_google_analytics_integration_request import UpdateGoogleAnalyticsIntegrationRequest
-from linkbreakers.models.update_google_analytics_integration_response import UpdateGoogleAnalyticsIntegrationResponse
+from linkbreakers.models.get_slack_integration_response import GetSlackIntegrationResponse
+from linkbreakers.models.list_slack_channels_response import ListSlackChannelsResponse
+from linkbreakers.models.test_slack_integration_response import TestSlackIntegrationResponse
+from linkbreakers.models.update_slack_integration_request import UpdateSlackIntegrationRequest
+from linkbreakers.models.update_slack_integration_response import UpdateSlackIntegrationResponse
 
 from linkbreakers.api_client import ApiClient, RequestSerialized
 from linkbreakers.api_response import ApiResponse
 from linkbreakers.rest import RESTResponseType
 
 
-class GoogleAnalyticsIntegrationsApi:
+class IntegrationsSlackApi:
     """NOTE: This class is auto generated by OpenAPI Generator
     Ref: https://openapi-generator.tech
 
@@ -43,7 +44,7 @@ class GoogleAnalyticsIntegrationsApi:
 
 
     @validate_call
-    def google_analytics_integrations_service_delete(
+    def slack_integrations_service_delete(
         self,
         _request_timeout: Union[
             None,
@@ -58,9 +59,9 @@ class GoogleAnalyticsIntegrationsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> object:
-        """Disconnect Google Analytics
+        """Disconnect Slack integration
 
-        Stop sending visits to Google Analytics 4 and delete the stored API secret.  Requires the `integrations:write` scope.
+        Disconnect and remove the Slack integration from the workspace.  Requires the `integrations:write` scope.
 
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -84,7 +85,7 @@ class GoogleAnalyticsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_analytics_integrations_service_delete_serialize(
+        _param = self._slack_integrations_service_delete_serialize(
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -107,7 +108,7 @@ class GoogleAnalyticsIntegrationsApi:
 
 
     @validate_call
-    def google_analytics_integrations_service_delete_with_http_info(
+    def slack_integrations_service_delete_with_http_info(
         self,
         _request_timeout: Union[
             None,
@@ -122,9 +123,9 @@ class GoogleAnalyticsIntegrationsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ApiResponse[object]:
-        """Disconnect Google Analytics
+        """Disconnect Slack integration
 
-        Stop sending visits to Google Analytics 4 and delete the stored API secret.  Requires the `integrations:write` scope.
+        Disconnect and remove the Slack integration from the workspace.  Requires the `integrations:write` scope.
 
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -148,7 +149,7 @@ class GoogleAnalyticsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_analytics_integrations_service_delete_serialize(
+        _param = self._slack_integrations_service_delete_serialize(
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -171,7 +172,7 @@ class GoogleAnalyticsIntegrationsApi:
 
 
     @validate_call
-    def google_analytics_integrations_service_delete_without_preload_content(
+    def slack_integrations_service_delete_without_preload_content(
         self,
         _request_timeout: Union[
             None,
@@ -186,9 +187,9 @@ class GoogleAnalyticsIntegrationsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Disconnect Google Analytics
+        """Disconnect Slack integration
 
-        Stop sending visits to Google Analytics 4 and delete the stored API secret.  Requires the `integrations:write` scope.
+        Disconnect and remove the Slack integration from the workspace.  Requires the `integrations:write` scope.
 
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -212,7 +213,7 @@ class GoogleAnalyticsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_analytics_integrations_service_delete_serialize(
+        _param = self._slack_integrations_service_delete_serialize(
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -230,7 +231,7 @@ class GoogleAnalyticsIntegrationsApi:
         return response_data.response
 
 
-    def _google_analytics_integrations_service_delete_serialize(
+    def _slack_integrations_service_delete_serialize(
         self,
         _request_auth,
         _content_type,
@@ -276,7 +277,7 @@ class GoogleAnalyticsIntegrationsApi:
 
         return self.api_client.param_serialize(
             method='DELETE',
-            resource_path='/v1/integrations/google-analytics',
+            resource_path='/v1/slack-integrations',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -293,7 +294,7 @@ class GoogleAnalyticsIntegrationsApi:
 
 
     @validate_call
-    def google_analytics_integrations_service_get(
+    def slack_integrations_service_get(
         self,
         _request_timeout: Union[
             None,
@@ -307,10 +308,10 @@ class GoogleAnalyticsIntegrationsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> GetGoogleAnalyticsIntegrationResponse:
-        """Get Google Analytics integration
+    ) -> GetSlackIntegrationResponse:
+        """Get Slack integration
 
-        Return the Google Analytics 4 property the workspace sends its visits to, without the API secret.  Requires the `integrations:read` scope.
+        Retrieve the Slack integration configuration for the workspace.  Requires the `integrations:read` scope.
 
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -334,7 +335,7 @@ class GoogleAnalyticsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_analytics_integrations_service_get_serialize(
+        _param = self._slack_integrations_service_get_serialize(
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -342,7 +343,7 @@ class GoogleAnalyticsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetGoogleAnalyticsIntegrationResponse",
+            '200': "GetSlackIntegrationResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -357,7 +358,7 @@ class GoogleAnalyticsIntegrationsApi:
 
 
     @validate_call
-    def google_analytics_integrations_service_get_with_http_info(
+    def slack_integrations_service_get_with_http_info(
         self,
         _request_timeout: Union[
             None,
@@ -371,10 +372,10 @@ class GoogleAnalyticsIntegrationsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[GetGoogleAnalyticsIntegrationResponse]:
-        """Get Google Analytics integration
+    ) -> ApiResponse[GetSlackIntegrationResponse]:
+        """Get Slack integration
 
-        Return the Google Analytics 4 property the workspace sends its visits to, without the API secret.  Requires the `integrations:read` scope.
+        Retrieve the Slack integration configuration for the workspace.  Requires the `integrations:read` scope.
 
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -398,7 +399,7 @@ class GoogleAnalyticsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_analytics_integrations_service_get_serialize(
+        _param = self._slack_integrations_service_get_serialize(
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -406,7 +407,7 @@ class GoogleAnalyticsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetGoogleAnalyticsIntegrationResponse",
+            '200': "GetSlackIntegrationResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -421,7 +422,7 @@ class GoogleAnalyticsIntegrationsApi:
 
 
     @validate_call
-    def google_analytics_integrations_service_get_without_preload_content(
+    def slack_integrations_service_get_without_preload_content(
         self,
         _request_timeout: Union[
             None,
@@ -436,9 +437,9 @@ class GoogleAnalyticsIntegrationsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Get Google Analytics integration
+        """Get Slack integration
 
-        Return the Google Analytics 4 property the workspace sends its visits to, without the API secret.  Requires the `integrations:read` scope.
+        Retrieve the Slack integration configuration for the workspace.  Requires the `integrations:read` scope.
 
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -462,7 +463,7 @@ class GoogleAnalyticsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_analytics_integrations_service_get_serialize(
+        _param = self._slack_integrations_service_get_serialize(
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -470,7 +471,7 @@ class GoogleAnalyticsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetGoogleAnalyticsIntegrationResponse",
+            '200': "GetSlackIntegrationResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -480,7 +481,7 @@ class GoogleAnalyticsIntegrationsApi:
         return response_data.response
 
 
-    def _google_analytics_integrations_service_get_serialize(
+    def _slack_integrations_service_get_serialize(
         self,
         _request_auth,
         _content_type,
@@ -526,7 +527,7 @@ class GoogleAnalyticsIntegrationsApi:
 
         return self.api_client.param_serialize(
             method='GET',
-            resource_path='/v1/integrations/google-analytics',
+            resource_path='/v1/slack-integrations',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -543,10 +544,8 @@ class GoogleAnalyticsIntegrationsApi:
 
 
     @validate_call
-    def google_analytics_integrations_service_test(
+    def slack_integrations_service_list_channels(
         self,
-        body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -559,15 +558,11 @@ class GoogleAnalyticsIntegrationsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> TestGoogleAnalyticsIntegrationResponse:
-        """Send a test event to Google Analytics
+    ) -> ListSlackChannelsResponse:
+        """List Slack channels
 
-        Send a linkbreakers_test event to the connected property in debug mode, so it shows in GA4 DebugView. Google accepts events even with a wrong API secret, so check DebugView to confirm.  Requires the `integrations:write` scope.
+        List available Slack channels the bot can send notifications to.  Requires the `integrations:read` scope.
 
-        :param body: (required)
-        :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
-        :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -590,9 +585,7 @@ class GoogleAnalyticsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_analytics_integrations_service_test_serialize(
-            body=body,
-            idempotency_key=idempotency_key,
+        _param = self._slack_integrations_service_list_channels_serialize(
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -600,7 +593,7 @@ class GoogleAnalyticsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "TestGoogleAnalyticsIntegrationResponse",
+            '200': "ListSlackChannelsResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -615,10 +608,8 @@ class GoogleAnalyticsIntegrationsApi:
 
 
     @validate_call
-    def google_analytics_integrations_service_test_with_http_info(
+    def slack_integrations_service_list_channels_with_http_info(
         self,
-        body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -631,15 +622,11 @@ class GoogleAnalyticsIntegrationsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[TestGoogleAnalyticsIntegrationResponse]:
-        """Send a test event to Google Analytics
+    ) -> ApiResponse[ListSlackChannelsResponse]:
+        """List Slack channels
 
-        Send a linkbreakers_test event to the connected property in debug mode, so it shows in GA4 DebugView. Google accepts events even with a wrong API secret, so check DebugView to confirm.  Requires the `integrations:write` scope.
+        List available Slack channels the bot can send notifications to.  Requires the `integrations:read` scope.
 
-        :param body: (required)
-        :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
-        :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -662,9 +649,7 @@ class GoogleAnalyticsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_analytics_integrations_service_test_serialize(
-            body=body,
-            idempotency_key=idempotency_key,
+        _param = self._slack_integrations_service_list_channels_serialize(
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -672,7 +657,7 @@ class GoogleAnalyticsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "TestGoogleAnalyticsIntegrationResponse",
+            '200': "ListSlackChannelsResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -687,10 +672,8 @@ class GoogleAnalyticsIntegrationsApi:
 
 
     @validate_call
-    def google_analytics_integrations_service_test_without_preload_content(
+    def slack_integrations_service_list_channels_without_preload_content(
         self,
-        body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -704,13 +687,137 @@ class GoogleAnalyticsIntegrationsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Send a test event to Google Analytics
+        """List Slack channels
 
-        Send a linkbreakers_test event to the connected property in debug mode, so it shows in GA4 DebugView. Google accepts events even with a wrong API secret, so check DebugView to confirm.  Requires the `integrations:write` scope.
+        List available Slack channels the bot can send notifications to.  Requires the `integrations:read` scope.
+
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._slack_integrations_service_list_channels_serialize(
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "ListSlackChannelsResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _slack_integrations_service_list_channels_serialize(
+        self,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+
+        # set the HTTP header `Accept`
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'oauth2', 
+            'bearerAuth'
+        ]
+
+        return self.api_client.param_serialize(
+            method='GET',
+            resource_path='/v1/slack-integrations/channels',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def slack_integrations_service_test(
+        self,
+        body: Dict[str, Any],
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> TestSlackIntegrationResponse:
+        """Test Slack integration
+
+        Send a test notification to verify the Slack integration is working.  Requires the `integrations:write` scope.
 
         :param body: (required)
         :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -734,7 +841,7 @@ class GoogleAnalyticsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_analytics_integrations_service_test_serialize(
+        _param = self._slack_integrations_service_test_serialize(
             body=body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -744,7 +851,151 @@ class GoogleAnalyticsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "TestGoogleAnalyticsIntegrationResponse",
+            '200': "TestSlackIntegrationResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def slack_integrations_service_test_with_http_info(
+        self,
+        body: Dict[str, Any],
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[TestSlackIntegrationResponse]:
+        """Test Slack integration
+
+        Send a test notification to verify the Slack integration is working.  Requires the `integrations:write` scope.
+
+        :param body: (required)
+        :type body: object
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
+        :type idempotency_key: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._slack_integrations_service_test_serialize(
+            body=body,
+            idempotency_key=idempotency_key,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "TestSlackIntegrationResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def slack_integrations_service_test_without_preload_content(
+        self,
+        body: Dict[str, Any],
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Test Slack integration
+
+        Send a test notification to verify the Slack integration is working.  Requires the `integrations:write` scope.
+
+        :param body: (required)
+        :type body: object
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
+        :type idempotency_key: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._slack_integrations_service_test_serialize(
+            body=body,
+            idempotency_key=idempotency_key,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "TestSlackIntegrationResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -754,7 +1005,7 @@ class GoogleAnalyticsIntegrationsApi:
         return response_data.response
 
 
-    def _google_analytics_integrations_service_test_serialize(
+    def _slack_integrations_service_test_serialize(
         self,
         body,
         idempotency_key,
@@ -819,7 +1070,7 @@ class GoogleAnalyticsIntegrationsApi:
 
         return self.api_client.param_serialize(
             method='POST',
-            resource_path='/v1/integrations/google-analytics/test',
+            resource_path='/v1/slack-integrations/test',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -836,10 +1087,10 @@ class GoogleAnalyticsIntegrationsApi:
 
 
     @validate_call
-    def google_analytics_integrations_service_update(
+    def slack_integrations_service_update(
         self,
-        update_google_analytics_integration_request: UpdateGoogleAnalyticsIntegrationRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        update_slack_integration_request: UpdateSlackIntegrationRequest,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -852,14 +1103,14 @@ class GoogleAnalyticsIntegrationsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> UpdateGoogleAnalyticsIntegrationResponse:
-        """Connect Google Analytics
+    ) -> UpdateSlackIntegrationResponse:
+        """Update Slack integration
 
-        Connect a Google Analytics 4 property, or change its settings. Every person's visit, form submission and piece of visitor data captured is then sent to it through the Measurement Protocol, without personal data. With visitor_attributes_enabled on (the default), form answers and custom visitor attributes go with each event as lb_<key> parameters, numbers as numbers; visitor_attribute_keys limits them to chosen keys.  Requires the `integrations:write` scope.
+        Update the Slack integration configuration (channel, triggers, status).  Requires the `integrations:write` scope.
 
-        :param update_google_analytics_integration_request: (required)
-        :type update_google_analytics_integration_request: UpdateGoogleAnalyticsIntegrationRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param update_slack_integration_request: (required)
+        :type update_slack_integration_request: UpdateSlackIntegrationRequest
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -883,8 +1134,8 @@ class GoogleAnalyticsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_analytics_integrations_service_update_serialize(
-            update_google_analytics_integration_request=update_google_analytics_integration_request,
+        _param = self._slack_integrations_service_update_serialize(
+            update_slack_integration_request=update_slack_integration_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -893,7 +1144,7 @@ class GoogleAnalyticsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "UpdateGoogleAnalyticsIntegrationResponse",
+            '200': "UpdateSlackIntegrationResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -908,10 +1159,10 @@ class GoogleAnalyticsIntegrationsApi:
 
 
     @validate_call
-    def google_analytics_integrations_service_update_with_http_info(
+    def slack_integrations_service_update_with_http_info(
         self,
-        update_google_analytics_integration_request: UpdateGoogleAnalyticsIntegrationRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        update_slack_integration_request: UpdateSlackIntegrationRequest,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -924,14 +1175,14 @@ class GoogleAnalyticsIntegrationsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[UpdateGoogleAnalyticsIntegrationResponse]:
-        """Connect Google Analytics
+    ) -> ApiResponse[UpdateSlackIntegrationResponse]:
+        """Update Slack integration
 
-        Connect a Google Analytics 4 property, or change its settings. Every person's visit, form submission and piece of visitor data captured is then sent to it through the Measurement Protocol, without personal data. With visitor_attributes_enabled on (the default), form answers and custom visitor attributes go with each event as lb_<key> parameters, numbers as numbers; visitor_attribute_keys limits them to chosen keys.  Requires the `integrations:write` scope.
+        Update the Slack integration configuration (channel, triggers, status).  Requires the `integrations:write` scope.
 
-        :param update_google_analytics_integration_request: (required)
-        :type update_google_analytics_integration_request: UpdateGoogleAnalyticsIntegrationRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param update_slack_integration_request: (required)
+        :type update_slack_integration_request: UpdateSlackIntegrationRequest
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -955,8 +1206,8 @@ class GoogleAnalyticsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_analytics_integrations_service_update_serialize(
-            update_google_analytics_integration_request=update_google_analytics_integration_request,
+        _param = self._slack_integrations_service_update_serialize(
+            update_slack_integration_request=update_slack_integration_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -965,7 +1216,7 @@ class GoogleAnalyticsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "UpdateGoogleAnalyticsIntegrationResponse",
+            '200': "UpdateSlackIntegrationResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -980,10 +1231,10 @@ class GoogleAnalyticsIntegrationsApi:
 
 
     @validate_call
-    def google_analytics_integrations_service_update_without_preload_content(
+    def slack_integrations_service_update_without_preload_content(
         self,
-        update_google_analytics_integration_request: UpdateGoogleAnalyticsIntegrationRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        update_slack_integration_request: UpdateSlackIntegrationRequest,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -997,13 +1248,13 @@ class GoogleAnalyticsIntegrationsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Connect Google Analytics
+        """Update Slack integration
 
-        Connect a Google Analytics 4 property, or change its settings. Every person's visit, form submission and piece of visitor data captured is then sent to it through the Measurement Protocol, without personal data. With visitor_attributes_enabled on (the default), form answers and custom visitor attributes go with each event as lb_<key> parameters, numbers as numbers; visitor_attribute_keys limits them to chosen keys.  Requires the `integrations:write` scope.
+        Update the Slack integration configuration (channel, triggers, status).  Requires the `integrations:write` scope.
 
-        :param update_google_analytics_integration_request: (required)
-        :type update_google_analytics_integration_request: UpdateGoogleAnalyticsIntegrationRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param update_slack_integration_request: (required)
+        :type update_slack_integration_request: UpdateSlackIntegrationRequest
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1027,8 +1278,8 @@ class GoogleAnalyticsIntegrationsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._google_analytics_integrations_service_update_serialize(
-            update_google_analytics_integration_request=update_google_analytics_integration_request,
+        _param = self._slack_integrations_service_update_serialize(
+            update_slack_integration_request=update_slack_integration_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -1037,7 +1288,7 @@ class GoogleAnalyticsIntegrationsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "UpdateGoogleAnalyticsIntegrationResponse",
+            '200': "UpdateSlackIntegrationResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -1047,9 +1298,9 @@ class GoogleAnalyticsIntegrationsApi:
         return response_data.response
 
 
-    def _google_analytics_integrations_service_update_serialize(
+    def _slack_integrations_service_update_serialize(
         self,
-        update_google_analytics_integration_request,
+        update_slack_integration_request,
         idempotency_key,
         _request_auth,
         _content_type,
@@ -1078,8 +1329,8 @@ class GoogleAnalyticsIntegrationsApi:
             _header_params['Idempotency-Key'] = idempotency_key
         # process the form parameters
         # process the body parameter
-        if update_google_analytics_integration_request is not None:
-            _body_params = update_google_analytics_integration_request
+        if update_slack_integration_request is not None:
+            _body_params = update_slack_integration_request
 
 
         # set the HTTP header `Accept`
@@ -1111,8 +1362,8 @@ class GoogleAnalyticsIntegrationsApi:
         ]
 
         return self.api_client.param_serialize(
-            method='PUT',
-            resource_path='/v1/integrations/google-analytics',
+            method='PATCH',
+            resource_path='/v1/slack-integrations',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,

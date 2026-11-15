@@ -1,9 +1,9 @@
 """
     Linkbreakers API
 
-    This is a documentation of all the APIs of Linkbreakers  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
+    The Linkbreakers REST API: links, QR codes, workflows, visitors and analytics, as JSON over HTTPS. Send a workspace API token as `Authorization: Bearer <token>`.  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  A renamed operation keeps answering its former path until that path's sunset. Responses on a former path carry the same `Deprecation`, `Sunset` and `Link` header fields; this document lists only the current path, and the policy lists the former ones.  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
 
-    The version of the OpenAPI document: 1.198.0
+    The version of the OpenAPI document: 1.198.1
     Contact: support@linkbreakers.com
     Generated by OpenAPI Generator (https://openapi-generator.tech)
 
@@ -19,6 +19,7 @@ from typing_extensions import Annotated
 from pydantic import Field, StrictInt, StrictStr
 from typing import Any, Dict, List, Optional
 from typing_extensions import Annotated
+from linkbreakers.models.check_shortlink_availability_response import CheckShortlinkAvailabilityResponse
 from linkbreakers.models.create_bulk_links_request import CreateBulkLinksRequest
 from linkbreakers.models.create_bulk_links_response import CreateBulkLinksResponse
 from linkbreakers.models.create_contact_link_request import CreateContactLinkRequest
@@ -29,16 +30,13 @@ from linkbreakers.models.create_open_media_link_request import CreateOpenMediaLi
 from linkbreakers.models.create_open_media_link_response import CreateOpenMediaLinkResponse
 from linkbreakers.models.create_thank_you_link_request import CreateThankYouLinkRequest
 from linkbreakers.models.create_thank_you_link_response import CreateThankYouLinkResponse
+from linkbreakers.models.generate_shortlink_response import GenerateShortlinkResponse
 from linkbreakers.models.get_link_response import GetLinkResponse
 from linkbreakers.models.job import Job
 from linkbreakers.models.links_service_render_qrcode_images_body import LinksServiceRenderQrcodeImagesBody
 from linkbreakers.models.links_service_update_body import LinksServiceUpdateBody
 from linkbreakers.models.list_links_response import ListLinksResponse
 from linkbreakers.models.render_qrcode_images_response import RenderQrcodeImagesResponse
-from linkbreakers.models.resolve_qrcode_images_request import ResolveQrcodeImagesRequest
-from linkbreakers.models.resolve_qrcode_images_response import ResolveQrcodeImagesResponse
-from linkbreakers.models.shortlink_availability_response import ShortlinkAvailabilityResponse
-from linkbreakers.models.shortlink_random_response import ShortlinkRandomResponse
 from linkbreakers.models.update_link_response import UpdateLinkResponse
 
 from linkbreakers.api_client import ApiClient, RequestSerialized
@@ -60,10 +58,294 @@ class LinksApi:
 
 
     @validate_call
+    def links_service_check_shortlink_availability(
+        self,
+        shortlink: Annotated[Optional[StrictStr], Field(description="The shortlink to check availability for.")] = None,
+        custom_domain_id: Annotated[Optional[StrictStr], Field(description="The ID of the custom domain to check against (UUID) If not provided, checks against the default domain")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> CheckShortlinkAvailabilityResponse:
+        """Check shortlink availability
+
+        Checks if a shortlink is available for use to create a new link. A custom domain can be provided to check against. It typically checks the shortlink slugs and shortlink IDs already present within the system.  Requires the `links:read` scope.
+
+        :param shortlink: The shortlink to check availability for.
+        :type shortlink: str
+        :param custom_domain_id: The ID of the custom domain to check against (UUID) If not provided, checks against the default domain
+        :type custom_domain_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._links_service_check_shortlink_availability_serialize(
+            shortlink=shortlink,
+            custom_domain_id=custom_domain_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "CheckShortlinkAvailabilityResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def links_service_check_shortlink_availability_with_http_info(
+        self,
+        shortlink: Annotated[Optional[StrictStr], Field(description="The shortlink to check availability for.")] = None,
+        custom_domain_id: Annotated[Optional[StrictStr], Field(description="The ID of the custom domain to check against (UUID) If not provided, checks against the default domain")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[CheckShortlinkAvailabilityResponse]:
+        """Check shortlink availability
+
+        Checks if a shortlink is available for use to create a new link. A custom domain can be provided to check against. It typically checks the shortlink slugs and shortlink IDs already present within the system.  Requires the `links:read` scope.
+
+        :param shortlink: The shortlink to check availability for.
+        :type shortlink: str
+        :param custom_domain_id: The ID of the custom domain to check against (UUID) If not provided, checks against the default domain
+        :type custom_domain_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._links_service_check_shortlink_availability_serialize(
+            shortlink=shortlink,
+            custom_domain_id=custom_domain_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "CheckShortlinkAvailabilityResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def links_service_check_shortlink_availability_without_preload_content(
+        self,
+        shortlink: Annotated[Optional[StrictStr], Field(description="The shortlink to check availability for.")] = None,
+        custom_domain_id: Annotated[Optional[StrictStr], Field(description="The ID of the custom domain to check against (UUID) If not provided, checks against the default domain")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Check shortlink availability
+
+        Checks if a shortlink is available for use to create a new link. A custom domain can be provided to check against. It typically checks the shortlink slugs and shortlink IDs already present within the system.  Requires the `links:read` scope.
+
+        :param shortlink: The shortlink to check availability for.
+        :type shortlink: str
+        :param custom_domain_id: The ID of the custom domain to check against (UUID) If not provided, checks against the default domain
+        :type custom_domain_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._links_service_check_shortlink_availability_serialize(
+            shortlink=shortlink,
+            custom_domain_id=custom_domain_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "CheckShortlinkAvailabilityResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _links_service_check_shortlink_availability_serialize(
+        self,
+        shortlink,
+        custom_domain_id,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        # process the query parameters
+        if shortlink is not None:
+            
+            _query_params.append(('shortlink', shortlink))
+            
+        if custom_domain_id is not None:
+            
+            _query_params.append(('customDomainId', custom_domain_id))
+            
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+
+        # set the HTTP header `Accept`
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'oauth2', 
+            'bearerAuth'
+        ]
+
+        return self.api_client.param_serialize(
+            method='GET',
+            resource_path='/v1/links/shortlink-availability',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
     def links_service_create(
         self,
         create_link_request: CreateLinkRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -83,7 +365,7 @@ class LinksApi:
 
         :param create_link_request: (required)
         :type create_link_request: CreateLinkRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -135,7 +417,7 @@ class LinksApi:
     def links_service_create_with_http_info(
         self,
         create_link_request: CreateLinkRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -155,7 +437,7 @@ class LinksApi:
 
         :param create_link_request: (required)
         :type create_link_request: CreateLinkRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -207,7 +489,7 @@ class LinksApi:
     def links_service_create_without_preload_content(
         self,
         create_link_request: CreateLinkRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -227,7 +509,7 @@ class LinksApi:
 
         :param create_link_request: (required)
         :type create_link_request: CreateLinkRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -356,7 +638,7 @@ class LinksApi:
     def links_service_create_batch(
         self,
         create_link_request: List[CreateLinkRequest],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -370,13 +652,13 @@ class LinksApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> CreateBulkLinksResponse:
-        """Create multiple links in a single request
+        """Create multiple links from a bare JSON array
 
         Creates links in batch using the same per-link options as Create. This operation is transactional: if one link fails validation or insertion, no links from the batch are created.  Requires the `links:write` scope.
 
         :param create_link_request: (required)
         :type create_link_request: List[CreateLinkRequest]
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -428,7 +710,7 @@ class LinksApi:
     def links_service_create_batch_with_http_info(
         self,
         create_link_request: List[CreateLinkRequest],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -442,13 +724,13 @@ class LinksApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ApiResponse[CreateBulkLinksResponse]:
-        """Create multiple links in a single request
+        """Create multiple links from a bare JSON array
 
         Creates links in batch using the same per-link options as Create. This operation is transactional: if one link fails validation or insertion, no links from the batch are created.  Requires the `links:write` scope.
 
         :param create_link_request: (required)
         :type create_link_request: List[CreateLinkRequest]
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -500,7 +782,7 @@ class LinksApi:
     def links_service_create_batch_without_preload_content(
         self,
         create_link_request: List[CreateLinkRequest],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -514,13 +796,13 @@ class LinksApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Create multiple links in a single request
+        """Create multiple links from a bare JSON array
 
         Creates links in batch using the same per-link options as Create. This operation is transactional: if one link fails validation or insertion, no links from the batch are created.  Requires the `links:write` scope.
 
         :param create_link_request: (required)
         :type create_link_request: List[CreateLinkRequest]
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -650,7 +932,7 @@ class LinksApi:
     def links_service_create_bulk(
         self,
         create_bulk_links_request: CreateBulkLinksRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -670,7 +952,7 @@ class LinksApi:
 
         :param create_bulk_links_request: (required)
         :type create_bulk_links_request: CreateBulkLinksRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -722,7 +1004,7 @@ class LinksApi:
     def links_service_create_bulk_with_http_info(
         self,
         create_bulk_links_request: CreateBulkLinksRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -742,7 +1024,7 @@ class LinksApi:
 
         :param create_bulk_links_request: (required)
         :type create_bulk_links_request: CreateBulkLinksRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -794,7 +1076,7 @@ class LinksApi:
     def links_service_create_bulk_without_preload_content(
         self,
         create_bulk_links_request: CreateBulkLinksRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -814,7 +1096,7 @@ class LinksApi:
 
         :param create_bulk_links_request: (required)
         :type create_bulk_links_request: CreateBulkLinksRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -943,7 +1225,7 @@ class LinksApi:
     def links_service_create_bulk_async(
         self,
         create_bulk_links_request: CreateBulkLinksRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -963,7 +1245,7 @@ class LinksApi:
 
         :param create_bulk_links_request: (required)
         :type create_bulk_links_request: CreateBulkLinksRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1015,7 +1297,7 @@ class LinksApi:
     def links_service_create_bulk_async_with_http_info(
         self,
         create_bulk_links_request: CreateBulkLinksRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1035,7 +1317,7 @@ class LinksApi:
 
         :param create_bulk_links_request: (required)
         :type create_bulk_links_request: CreateBulkLinksRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1087,7 +1369,7 @@ class LinksApi:
     def links_service_create_bulk_async_without_preload_content(
         self,
         create_bulk_links_request: CreateBulkLinksRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1107,7 +1389,7 @@ class LinksApi:
 
         :param create_bulk_links_request: (required)
         :type create_bulk_links_request: CreateBulkLinksRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1236,7 +1518,7 @@ class LinksApi:
     def links_service_create_contact_link(
         self,
         create_contact_link_request: CreateContactLinkRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1256,7 +1538,7 @@ class LinksApi:
 
         :param create_contact_link_request: (required)
         :type create_contact_link_request: CreateContactLinkRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1308,7 +1590,7 @@ class LinksApi:
     def links_service_create_contact_link_with_http_info(
         self,
         create_contact_link_request: CreateContactLinkRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1328,7 +1610,7 @@ class LinksApi:
 
         :param create_contact_link_request: (required)
         :type create_contact_link_request: CreateContactLinkRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1380,7 +1662,7 @@ class LinksApi:
     def links_service_create_contact_link_without_preload_content(
         self,
         create_contact_link_request: CreateContactLinkRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1400,7 +1682,7 @@ class LinksApi:
 
         :param create_contact_link_request: (required)
         :type create_contact_link_request: CreateContactLinkRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1529,7 +1811,7 @@ class LinksApi:
     def links_service_create_open_media_link(
         self,
         create_open_media_link_request: CreateOpenMediaLinkRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1545,11 +1827,11 @@ class LinksApi:
     ) -> CreateOpenMediaLinkResponse:
         """Create a new media link
 
-        Creates a link, and its QR code, that hands visitors one piece of media from the media library: a PDF (a menu or brochure), an image (PNG, JPEG, WebP, SVG) or an MP4 video. Upload the media first (POST /v1/media, or a direct upload for media over 3 MB; no usage is needed), then pass its media_id. Any media of the library can be opened. The Open media step is the exit step. Swap the media later by pointing the step at another media item.  Requires the `links:write` scope.
+        Creates a link, and its QR code, that hands visitors one piece of media from the media library: a PDF (a menu or brochure), an image (PNG, JPEG, WebP, SVG) or an MP4 video. Upload the media first (POST /v1/media, or a direct upload for media over 3 MB; no usage is needed), then pass its mediaId. Any media of the library can be opened. The Open media step is the exit step. Swap the media later by pointing the step at another media item.  Requires the `links:write` scope.
 
         :param create_open_media_link_request: (required)
         :type create_open_media_link_request: CreateOpenMediaLinkRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1601,7 +1883,7 @@ class LinksApi:
     def links_service_create_open_media_link_with_http_info(
         self,
         create_open_media_link_request: CreateOpenMediaLinkRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1617,11 +1899,11 @@ class LinksApi:
     ) -> ApiResponse[CreateOpenMediaLinkResponse]:
         """Create a new media link
 
-        Creates a link, and its QR code, that hands visitors one piece of media from the media library: a PDF (a menu or brochure), an image (PNG, JPEG, WebP, SVG) or an MP4 video. Upload the media first (POST /v1/media, or a direct upload for media over 3 MB; no usage is needed), then pass its media_id. Any media of the library can be opened. The Open media step is the exit step. Swap the media later by pointing the step at another media item.  Requires the `links:write` scope.
+        Creates a link, and its QR code, that hands visitors one piece of media from the media library: a PDF (a menu or brochure), an image (PNG, JPEG, WebP, SVG) or an MP4 video. Upload the media first (POST /v1/media, or a direct upload for media over 3 MB; no usage is needed), then pass its mediaId. Any media of the library can be opened. The Open media step is the exit step. Swap the media later by pointing the step at another media item.  Requires the `links:write` scope.
 
         :param create_open_media_link_request: (required)
         :type create_open_media_link_request: CreateOpenMediaLinkRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1673,7 +1955,7 @@ class LinksApi:
     def links_service_create_open_media_link_without_preload_content(
         self,
         create_open_media_link_request: CreateOpenMediaLinkRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1689,11 +1971,11 @@ class LinksApi:
     ) -> RESTResponseType:
         """Create a new media link
 
-        Creates a link, and its QR code, that hands visitors one piece of media from the media library: a PDF (a menu or brochure), an image (PNG, JPEG, WebP, SVG) or an MP4 video. Upload the media first (POST /v1/media, or a direct upload for media over 3 MB; no usage is needed), then pass its media_id. Any media of the library can be opened. The Open media step is the exit step. Swap the media later by pointing the step at another media item.  Requires the `links:write` scope.
+        Creates a link, and its QR code, that hands visitors one piece of media from the media library: a PDF (a menu or brochure), an image (PNG, JPEG, WebP, SVG) or an MP4 video. Upload the media first (POST /v1/media, or a direct upload for media over 3 MB; no usage is needed), then pass its mediaId. Any media of the library can be opened. The Open media step is the exit step. Swap the media later by pointing the step at another media item.  Requires the `links:write` scope.
 
         :param create_open_media_link_request: (required)
         :type create_open_media_link_request: CreateOpenMediaLinkRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1822,7 +2104,7 @@ class LinksApi:
     def links_service_create_thank_you_link(
         self,
         create_thank_you_link_request: CreateThankYouLinkRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1842,7 +2124,7 @@ class LinksApi:
 
         :param create_thank_you_link_request: (required)
         :type create_thank_you_link_request: CreateThankYouLinkRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1894,7 +2176,7 @@ class LinksApi:
     def links_service_create_thank_you_link_with_http_info(
         self,
         create_thank_you_link_request: CreateThankYouLinkRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1914,7 +2196,7 @@ class LinksApi:
 
         :param create_thank_you_link_request: (required)
         :type create_thank_you_link_request: CreateThankYouLinkRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1966,7 +2248,7 @@ class LinksApi:
     def links_service_create_thank_you_link_without_preload_content(
         self,
         create_thank_you_link_request: CreateThankYouLinkRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1986,7 +2268,7 @@ class LinksApi:
 
         :param create_thank_you_link_request: (required)
         :type create_thank_you_link_request: CreateThankYouLinkRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2377,6 +2659,256 @@ class LinksApi:
 
 
     @validate_call
+    def links_service_generate_shortlink(
+        self,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> GenerateShortlinkResponse:
+        """Generate a shortlink
+
+        Generates a random shortlink that is still available, to use for a new link.  Requires the `links:read` scope.
+
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._links_service_generate_shortlink_serialize(
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "GenerateShortlinkResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def links_service_generate_shortlink_with_http_info(
+        self,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[GenerateShortlinkResponse]:
+        """Generate a shortlink
+
+        Generates a random shortlink that is still available, to use for a new link.  Requires the `links:read` scope.
+
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._links_service_generate_shortlink_serialize(
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "GenerateShortlinkResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def links_service_generate_shortlink_without_preload_content(
+        self,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Generate a shortlink
+
+        Generates a random shortlink that is still available, to use for a new link.  Requires the `links:read` scope.
+
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._links_service_generate_shortlink_serialize(
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "GenerateShortlinkResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _links_service_generate_shortlink_serialize(
+        self,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+
+        # set the HTTP header `Accept`
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'oauth2', 
+            'bearerAuth'
+        ]
+
+        return self.api_client.param_serialize(
+            method='GET',
+            resource_path='/v1/links/shortlink-random',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
     def links_service_get(
         self,
         id: Annotated[StrictStr, Field(description="The ID of the link to retrieve (UUID)")],
@@ -2667,9 +3199,9 @@ class LinksApi:
         include: Annotated[Optional[List[StrictStr]], Field(description="List of related resources to include in the response. Supported values: \"customDomain\", \"qrcodeDesign\", \"qrcodeSignedUrl\", \"tags\", \"pageTheme\". Use \"qrcodeSignedUrl\" to fetch signed QR image URLs—they are omitted by default to keep requests fast.")] = None,
         tags: Annotated[Optional[List[StrictStr]], Field(description="Tags to filter links by (matches links containing any of the provided tags)")] = None,
         search: Annotated[Optional[StrictStr], Field(description="Search query to filter links by name or shortlink  Search query to filter links by name or shortlink")] = None,
-        sort_by: Annotated[Optional[StrictStr], Field(description="Field to sort links by (defaults to updated_at if not specified)  Field to sort links by   - LINK_SORT_FIELD_UNSPECIFIED: Sort field not specified (defaults to updated_at)  - LINK_SORT_FIELD_CREATED_AT: Sort by creation date  - LINK_SORT_FIELD_UPDATED_AT: Sort by last update date  - LINK_SORT_FIELD_SHORTLINK: Sort by shortlink name  - LINK_SORT_FIELD_NAME: Sort by link name  - LINK_SORT_FIELD_EVENT_COUNT: Sort by event count")] = None,
+        sort_by: Annotated[Optional[StrictStr], Field(description="Field to sort links by (defaults to updatedAt if not specified)  Field to sort links by   - LINK_SORT_FIELD_UNSPECIFIED: Sort field not specified (defaults to updatedAt)  - LINK_SORT_FIELD_CREATED_AT: Sort by creation date  - LINK_SORT_FIELD_UPDATED_AT: Sort by last update date  - LINK_SORT_FIELD_SHORTLINK: Sort by shortlink name  - LINK_SORT_FIELD_NAME: Sort by link name  - LINK_SORT_FIELD_EVENT_COUNT: Sort by event count")] = None,
         sort_direction: Annotated[Optional[StrictStr], Field(description="Sort direction (defaults to descending if not specified)  Sort direction (ascending or descending)   - SORT_DIRECTION_UNSPECIFIED: Sort direction not specified (defaults to descending)  - SORT_DIRECTION_ASC: Sort in ascending order  - SORT_DIRECTION_DESC: Sort in descending order")] = None,
-        view: Annotated[Optional[StrictStr], Field(description="View mode. Default returns all links. LINK_VIEW_DIRECTORY scopes to a directory (or root when directory_id is empty).   - LINK_VIEW_UNSPECIFIED: Return all links regardless of directory (default)  - LINK_VIEW_DIRECTORY: Return links scoped to a directory. When directory_id is set, returns links in that directory. When directory_id is empty, returns root-level links (no directory).")] = None,
+        view: Annotated[Optional[StrictStr], Field(description="View mode. Default returns all links. LINK_VIEW_DIRECTORY scopes to a directory (or root when directoryId is empty).   - LINK_VIEW_UNSPECIFIED: Return all links regardless of directory (default)  - LINK_VIEW_DIRECTORY: Return links scoped to a directory. When directoryId is set, returns links in that directory. When directoryId is empty, returns root-level links (no directory).")] = None,
         directory_id: Annotated[Optional[StrictStr], Field(description="Directory ID to scope to when view is LINK_VIEW_DIRECTORY. When empty with LINK_VIEW_DIRECTORY, returns root-level links.")] = None,
         cursor: Annotated[Optional[StrictStr], Field(description="Opaque cursor from the previous page's nextPageToken. Same as pageToken; when both are sent, pageToken wins.")] = None,
         _request_timeout: Union[
@@ -2699,11 +3231,11 @@ class LinksApi:
         :type tags: List[str]
         :param search: Search query to filter links by name or shortlink  Search query to filter links by name or shortlink
         :type search: str
-        :param sort_by: Field to sort links by (defaults to updated_at if not specified)  Field to sort links by   - LINK_SORT_FIELD_UNSPECIFIED: Sort field not specified (defaults to updated_at)  - LINK_SORT_FIELD_CREATED_AT: Sort by creation date  - LINK_SORT_FIELD_UPDATED_AT: Sort by last update date  - LINK_SORT_FIELD_SHORTLINK: Sort by shortlink name  - LINK_SORT_FIELD_NAME: Sort by link name  - LINK_SORT_FIELD_EVENT_COUNT: Sort by event count
+        :param sort_by: Field to sort links by (defaults to updatedAt if not specified)  Field to sort links by   - LINK_SORT_FIELD_UNSPECIFIED: Sort field not specified (defaults to updatedAt)  - LINK_SORT_FIELD_CREATED_AT: Sort by creation date  - LINK_SORT_FIELD_UPDATED_AT: Sort by last update date  - LINK_SORT_FIELD_SHORTLINK: Sort by shortlink name  - LINK_SORT_FIELD_NAME: Sort by link name  - LINK_SORT_FIELD_EVENT_COUNT: Sort by event count
         :type sort_by: str
         :param sort_direction: Sort direction (defaults to descending if not specified)  Sort direction (ascending or descending)   - SORT_DIRECTION_UNSPECIFIED: Sort direction not specified (defaults to descending)  - SORT_DIRECTION_ASC: Sort in ascending order  - SORT_DIRECTION_DESC: Sort in descending order
         :type sort_direction: str
-        :param view: View mode. Default returns all links. LINK_VIEW_DIRECTORY scopes to a directory (or root when directory_id is empty).   - LINK_VIEW_UNSPECIFIED: Return all links regardless of directory (default)  - LINK_VIEW_DIRECTORY: Return links scoped to a directory. When directory_id is set, returns links in that directory. When directory_id is empty, returns root-level links (no directory).
+        :param view: View mode. Default returns all links. LINK_VIEW_DIRECTORY scopes to a directory (or root when directoryId is empty).   - LINK_VIEW_UNSPECIFIED: Return all links regardless of directory (default)  - LINK_VIEW_DIRECTORY: Return links scoped to a directory. When directoryId is set, returns links in that directory. When directoryId is empty, returns root-level links (no directory).
         :type view: str
         :param directory_id: Directory ID to scope to when view is LINK_VIEW_DIRECTORY. When empty with LINK_VIEW_DIRECTORY, returns root-level links.
         :type directory_id: str
@@ -2771,9 +3303,9 @@ class LinksApi:
         include: Annotated[Optional[List[StrictStr]], Field(description="List of related resources to include in the response. Supported values: \"customDomain\", \"qrcodeDesign\", \"qrcodeSignedUrl\", \"tags\", \"pageTheme\". Use \"qrcodeSignedUrl\" to fetch signed QR image URLs—they are omitted by default to keep requests fast.")] = None,
         tags: Annotated[Optional[List[StrictStr]], Field(description="Tags to filter links by (matches links containing any of the provided tags)")] = None,
         search: Annotated[Optional[StrictStr], Field(description="Search query to filter links by name or shortlink  Search query to filter links by name or shortlink")] = None,
-        sort_by: Annotated[Optional[StrictStr], Field(description="Field to sort links by (defaults to updated_at if not specified)  Field to sort links by   - LINK_SORT_FIELD_UNSPECIFIED: Sort field not specified (defaults to updated_at)  - LINK_SORT_FIELD_CREATED_AT: Sort by creation date  - LINK_SORT_FIELD_UPDATED_AT: Sort by last update date  - LINK_SORT_FIELD_SHORTLINK: Sort by shortlink name  - LINK_SORT_FIELD_NAME: Sort by link name  - LINK_SORT_FIELD_EVENT_COUNT: Sort by event count")] = None,
+        sort_by: Annotated[Optional[StrictStr], Field(description="Field to sort links by (defaults to updatedAt if not specified)  Field to sort links by   - LINK_SORT_FIELD_UNSPECIFIED: Sort field not specified (defaults to updatedAt)  - LINK_SORT_FIELD_CREATED_AT: Sort by creation date  - LINK_SORT_FIELD_UPDATED_AT: Sort by last update date  - LINK_SORT_FIELD_SHORTLINK: Sort by shortlink name  - LINK_SORT_FIELD_NAME: Sort by link name  - LINK_SORT_FIELD_EVENT_COUNT: Sort by event count")] = None,
         sort_direction: Annotated[Optional[StrictStr], Field(description="Sort direction (defaults to descending if not specified)  Sort direction (ascending or descending)   - SORT_DIRECTION_UNSPECIFIED: Sort direction not specified (defaults to descending)  - SORT_DIRECTION_ASC: Sort in ascending order  - SORT_DIRECTION_DESC: Sort in descending order")] = None,
-        view: Annotated[Optional[StrictStr], Field(description="View mode. Default returns all links. LINK_VIEW_DIRECTORY scopes to a directory (or root when directory_id is empty).   - LINK_VIEW_UNSPECIFIED: Return all links regardless of directory (default)  - LINK_VIEW_DIRECTORY: Return links scoped to a directory. When directory_id is set, returns links in that directory. When directory_id is empty, returns root-level links (no directory).")] = None,
+        view: Annotated[Optional[StrictStr], Field(description="View mode. Default returns all links. LINK_VIEW_DIRECTORY scopes to a directory (or root when directoryId is empty).   - LINK_VIEW_UNSPECIFIED: Return all links regardless of directory (default)  - LINK_VIEW_DIRECTORY: Return links scoped to a directory. When directoryId is set, returns links in that directory. When directoryId is empty, returns root-level links (no directory).")] = None,
         directory_id: Annotated[Optional[StrictStr], Field(description="Directory ID to scope to when view is LINK_VIEW_DIRECTORY. When empty with LINK_VIEW_DIRECTORY, returns root-level links.")] = None,
         cursor: Annotated[Optional[StrictStr], Field(description="Opaque cursor from the previous page's nextPageToken. Same as pageToken; when both are sent, pageToken wins.")] = None,
         _request_timeout: Union[
@@ -2803,11 +3335,11 @@ class LinksApi:
         :type tags: List[str]
         :param search: Search query to filter links by name or shortlink  Search query to filter links by name or shortlink
         :type search: str
-        :param sort_by: Field to sort links by (defaults to updated_at if not specified)  Field to sort links by   - LINK_SORT_FIELD_UNSPECIFIED: Sort field not specified (defaults to updated_at)  - LINK_SORT_FIELD_CREATED_AT: Sort by creation date  - LINK_SORT_FIELD_UPDATED_AT: Sort by last update date  - LINK_SORT_FIELD_SHORTLINK: Sort by shortlink name  - LINK_SORT_FIELD_NAME: Sort by link name  - LINK_SORT_FIELD_EVENT_COUNT: Sort by event count
+        :param sort_by: Field to sort links by (defaults to updatedAt if not specified)  Field to sort links by   - LINK_SORT_FIELD_UNSPECIFIED: Sort field not specified (defaults to updatedAt)  - LINK_SORT_FIELD_CREATED_AT: Sort by creation date  - LINK_SORT_FIELD_UPDATED_AT: Sort by last update date  - LINK_SORT_FIELD_SHORTLINK: Sort by shortlink name  - LINK_SORT_FIELD_NAME: Sort by link name  - LINK_SORT_FIELD_EVENT_COUNT: Sort by event count
         :type sort_by: str
         :param sort_direction: Sort direction (defaults to descending if not specified)  Sort direction (ascending or descending)   - SORT_DIRECTION_UNSPECIFIED: Sort direction not specified (defaults to descending)  - SORT_DIRECTION_ASC: Sort in ascending order  - SORT_DIRECTION_DESC: Sort in descending order
         :type sort_direction: str
-        :param view: View mode. Default returns all links. LINK_VIEW_DIRECTORY scopes to a directory (or root when directory_id is empty).   - LINK_VIEW_UNSPECIFIED: Return all links regardless of directory (default)  - LINK_VIEW_DIRECTORY: Return links scoped to a directory. When directory_id is set, returns links in that directory. When directory_id is empty, returns root-level links (no directory).
+        :param view: View mode. Default returns all links. LINK_VIEW_DIRECTORY scopes to a directory (or root when directoryId is empty).   - LINK_VIEW_UNSPECIFIED: Return all links regardless of directory (default)  - LINK_VIEW_DIRECTORY: Return links scoped to a directory. When directoryId is set, returns links in that directory. When directoryId is empty, returns root-level links (no directory).
         :type view: str
         :param directory_id: Directory ID to scope to when view is LINK_VIEW_DIRECTORY. When empty with LINK_VIEW_DIRECTORY, returns root-level links.
         :type directory_id: str
@@ -2875,9 +3407,9 @@ class LinksApi:
         include: Annotated[Optional[List[StrictStr]], Field(description="List of related resources to include in the response. Supported values: \"customDomain\", \"qrcodeDesign\", \"qrcodeSignedUrl\", \"tags\", \"pageTheme\". Use \"qrcodeSignedUrl\" to fetch signed QR image URLs—they are omitted by default to keep requests fast.")] = None,
         tags: Annotated[Optional[List[StrictStr]], Field(description="Tags to filter links by (matches links containing any of the provided tags)")] = None,
         search: Annotated[Optional[StrictStr], Field(description="Search query to filter links by name or shortlink  Search query to filter links by name or shortlink")] = None,
-        sort_by: Annotated[Optional[StrictStr], Field(description="Field to sort links by (defaults to updated_at if not specified)  Field to sort links by   - LINK_SORT_FIELD_UNSPECIFIED: Sort field not specified (defaults to updated_at)  - LINK_SORT_FIELD_CREATED_AT: Sort by creation date  - LINK_SORT_FIELD_UPDATED_AT: Sort by last update date  - LINK_SORT_FIELD_SHORTLINK: Sort by shortlink name  - LINK_SORT_FIELD_NAME: Sort by link name  - LINK_SORT_FIELD_EVENT_COUNT: Sort by event count")] = None,
+        sort_by: Annotated[Optional[StrictStr], Field(description="Field to sort links by (defaults to updatedAt if not specified)  Field to sort links by   - LINK_SORT_FIELD_UNSPECIFIED: Sort field not specified (defaults to updatedAt)  - LINK_SORT_FIELD_CREATED_AT: Sort by creation date  - LINK_SORT_FIELD_UPDATED_AT: Sort by last update date  - LINK_SORT_FIELD_SHORTLINK: Sort by shortlink name  - LINK_SORT_FIELD_NAME: Sort by link name  - LINK_SORT_FIELD_EVENT_COUNT: Sort by event count")] = None,
         sort_direction: Annotated[Optional[StrictStr], Field(description="Sort direction (defaults to descending if not specified)  Sort direction (ascending or descending)   - SORT_DIRECTION_UNSPECIFIED: Sort direction not specified (defaults to descending)  - SORT_DIRECTION_ASC: Sort in ascending order  - SORT_DIRECTION_DESC: Sort in descending order")] = None,
-        view: Annotated[Optional[StrictStr], Field(description="View mode. Default returns all links. LINK_VIEW_DIRECTORY scopes to a directory (or root when directory_id is empty).   - LINK_VIEW_UNSPECIFIED: Return all links regardless of directory (default)  - LINK_VIEW_DIRECTORY: Return links scoped to a directory. When directory_id is set, returns links in that directory. When directory_id is empty, returns root-level links (no directory).")] = None,
+        view: Annotated[Optional[StrictStr], Field(description="View mode. Default returns all links. LINK_VIEW_DIRECTORY scopes to a directory (or root when directoryId is empty).   - LINK_VIEW_UNSPECIFIED: Return all links regardless of directory (default)  - LINK_VIEW_DIRECTORY: Return links scoped to a directory. When directoryId is set, returns links in that directory. When directoryId is empty, returns root-level links (no directory).")] = None,
         directory_id: Annotated[Optional[StrictStr], Field(description="Directory ID to scope to when view is LINK_VIEW_DIRECTORY. When empty with LINK_VIEW_DIRECTORY, returns root-level links.")] = None,
         cursor: Annotated[Optional[StrictStr], Field(description="Opaque cursor from the previous page's nextPageToken. Same as pageToken; when both are sent, pageToken wins.")] = None,
         _request_timeout: Union[
@@ -2907,11 +3439,11 @@ class LinksApi:
         :type tags: List[str]
         :param search: Search query to filter links by name or shortlink  Search query to filter links by name or shortlink
         :type search: str
-        :param sort_by: Field to sort links by (defaults to updated_at if not specified)  Field to sort links by   - LINK_SORT_FIELD_UNSPECIFIED: Sort field not specified (defaults to updated_at)  - LINK_SORT_FIELD_CREATED_AT: Sort by creation date  - LINK_SORT_FIELD_UPDATED_AT: Sort by last update date  - LINK_SORT_FIELD_SHORTLINK: Sort by shortlink name  - LINK_SORT_FIELD_NAME: Sort by link name  - LINK_SORT_FIELD_EVENT_COUNT: Sort by event count
+        :param sort_by: Field to sort links by (defaults to updatedAt if not specified)  Field to sort links by   - LINK_SORT_FIELD_UNSPECIFIED: Sort field not specified (defaults to updatedAt)  - LINK_SORT_FIELD_CREATED_AT: Sort by creation date  - LINK_SORT_FIELD_UPDATED_AT: Sort by last update date  - LINK_SORT_FIELD_SHORTLINK: Sort by shortlink name  - LINK_SORT_FIELD_NAME: Sort by link name  - LINK_SORT_FIELD_EVENT_COUNT: Sort by event count
         :type sort_by: str
         :param sort_direction: Sort direction (defaults to descending if not specified)  Sort direction (ascending or descending)   - SORT_DIRECTION_UNSPECIFIED: Sort direction not specified (defaults to descending)  - SORT_DIRECTION_ASC: Sort in ascending order  - SORT_DIRECTION_DESC: Sort in descending order
         :type sort_direction: str
-        :param view: View mode. Default returns all links. LINK_VIEW_DIRECTORY scopes to a directory (or root when directory_id is empty).   - LINK_VIEW_UNSPECIFIED: Return all links regardless of directory (default)  - LINK_VIEW_DIRECTORY: Return links scoped to a directory. When directory_id is set, returns links in that directory. When directory_id is empty, returns root-level links (no directory).
+        :param view: View mode. Default returns all links. LINK_VIEW_DIRECTORY scopes to a directory (or root when directoryId is empty).   - LINK_VIEW_UNSPECIFIED: Return all links regardless of directory (default)  - LINK_VIEW_DIRECTORY: Return links scoped to a directory. When directoryId is set, returns links in that directory. When directoryId is empty, returns root-level links (no directory).
         :type view: str
         :param directory_id: Directory ID to scope to when view is LINK_VIEW_DIRECTORY. When empty with LINK_VIEW_DIRECTORY, returns root-level links.
         :type directory_id: str
@@ -3086,7 +3618,7 @@ class LinksApi:
         self,
         id: Annotated[StrictStr, Field(description="The link's ID (UUID).")],
         links_service_render_qrcode_images_body: LinksServiceRenderQrcodeImagesBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -3108,7 +3640,7 @@ class LinksApi:
         :type id: str
         :param links_service_render_qrcode_images_body: (required)
         :type links_service_render_qrcode_images_body: LinksServiceRenderQrcodeImagesBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -3162,7 +3694,7 @@ class LinksApi:
         self,
         id: Annotated[StrictStr, Field(description="The link's ID (UUID).")],
         links_service_render_qrcode_images_body: LinksServiceRenderQrcodeImagesBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -3184,7 +3716,7 @@ class LinksApi:
         :type id: str
         :param links_service_render_qrcode_images_body: (required)
         :type links_service_render_qrcode_images_body: LinksServiceRenderQrcodeImagesBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -3238,7 +3770,7 @@ class LinksApi:
         self,
         id: Annotated[StrictStr, Field(description="The link's ID (UUID).")],
         links_service_render_qrcode_images_body: LinksServiceRenderQrcodeImagesBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -3260,7 +3792,7 @@ class LinksApi:
         :type id: str
         :param links_service_render_qrcode_images_body: (required)
         :type links_service_render_qrcode_images_body: LinksServiceRenderQrcodeImagesBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -3390,838 +3922,11 @@ class LinksApi:
 
 
     @validate_call
-    def links_service_resolve_qrcode_images(
-        self,
-        resolve_qrcode_images_request: ResolveQrcodeImagesRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ResolveQrcodeImagesResponse:
-        """Resolve QR code image URLs
-
-        Return freshly signed QR code image URLs for the given links. The URLs expire, so callers fetch them when they need to render rather than storing them.  Requires the `links:read` scope.
-
-        :param resolve_qrcode_images_request: (required)
-        :type resolve_qrcode_images_request: ResolveQrcodeImagesRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
-        :type idempotency_key: str
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._links_service_resolve_qrcode_images_serialize(
-            resolve_qrcode_images_request=resolve_qrcode_images_request,
-            idempotency_key=idempotency_key,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ResolveQrcodeImagesResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        ).data
-
-
-    @validate_call
-    def links_service_resolve_qrcode_images_with_http_info(
-        self,
-        resolve_qrcode_images_request: ResolveQrcodeImagesRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[ResolveQrcodeImagesResponse]:
-        """Resolve QR code image URLs
-
-        Return freshly signed QR code image URLs for the given links. The URLs expire, so callers fetch them when they need to render rather than storing them.  Requires the `links:read` scope.
-
-        :param resolve_qrcode_images_request: (required)
-        :type resolve_qrcode_images_request: ResolveQrcodeImagesRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
-        :type idempotency_key: str
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._links_service_resolve_qrcode_images_serialize(
-            resolve_qrcode_images_request=resolve_qrcode_images_request,
-            idempotency_key=idempotency_key,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ResolveQrcodeImagesResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        )
-
-
-    @validate_call
-    def links_service_resolve_qrcode_images_without_preload_content(
-        self,
-        resolve_qrcode_images_request: ResolveQrcodeImagesRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> RESTResponseType:
-        """Resolve QR code image URLs
-
-        Return freshly signed QR code image URLs for the given links. The URLs expire, so callers fetch them when they need to render rather than storing them.  Requires the `links:read` scope.
-
-        :param resolve_qrcode_images_request: (required)
-        :type resolve_qrcode_images_request: ResolveQrcodeImagesRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
-        :type idempotency_key: str
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._links_service_resolve_qrcode_images_serialize(
-            resolve_qrcode_images_request=resolve_qrcode_images_request,
-            idempotency_key=idempotency_key,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ResolveQrcodeImagesResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        return response_data.response
-
-
-    def _links_service_resolve_qrcode_images_serialize(
-        self,
-        resolve_qrcode_images_request,
-        idempotency_key,
-        _request_auth,
-        _content_type,
-        _headers,
-        _host_index,
-    ) -> RequestSerialized:
-
-        _host = None
-
-        _collection_formats: Dict[str, str] = {
-        }
-
-        _path_params: Dict[str, str] = {}
-        _query_params: List[Tuple[str, str]] = []
-        _header_params: Dict[str, Optional[str]] = _headers or {}
-        _form_params: List[Tuple[str, str]] = []
-        _files: Dict[
-            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
-        ] = {}
-        _body_params: Optional[bytes] = None
-
-        # process the path parameters
-        # process the query parameters
-        # process the header parameters
-        if idempotency_key is not None:
-            _header_params['Idempotency-Key'] = idempotency_key
-        # process the form parameters
-        # process the body parameter
-        if resolve_qrcode_images_request is not None:
-            _body_params = resolve_qrcode_images_request
-
-
-        # set the HTTP header `Accept`
-        if 'Accept' not in _header_params:
-            _header_params['Accept'] = self.api_client.select_header_accept(
-                [
-                    'application/json'
-                ]
-            )
-
-        # set the HTTP header `Content-Type`
-        if _content_type:
-            _header_params['Content-Type'] = _content_type
-        else:
-            _default_content_type = (
-                self.api_client.select_header_content_type(
-                    [
-                        'application/json'
-                    ]
-                )
-            )
-            if _default_content_type is not None:
-                _header_params['Content-Type'] = _default_content_type
-
-        # authentication setting
-        _auth_settings: List[str] = [
-            'oauth2', 
-            'bearerAuth'
-        ]
-
-        return self.api_client.param_serialize(
-            method='POST',
-            resource_path='/v1/links/qrcode-images:resolve',
-            path_params=_path_params,
-            query_params=_query_params,
-            header_params=_header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
-            auth_settings=_auth_settings,
-            collection_formats=_collection_formats,
-            _host=_host,
-            _request_auth=_request_auth
-        )
-
-
-
-
-    @validate_call
-    def links_service_shortlink_availability(
-        self,
-        shortlink: Annotated[Optional[StrictStr], Field(description="The shortlink to check availability for.")] = None,
-        custom_domain_id: Annotated[Optional[StrictStr], Field(description="The ID of the custom domain to check against (UUID) If not provided, checks against the default domain")] = None,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ShortlinkAvailabilityResponse:
-        """Check shortlink availability
-
-        Checks if a shortlink is available for use to create a new link. A custom domain can be provided to check against. It typically checks the shortlink slugs and shortlink IDs already present within the system.  Requires the `links:read` scope.
-
-        :param shortlink: The shortlink to check availability for.
-        :type shortlink: str
-        :param custom_domain_id: The ID of the custom domain to check against (UUID) If not provided, checks against the default domain
-        :type custom_domain_id: str
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._links_service_shortlink_availability_serialize(
-            shortlink=shortlink,
-            custom_domain_id=custom_domain_id,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ShortlinkAvailabilityResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        ).data
-
-
-    @validate_call
-    def links_service_shortlink_availability_with_http_info(
-        self,
-        shortlink: Annotated[Optional[StrictStr], Field(description="The shortlink to check availability for.")] = None,
-        custom_domain_id: Annotated[Optional[StrictStr], Field(description="The ID of the custom domain to check against (UUID) If not provided, checks against the default domain")] = None,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[ShortlinkAvailabilityResponse]:
-        """Check shortlink availability
-
-        Checks if a shortlink is available for use to create a new link. A custom domain can be provided to check against. It typically checks the shortlink slugs and shortlink IDs already present within the system.  Requires the `links:read` scope.
-
-        :param shortlink: The shortlink to check availability for.
-        :type shortlink: str
-        :param custom_domain_id: The ID of the custom domain to check against (UUID) If not provided, checks against the default domain
-        :type custom_domain_id: str
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._links_service_shortlink_availability_serialize(
-            shortlink=shortlink,
-            custom_domain_id=custom_domain_id,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ShortlinkAvailabilityResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        )
-
-
-    @validate_call
-    def links_service_shortlink_availability_without_preload_content(
-        self,
-        shortlink: Annotated[Optional[StrictStr], Field(description="The shortlink to check availability for.")] = None,
-        custom_domain_id: Annotated[Optional[StrictStr], Field(description="The ID of the custom domain to check against (UUID) If not provided, checks against the default domain")] = None,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> RESTResponseType:
-        """Check shortlink availability
-
-        Checks if a shortlink is available for use to create a new link. A custom domain can be provided to check against. It typically checks the shortlink slugs and shortlink IDs already present within the system.  Requires the `links:read` scope.
-
-        :param shortlink: The shortlink to check availability for.
-        :type shortlink: str
-        :param custom_domain_id: The ID of the custom domain to check against (UUID) If not provided, checks against the default domain
-        :type custom_domain_id: str
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._links_service_shortlink_availability_serialize(
-            shortlink=shortlink,
-            custom_domain_id=custom_domain_id,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ShortlinkAvailabilityResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        return response_data.response
-
-
-    def _links_service_shortlink_availability_serialize(
-        self,
-        shortlink,
-        custom_domain_id,
-        _request_auth,
-        _content_type,
-        _headers,
-        _host_index,
-    ) -> RequestSerialized:
-
-        _host = None
-
-        _collection_formats: Dict[str, str] = {
-        }
-
-        _path_params: Dict[str, str] = {}
-        _query_params: List[Tuple[str, str]] = []
-        _header_params: Dict[str, Optional[str]] = _headers or {}
-        _form_params: List[Tuple[str, str]] = []
-        _files: Dict[
-            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
-        ] = {}
-        _body_params: Optional[bytes] = None
-
-        # process the path parameters
-        # process the query parameters
-        if shortlink is not None:
-            
-            _query_params.append(('shortlink', shortlink))
-            
-        if custom_domain_id is not None:
-            
-            _query_params.append(('customDomainId', custom_domain_id))
-            
-        # process the header parameters
-        # process the form parameters
-        # process the body parameter
-
-
-        # set the HTTP header `Accept`
-        if 'Accept' not in _header_params:
-            _header_params['Accept'] = self.api_client.select_header_accept(
-                [
-                    'application/json'
-                ]
-            )
-
-
-        # authentication setting
-        _auth_settings: List[str] = [
-            'oauth2', 
-            'bearerAuth'
-        ]
-
-        return self.api_client.param_serialize(
-            method='GET',
-            resource_path='/v1/links/shortlink-availability',
-            path_params=_path_params,
-            query_params=_query_params,
-            header_params=_header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
-            auth_settings=_auth_settings,
-            collection_formats=_collection_formats,
-            _host=_host,
-            _request_auth=_request_auth
-        )
-
-
-
-
-    @validate_call
-    def links_service_shortlink_random(
-        self,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ShortlinkRandomResponse:
-        """Get a random shortlink
-
-        Generates a random availableshortlink for a new link.  Requires the `links:read` scope.
-
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._links_service_shortlink_random_serialize(
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ShortlinkRandomResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        ).data
-
-
-    @validate_call
-    def links_service_shortlink_random_with_http_info(
-        self,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[ShortlinkRandomResponse]:
-        """Get a random shortlink
-
-        Generates a random availableshortlink for a new link.  Requires the `links:read` scope.
-
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._links_service_shortlink_random_serialize(
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ShortlinkRandomResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        )
-
-
-    @validate_call
-    def links_service_shortlink_random_without_preload_content(
-        self,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> RESTResponseType:
-        """Get a random shortlink
-
-        Generates a random availableshortlink for a new link.  Requires the `links:read` scope.
-
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._links_service_shortlink_random_serialize(
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ShortlinkRandomResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        return response_data.response
-
-
-    def _links_service_shortlink_random_serialize(
-        self,
-        _request_auth,
-        _content_type,
-        _headers,
-        _host_index,
-    ) -> RequestSerialized:
-
-        _host = None
-
-        _collection_formats: Dict[str, str] = {
-        }
-
-        _path_params: Dict[str, str] = {}
-        _query_params: List[Tuple[str, str]] = []
-        _header_params: Dict[str, Optional[str]] = _headers or {}
-        _form_params: List[Tuple[str, str]] = []
-        _files: Dict[
-            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
-        ] = {}
-        _body_params: Optional[bytes] = None
-
-        # process the path parameters
-        # process the query parameters
-        # process the header parameters
-        # process the form parameters
-        # process the body parameter
-
-
-        # set the HTTP header `Accept`
-        if 'Accept' not in _header_params:
-            _header_params['Accept'] = self.api_client.select_header_accept(
-                [
-                    'application/json'
-                ]
-            )
-
-
-        # authentication setting
-        _auth_settings: List[str] = [
-            'oauth2', 
-            'bearerAuth'
-        ]
-
-        return self.api_client.param_serialize(
-            method='GET',
-            resource_path='/v1/links/shortlink-random',
-            path_params=_path_params,
-            query_params=_query_params,
-            header_params=_header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
-            auth_settings=_auth_settings,
-            collection_formats=_collection_formats,
-            _host=_host,
-            _request_auth=_request_auth
-        )
-
-
-
-
-    @validate_call
     def links_service_update(
         self,
         id: Annotated[StrictStr, Field(description="The ID of the link to update (UUID)")],
         links_service_update_body: LinksServiceUpdateBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -4243,7 +3948,7 @@ class LinksApi:
         :type id: str
         :param links_service_update_body: (required)
         :type links_service_update_body: LinksServiceUpdateBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -4297,7 +4002,7 @@ class LinksApi:
         self,
         id: Annotated[StrictStr, Field(description="The ID of the link to update (UUID)")],
         links_service_update_body: LinksServiceUpdateBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -4319,7 +4024,7 @@ class LinksApi:
         :type id: str
         :param links_service_update_body: (required)
         :type links_service_update_body: LinksServiceUpdateBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -4373,7 +4078,7 @@ class LinksApi:
         self,
         id: Annotated[StrictStr, Field(description="The ID of the link to update (UUID)")],
         links_service_update_body: LinksServiceUpdateBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -4395,7 +4100,7 @@ class LinksApi:
         :type id: str
         :param links_service_update_body: (required)
         :type links_service_update_body: LinksServiceUpdateBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request

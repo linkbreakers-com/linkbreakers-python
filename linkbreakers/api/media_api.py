@@ -1,9 +1,9 @@
 """
     Linkbreakers API
 
-    This is a documentation of all the APIs of Linkbreakers  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
+    The Linkbreakers REST API: links, QR codes, workflows, visitors and analytics, as JSON over HTTPS. Send a workspace API token as `Authorization: Bearer <token>`.  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  A renamed operation keeps answering its former path until that path's sunset. Responses on a former path carry the same `Deprecation`, `Sunset` and `Link` header fields; this document lists only the current path, and the policy lists the former ones.  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
 
-    The version of the OpenAPI document: 1.198.0
+    The version of the OpenAPI document: 1.198.1
     Contact: support@linkbreakers.com
     Generated by OpenAPI Generator (https://openapi-generator.tech)
 
@@ -58,7 +58,7 @@ class MediaApi:
         id: Annotated[StrictStr, Field(description="The ID of the media item whose file is replaced (UUID)")],
         replacement_id: Annotated[StrictStr, Field(description="The replacement's id (UUID), from CreateReplaceUpload")],
         body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -74,7 +74,7 @@ class MediaApi:
     ) -> CompleteMediaReplaceResponse:
         """Complete replacing a media file
 
-        Checks the new file PUT to the replacement's upload_url like CompleteUpload does (its size, its real format read from its first bytes, its SHA-256 established by the server), checks again that every use rendered from the media accepts it and that it fits the storage allowance, then swaps it in. The media keeps its id and takes the new file's name, MIME type, kind, size and sha256; its old file is deleted. QR code designs that used the media as their logo keep their current logo and are detached from it; they are returned in detached_references. On any refusal the new file is discarded and the media keeps its current file. A new file identical to the media's own changes nothing and returns unchanged true.  Requires the `media:write` scope.
+        Checks the new file PUT to the replacement's uploadUrl like CompleteUpload does (its size, its real format read from its first bytes, its SHA-256 established by the server), checks again that every use rendered from the media accepts it and that it fits the storage allowance, then swaps it in. The media keeps its id and takes the new file's name, MIME type, kind, size and sha256; its old file is deleted. QR code designs that used the media as their logo keep their current logo and are detached from it; they are returned in detachedReferences. On any refusal the new file is discarded and the media keeps its current file. A new file identical to the media's own changes nothing and returns unchanged true.  Requires the `media:write` scope.
 
         :param id: The ID of the media item whose file is replaced (UUID) (required)
         :type id: str
@@ -82,7 +82,7 @@ class MediaApi:
         :type replacement_id: str
         :param body: (required)
         :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -138,7 +138,7 @@ class MediaApi:
         id: Annotated[StrictStr, Field(description="The ID of the media item whose file is replaced (UUID)")],
         replacement_id: Annotated[StrictStr, Field(description="The replacement's id (UUID), from CreateReplaceUpload")],
         body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -154,7 +154,7 @@ class MediaApi:
     ) -> ApiResponse[CompleteMediaReplaceResponse]:
         """Complete replacing a media file
 
-        Checks the new file PUT to the replacement's upload_url like CompleteUpload does (its size, its real format read from its first bytes, its SHA-256 established by the server), checks again that every use rendered from the media accepts it and that it fits the storage allowance, then swaps it in. The media keeps its id and takes the new file's name, MIME type, kind, size and sha256; its old file is deleted. QR code designs that used the media as their logo keep their current logo and are detached from it; they are returned in detached_references. On any refusal the new file is discarded and the media keeps its current file. A new file identical to the media's own changes nothing and returns unchanged true.  Requires the `media:write` scope.
+        Checks the new file PUT to the replacement's uploadUrl like CompleteUpload does (its size, its real format read from its first bytes, its SHA-256 established by the server), checks again that every use rendered from the media accepts it and that it fits the storage allowance, then swaps it in. The media keeps its id and takes the new file's name, MIME type, kind, size and sha256; its old file is deleted. QR code designs that used the media as their logo keep their current logo and are detached from it; they are returned in detachedReferences. On any refusal the new file is discarded and the media keeps its current file. A new file identical to the media's own changes nothing and returns unchanged true.  Requires the `media:write` scope.
 
         :param id: The ID of the media item whose file is replaced (UUID) (required)
         :type id: str
@@ -162,7 +162,7 @@ class MediaApi:
         :type replacement_id: str
         :param body: (required)
         :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -218,7 +218,7 @@ class MediaApi:
         id: Annotated[StrictStr, Field(description="The ID of the media item whose file is replaced (UUID)")],
         replacement_id: Annotated[StrictStr, Field(description="The replacement's id (UUID), from CreateReplaceUpload")],
         body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -234,7 +234,7 @@ class MediaApi:
     ) -> RESTResponseType:
         """Complete replacing a media file
 
-        Checks the new file PUT to the replacement's upload_url like CompleteUpload does (its size, its real format read from its first bytes, its SHA-256 established by the server), checks again that every use rendered from the media accepts it and that it fits the storage allowance, then swaps it in. The media keeps its id and takes the new file's name, MIME type, kind, size and sha256; its old file is deleted. QR code designs that used the media as their logo keep their current logo and are detached from it; they are returned in detached_references. On any refusal the new file is discarded and the media keeps its current file. A new file identical to the media's own changes nothing and returns unchanged true.  Requires the `media:write` scope.
+        Checks the new file PUT to the replacement's uploadUrl like CompleteUpload does (its size, its real format read from its first bytes, its SHA-256 established by the server), checks again that every use rendered from the media accepts it and that it fits the storage allowance, then swaps it in. The media keeps its id and takes the new file's name, MIME type, kind, size and sha256; its old file is deleted. QR code designs that used the media as their logo keep their current logo and are detached from it; they are returned in detachedReferences. On any refusal the new file is discarded and the media keeps its current file. A new file identical to the media's own changes nothing and returns unchanged true.  Requires the `media:write` scope.
 
         :param id: The ID of the media item whose file is replaced (UUID) (required)
         :type id: str
@@ -242,7 +242,7 @@ class MediaApi:
         :type replacement_id: str
         :param body: (required)
         :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -380,7 +380,7 @@ class MediaApi:
         self,
         id: Annotated[StrictStr, Field(description="The ID of the pending media item (UUID), from CreateUpload")],
         body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -396,13 +396,13 @@ class MediaApi:
     ) -> CompleteMediaUploadResponse:
         """Complete a direct media upload
 
-        Checks the file PUT to the upload_url: its size, its real format read from its first bytes, and the storage allowance. When it matches what CreateUpload declared, the media becomes READY and is returned with a signed URL. When it does not, the file and the media are discarded and the error says why; start a new upload. Completing a media item that is already READY returns it.  The server always establishes the file's SHA-256 itself, from the checksum storage verified or by reading the file back. A file the workspace already holds is discarded with 409 MEDIA_ALREADY_EXISTS; the error's metadata names the existing media in existingMediaId and existingFileName. Use that media instead.  Requires the `media:write` scope.
+        Checks the file PUT to the uploadUrl: its size, its real format read from its first bytes, and the storage allowance. When it matches what CreateUpload declared, the media becomes READY and is returned with a signed URL. When it does not, the file and the media are discarded and the error says why; start a new upload. Completing a media item that is already READY returns it.  The server always establishes the file's SHA-256 itself, from the checksum storage verified or by reading the file back. A file the workspace already holds is discarded with 409 MEDIA_ALREADY_EXISTS; the error's metadata names the existing media in existingMediaId and existingFileName. Use that media instead.  Requires the `media:write` scope.
 
         :param id: The ID of the pending media item (UUID), from CreateUpload (required)
         :type id: str
         :param body: (required)
         :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -456,7 +456,7 @@ class MediaApi:
         self,
         id: Annotated[StrictStr, Field(description="The ID of the pending media item (UUID), from CreateUpload")],
         body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -472,13 +472,13 @@ class MediaApi:
     ) -> ApiResponse[CompleteMediaUploadResponse]:
         """Complete a direct media upload
 
-        Checks the file PUT to the upload_url: its size, its real format read from its first bytes, and the storage allowance. When it matches what CreateUpload declared, the media becomes READY and is returned with a signed URL. When it does not, the file and the media are discarded and the error says why; start a new upload. Completing a media item that is already READY returns it.  The server always establishes the file's SHA-256 itself, from the checksum storage verified or by reading the file back. A file the workspace already holds is discarded with 409 MEDIA_ALREADY_EXISTS; the error's metadata names the existing media in existingMediaId and existingFileName. Use that media instead.  Requires the `media:write` scope.
+        Checks the file PUT to the uploadUrl: its size, its real format read from its first bytes, and the storage allowance. When it matches what CreateUpload declared, the media becomes READY and is returned with a signed URL. When it does not, the file and the media are discarded and the error says why; start a new upload. Completing a media item that is already READY returns it.  The server always establishes the file's SHA-256 itself, from the checksum storage verified or by reading the file back. A file the workspace already holds is discarded with 409 MEDIA_ALREADY_EXISTS; the error's metadata names the existing media in existingMediaId and existingFileName. Use that media instead.  Requires the `media:write` scope.
 
         :param id: The ID of the pending media item (UUID), from CreateUpload (required)
         :type id: str
         :param body: (required)
         :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -532,7 +532,7 @@ class MediaApi:
         self,
         id: Annotated[StrictStr, Field(description="The ID of the pending media item (UUID), from CreateUpload")],
         body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -548,13 +548,13 @@ class MediaApi:
     ) -> RESTResponseType:
         """Complete a direct media upload
 
-        Checks the file PUT to the upload_url: its size, its real format read from its first bytes, and the storage allowance. When it matches what CreateUpload declared, the media becomes READY and is returned with a signed URL. When it does not, the file and the media are discarded and the error says why; start a new upload. Completing a media item that is already READY returns it.  The server always establishes the file's SHA-256 itself, from the checksum storage verified or by reading the file back. A file the workspace already holds is discarded with 409 MEDIA_ALREADY_EXISTS; the error's metadata names the existing media in existingMediaId and existingFileName. Use that media instead.  Requires the `media:write` scope.
+        Checks the file PUT to the uploadUrl: its size, its real format read from its first bytes, and the storage allowance. When it matches what CreateUpload declared, the media becomes READY and is returned with a signed URL. When it does not, the file and the media are discarded and the error says why; start a new upload. Completing a media item that is already READY returns it.  The server always establishes the file's SHA-256 itself, from the checksum storage verified or by reading the file back. A file the workspace already holds is discarded with 409 MEDIA_ALREADY_EXISTS; the error's metadata names the existing media in existingMediaId and existingFileName. Use that media instead.  Requires the `media:write` scope.
 
         :param id: The ID of the pending media item (UUID), from CreateUpload (required)
         :type id: str
         :param body: (required)
         :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -687,7 +687,7 @@ class MediaApi:
     def media_service_create(
         self,
         create_media_request: CreateMediaRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -703,11 +703,11 @@ class MediaApi:
     ) -> CreateMediaResponse:
         """Upload a media file
 
-        Uploads a file sent in the request itself, base64 encoded over HTTP, up to 3 MB. Larger files (a PDF brochure, a video) are uploaded straight to storage instead: CreateUpload, a PUT of the file to the returned upload_url, then CompleteUpload. A media item only has a kind, read from its bytes: images (PNG, JPEG, WebP, SVG) up to 10 MB, PDF documents up to 25 MB and MP4 videos up to 50 MB. Nothing about where it will be used is needed at upload: any image can then be a QR code logo, a background cover, a badge or a footer logo (up to 3 MB for those), and any media can be opened by an Open media step.  A workspace holds each file once. A file whose bytes (SHA-256) match media the workspace already has is refused with 409 MEDIA_ALREADY_EXISTS; the error's metadata names that media in existingMediaId and existingFileName. Use that media instead of uploading the file again.  Requires the `media:write` scope.
+        Uploads a file sent in the request itself, base64 encoded over HTTP, up to 3 MB. Larger files (a PDF brochure, a video) are uploaded straight to storage instead: CreateUpload, a PUT of the file to the returned uploadUrl, then CompleteUpload. A media item only has a kind, read from its bytes: images (PNG, JPEG, WebP, SVG) up to 10 MB, PDF documents up to 25 MB and MP4 videos up to 50 MB. Nothing about where it will be used is needed at upload: any image can then be a QR code logo, a background cover, a badge or a footer logo (up to 3 MB for those), and any media can be opened by an Open media step.  A workspace holds each file once. A file whose bytes (SHA-256) match media the workspace already has is refused with 409 MEDIA_ALREADY_EXISTS; the error's metadata names that media in existingMediaId and existingFileName. Use that media instead of uploading the file again.  Requires the `media:write` scope.
 
         :param create_media_request: (required)
         :type create_media_request: CreateMediaRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -759,7 +759,7 @@ class MediaApi:
     def media_service_create_with_http_info(
         self,
         create_media_request: CreateMediaRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -775,11 +775,11 @@ class MediaApi:
     ) -> ApiResponse[CreateMediaResponse]:
         """Upload a media file
 
-        Uploads a file sent in the request itself, base64 encoded over HTTP, up to 3 MB. Larger files (a PDF brochure, a video) are uploaded straight to storage instead: CreateUpload, a PUT of the file to the returned upload_url, then CompleteUpload. A media item only has a kind, read from its bytes: images (PNG, JPEG, WebP, SVG) up to 10 MB, PDF documents up to 25 MB and MP4 videos up to 50 MB. Nothing about where it will be used is needed at upload: any image can then be a QR code logo, a background cover, a badge or a footer logo (up to 3 MB for those), and any media can be opened by an Open media step.  A workspace holds each file once. A file whose bytes (SHA-256) match media the workspace already has is refused with 409 MEDIA_ALREADY_EXISTS; the error's metadata names that media in existingMediaId and existingFileName. Use that media instead of uploading the file again.  Requires the `media:write` scope.
+        Uploads a file sent in the request itself, base64 encoded over HTTP, up to 3 MB. Larger files (a PDF brochure, a video) are uploaded straight to storage instead: CreateUpload, a PUT of the file to the returned uploadUrl, then CompleteUpload. A media item only has a kind, read from its bytes: images (PNG, JPEG, WebP, SVG) up to 10 MB, PDF documents up to 25 MB and MP4 videos up to 50 MB. Nothing about where it will be used is needed at upload: any image can then be a QR code logo, a background cover, a badge or a footer logo (up to 3 MB for those), and any media can be opened by an Open media step.  A workspace holds each file once. A file whose bytes (SHA-256) match media the workspace already has is refused with 409 MEDIA_ALREADY_EXISTS; the error's metadata names that media in existingMediaId and existingFileName. Use that media instead of uploading the file again.  Requires the `media:write` scope.
 
         :param create_media_request: (required)
         :type create_media_request: CreateMediaRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -831,7 +831,7 @@ class MediaApi:
     def media_service_create_without_preload_content(
         self,
         create_media_request: CreateMediaRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -847,11 +847,11 @@ class MediaApi:
     ) -> RESTResponseType:
         """Upload a media file
 
-        Uploads a file sent in the request itself, base64 encoded over HTTP, up to 3 MB. Larger files (a PDF brochure, a video) are uploaded straight to storage instead: CreateUpload, a PUT of the file to the returned upload_url, then CompleteUpload. A media item only has a kind, read from its bytes: images (PNG, JPEG, WebP, SVG) up to 10 MB, PDF documents up to 25 MB and MP4 videos up to 50 MB. Nothing about where it will be used is needed at upload: any image can then be a QR code logo, a background cover, a badge or a footer logo (up to 3 MB for those), and any media can be opened by an Open media step.  A workspace holds each file once. A file whose bytes (SHA-256) match media the workspace already has is refused with 409 MEDIA_ALREADY_EXISTS; the error's metadata names that media in existingMediaId and existingFileName. Use that media instead of uploading the file again.  Requires the `media:write` scope.
+        Uploads a file sent in the request itself, base64 encoded over HTTP, up to 3 MB. Larger files (a PDF brochure, a video) are uploaded straight to storage instead: CreateUpload, a PUT of the file to the returned uploadUrl, then CompleteUpload. A media item only has a kind, read from its bytes: images (PNG, JPEG, WebP, SVG) up to 10 MB, PDF documents up to 25 MB and MP4 videos up to 50 MB. Nothing about where it will be used is needed at upload: any image can then be a QR code logo, a background cover, a badge or a footer logo (up to 3 MB for those), and any media can be opened by an Open media step.  A workspace holds each file once. A file whose bytes (SHA-256) match media the workspace already has is refused with 409 MEDIA_ALREADY_EXISTS; the error's metadata names that media in existingMediaId and existingFileName. Use that media instead of uploading the file again.  Requires the `media:write` scope.
 
         :param create_media_request: (required)
         :type create_media_request: CreateMediaRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -981,7 +981,7 @@ class MediaApi:
         self,
         id: Annotated[StrictStr, Field(description="The ID of the media item whose file is replaced (UUID)")],
         media_service_create_replace_upload_body: MediaServiceCreateReplaceUploadBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -997,13 +997,13 @@ class MediaApi:
     ) -> CreateMediaReplaceUploadResponse:
         """Start replacing a media file
 
-        Starts replacing the file of an existing media item with a new one uploaded straight to storage. The media keeps its id, so everything using it follows: Open media steps hand out the new file and page themes show it as their background cover, badge or footer logo from the next visit. Declare the new file's name, MIME type and exact size in bytes, and optionally its sha256. Then PUT its bytes to upload_url with the upload_headers before upload_expires_at, and call CompleteReplace with the replacement_id. Until then the media is unchanged; a replacement not completed within an hour is discarded.  The new file must be acceptable to every use rendered from the media's file: a page theme cover, badge or footer logo takes an image of at most 3 MB, an Open media step takes any media. When one refuses it, the replacement is refused with MEDIA_REPLACE_NOT_ALLOWED, whose message names each refusing use and why, and whose metadata lists them in refusals (a JSON array). Media used only by Open media steps may change kind, a PDF for an MP4 video for example. A QR code design keeps its own copy of its logo: it never refuses a replacement, keeps its current logo, and is detached from the media when the replacement completes.  A file another media item of the workspace holds is refused with 409 MEDIA_ALREADY_EXISTS (metadata existingMediaId and existingFileName). Declaring the media's own file returns unchanged true and no upload_url: there is nothing to replace. Only the difference in size counts against the workspace's storage allowance.  Requires the `media:write` scope.
+        Starts replacing the file of an existing media item with a new one uploaded straight to storage. The media keeps its id, so everything using it follows: Open media steps hand out the new file and page themes show it as their background cover, badge or footer logo from the next visit. Declare the new file's name, MIME type and exact size in bytes, and optionally its sha256. Then PUT its bytes to uploadUrl with the uploadHeaders before uploadExpiresAt, and call CompleteReplace with the replacementId. Until then the media is unchanged; a replacement not completed within an hour is discarded.  The new file must be acceptable to every use rendered from the media's file: a page theme cover, badge or footer logo takes an image of at most 3 MB, an Open media step takes any media. When one refuses it, the replacement is refused with MEDIA_REPLACE_NOT_ALLOWED, whose message names each refusing use and why, and whose metadata lists them in refusals (a JSON array). Media used only by Open media steps may change kind, a PDF for an MP4 video for example. A QR code design keeps its own copy of its logo: it never refuses a replacement, keeps its current logo, and is detached from the media when the replacement completes.  A file another media item of the workspace holds is refused with 409 MEDIA_ALREADY_EXISTS (metadata existingMediaId and existingFileName). Declaring the media's own file returns unchanged true and no uploadUrl: there is nothing to replace. Only the difference in size counts against the workspace's storage allowance.  Requires the `media:write` scope.
 
         :param id: The ID of the media item whose file is replaced (UUID) (required)
         :type id: str
         :param media_service_create_replace_upload_body: (required)
         :type media_service_create_replace_upload_body: MediaServiceCreateReplaceUploadBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1057,7 +1057,7 @@ class MediaApi:
         self,
         id: Annotated[StrictStr, Field(description="The ID of the media item whose file is replaced (UUID)")],
         media_service_create_replace_upload_body: MediaServiceCreateReplaceUploadBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1073,13 +1073,13 @@ class MediaApi:
     ) -> ApiResponse[CreateMediaReplaceUploadResponse]:
         """Start replacing a media file
 
-        Starts replacing the file of an existing media item with a new one uploaded straight to storage. The media keeps its id, so everything using it follows: Open media steps hand out the new file and page themes show it as their background cover, badge or footer logo from the next visit. Declare the new file's name, MIME type and exact size in bytes, and optionally its sha256. Then PUT its bytes to upload_url with the upload_headers before upload_expires_at, and call CompleteReplace with the replacement_id. Until then the media is unchanged; a replacement not completed within an hour is discarded.  The new file must be acceptable to every use rendered from the media's file: a page theme cover, badge or footer logo takes an image of at most 3 MB, an Open media step takes any media. When one refuses it, the replacement is refused with MEDIA_REPLACE_NOT_ALLOWED, whose message names each refusing use and why, and whose metadata lists them in refusals (a JSON array). Media used only by Open media steps may change kind, a PDF for an MP4 video for example. A QR code design keeps its own copy of its logo: it never refuses a replacement, keeps its current logo, and is detached from the media when the replacement completes.  A file another media item of the workspace holds is refused with 409 MEDIA_ALREADY_EXISTS (metadata existingMediaId and existingFileName). Declaring the media's own file returns unchanged true and no upload_url: there is nothing to replace. Only the difference in size counts against the workspace's storage allowance.  Requires the `media:write` scope.
+        Starts replacing the file of an existing media item with a new one uploaded straight to storage. The media keeps its id, so everything using it follows: Open media steps hand out the new file and page themes show it as their background cover, badge or footer logo from the next visit. Declare the new file's name, MIME type and exact size in bytes, and optionally its sha256. Then PUT its bytes to uploadUrl with the uploadHeaders before uploadExpiresAt, and call CompleteReplace with the replacementId. Until then the media is unchanged; a replacement not completed within an hour is discarded.  The new file must be acceptable to every use rendered from the media's file: a page theme cover, badge or footer logo takes an image of at most 3 MB, an Open media step takes any media. When one refuses it, the replacement is refused with MEDIA_REPLACE_NOT_ALLOWED, whose message names each refusing use and why, and whose metadata lists them in refusals (a JSON array). Media used only by Open media steps may change kind, a PDF for an MP4 video for example. A QR code design keeps its own copy of its logo: it never refuses a replacement, keeps its current logo, and is detached from the media when the replacement completes.  A file another media item of the workspace holds is refused with 409 MEDIA_ALREADY_EXISTS (metadata existingMediaId and existingFileName). Declaring the media's own file returns unchanged true and no uploadUrl: there is nothing to replace. Only the difference in size counts against the workspace's storage allowance.  Requires the `media:write` scope.
 
         :param id: The ID of the media item whose file is replaced (UUID) (required)
         :type id: str
         :param media_service_create_replace_upload_body: (required)
         :type media_service_create_replace_upload_body: MediaServiceCreateReplaceUploadBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1133,7 +1133,7 @@ class MediaApi:
         self,
         id: Annotated[StrictStr, Field(description="The ID of the media item whose file is replaced (UUID)")],
         media_service_create_replace_upload_body: MediaServiceCreateReplaceUploadBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1149,13 +1149,13 @@ class MediaApi:
     ) -> RESTResponseType:
         """Start replacing a media file
 
-        Starts replacing the file of an existing media item with a new one uploaded straight to storage. The media keeps its id, so everything using it follows: Open media steps hand out the new file and page themes show it as their background cover, badge or footer logo from the next visit. Declare the new file's name, MIME type and exact size in bytes, and optionally its sha256. Then PUT its bytes to upload_url with the upload_headers before upload_expires_at, and call CompleteReplace with the replacement_id. Until then the media is unchanged; a replacement not completed within an hour is discarded.  The new file must be acceptable to every use rendered from the media's file: a page theme cover, badge or footer logo takes an image of at most 3 MB, an Open media step takes any media. When one refuses it, the replacement is refused with MEDIA_REPLACE_NOT_ALLOWED, whose message names each refusing use and why, and whose metadata lists them in refusals (a JSON array). Media used only by Open media steps may change kind, a PDF for an MP4 video for example. A QR code design keeps its own copy of its logo: it never refuses a replacement, keeps its current logo, and is detached from the media when the replacement completes.  A file another media item of the workspace holds is refused with 409 MEDIA_ALREADY_EXISTS (metadata existingMediaId and existingFileName). Declaring the media's own file returns unchanged true and no upload_url: there is nothing to replace. Only the difference in size counts against the workspace's storage allowance.  Requires the `media:write` scope.
+        Starts replacing the file of an existing media item with a new one uploaded straight to storage. The media keeps its id, so everything using it follows: Open media steps hand out the new file and page themes show it as their background cover, badge or footer logo from the next visit. Declare the new file's name, MIME type and exact size in bytes, and optionally its sha256. Then PUT its bytes to uploadUrl with the uploadHeaders before uploadExpiresAt, and call CompleteReplace with the replacementId. Until then the media is unchanged; a replacement not completed within an hour is discarded.  The new file must be acceptable to every use rendered from the media's file: a page theme cover, badge or footer logo takes an image of at most 3 MB, an Open media step takes any media. When one refuses it, the replacement is refused with MEDIA_REPLACE_NOT_ALLOWED, whose message names each refusing use and why, and whose metadata lists them in refusals (a JSON array). Media used only by Open media steps may change kind, a PDF for an MP4 video for example. A QR code design keeps its own copy of its logo: it never refuses a replacement, keeps its current logo, and is detached from the media when the replacement completes.  A file another media item of the workspace holds is refused with 409 MEDIA_ALREADY_EXISTS (metadata existingMediaId and existingFileName). Declaring the media's own file returns unchanged true and no uploadUrl: there is nothing to replace. Only the difference in size counts against the workspace's storage allowance.  Requires the `media:write` scope.
 
         :param id: The ID of the media item whose file is replaced (UUID) (required)
         :type id: str
         :param media_service_create_replace_upload_body: (required)
         :type media_service_create_replace_upload_body: MediaServiceCreateReplaceUploadBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1288,7 +1288,7 @@ class MediaApi:
     def media_service_create_upload(
         self,
         create_media_upload_request: CreateMediaUploadRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1304,11 +1304,11 @@ class MediaApi:
     ) -> CreateMediaUploadResponse:
         """Start a direct media upload
 
-        Reserves a media item for a file uploaded straight to storage, so large files never pass through the API. Declare the file's name, MIME type and exact size in bytes; they are checked against the limit for the file's kind (images up to 10 MB, PDF documents up to 25 MB, MP4 videos up to 50 MB) and against the workspace's storage allowance now, and against the uploaded bytes on completion. Then PUT the file's bytes to upload_url with the upload_headers (and a Content-Length equal to size) before upload_expires_at, and call CompleteUpload. Until completed the media is PENDING: it is not listed and cannot be used. An upload not completed within an hour is discarded.  A workspace holds each file once. Optionally declare sha256, the file's SHA-256 as hex: a file the workspace already holds is then refused here, before any upload, with 409 MEDIA_ALREADY_EXISTS, whose metadata names that media in existingMediaId and existingFileName (use it instead), and storage refuses bytes that do not match the hash, so the PUT must send the x-amz-checksum-sha256 header from upload_headers. Without sha256 the duplicate is caught on completion instead.  Requires the `media:write` scope.
+        Reserves a media item for a file uploaded straight to storage, so large files never pass through the API. Declare the file's name, MIME type and exact size in bytes; they are checked against the limit for the file's kind (images up to 10 MB, PDF documents up to 25 MB, MP4 videos up to 50 MB) and against the workspace's storage allowance now, and against the uploaded bytes on completion. Then PUT the file's bytes to uploadUrl with the uploadHeaders (and a Content-Length equal to size) before uploadExpiresAt, and call CompleteUpload. Until completed the media is PENDING: it is not listed and cannot be used. An upload not completed within an hour is discarded.  A workspace holds each file once. Optionally declare sha256, the file's SHA-256 as hex: a file the workspace already holds is then refused here, before any upload, with 409 MEDIA_ALREADY_EXISTS, whose metadata names that media in existingMediaId and existingFileName (use it instead), and storage refuses bytes that do not match the hash, so the PUT must send the x-amz-checksum-sha256 header from uploadHeaders. Without sha256 the duplicate is caught on completion instead.  Requires the `media:write` scope.
 
         :param create_media_upload_request: (required)
         :type create_media_upload_request: CreateMediaUploadRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1360,7 +1360,7 @@ class MediaApi:
     def media_service_create_upload_with_http_info(
         self,
         create_media_upload_request: CreateMediaUploadRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1376,11 +1376,11 @@ class MediaApi:
     ) -> ApiResponse[CreateMediaUploadResponse]:
         """Start a direct media upload
 
-        Reserves a media item for a file uploaded straight to storage, so large files never pass through the API. Declare the file's name, MIME type and exact size in bytes; they are checked against the limit for the file's kind (images up to 10 MB, PDF documents up to 25 MB, MP4 videos up to 50 MB) and against the workspace's storage allowance now, and against the uploaded bytes on completion. Then PUT the file's bytes to upload_url with the upload_headers (and a Content-Length equal to size) before upload_expires_at, and call CompleteUpload. Until completed the media is PENDING: it is not listed and cannot be used. An upload not completed within an hour is discarded.  A workspace holds each file once. Optionally declare sha256, the file's SHA-256 as hex: a file the workspace already holds is then refused here, before any upload, with 409 MEDIA_ALREADY_EXISTS, whose metadata names that media in existingMediaId and existingFileName (use it instead), and storage refuses bytes that do not match the hash, so the PUT must send the x-amz-checksum-sha256 header from upload_headers. Without sha256 the duplicate is caught on completion instead.  Requires the `media:write` scope.
+        Reserves a media item for a file uploaded straight to storage, so large files never pass through the API. Declare the file's name, MIME type and exact size in bytes; they are checked against the limit for the file's kind (images up to 10 MB, PDF documents up to 25 MB, MP4 videos up to 50 MB) and against the workspace's storage allowance now, and against the uploaded bytes on completion. Then PUT the file's bytes to uploadUrl with the uploadHeaders (and a Content-Length equal to size) before uploadExpiresAt, and call CompleteUpload. Until completed the media is PENDING: it is not listed and cannot be used. An upload not completed within an hour is discarded.  A workspace holds each file once. Optionally declare sha256, the file's SHA-256 as hex: a file the workspace already holds is then refused here, before any upload, with 409 MEDIA_ALREADY_EXISTS, whose metadata names that media in existingMediaId and existingFileName (use it instead), and storage refuses bytes that do not match the hash, so the PUT must send the x-amz-checksum-sha256 header from uploadHeaders. Without sha256 the duplicate is caught on completion instead.  Requires the `media:write` scope.
 
         :param create_media_upload_request: (required)
         :type create_media_upload_request: CreateMediaUploadRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1432,7 +1432,7 @@ class MediaApi:
     def media_service_create_upload_without_preload_content(
         self,
         create_media_upload_request: CreateMediaUploadRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1448,11 +1448,11 @@ class MediaApi:
     ) -> RESTResponseType:
         """Start a direct media upload
 
-        Reserves a media item for a file uploaded straight to storage, so large files never pass through the API. Declare the file's name, MIME type and exact size in bytes; they are checked against the limit for the file's kind (images up to 10 MB, PDF documents up to 25 MB, MP4 videos up to 50 MB) and against the workspace's storage allowance now, and against the uploaded bytes on completion. Then PUT the file's bytes to upload_url with the upload_headers (and a Content-Length equal to size) before upload_expires_at, and call CompleteUpload. Until completed the media is PENDING: it is not listed and cannot be used. An upload not completed within an hour is discarded.  A workspace holds each file once. Optionally declare sha256, the file's SHA-256 as hex: a file the workspace already holds is then refused here, before any upload, with 409 MEDIA_ALREADY_EXISTS, whose metadata names that media in existingMediaId and existingFileName (use it instead), and storage refuses bytes that do not match the hash, so the PUT must send the x-amz-checksum-sha256 header from upload_headers. Without sha256 the duplicate is caught on completion instead.  Requires the `media:write` scope.
+        Reserves a media item for a file uploaded straight to storage, so large files never pass through the API. Declare the file's name, MIME type and exact size in bytes; they are checked against the limit for the file's kind (images up to 10 MB, PDF documents up to 25 MB, MP4 videos up to 50 MB) and against the workspace's storage allowance now, and against the uploaded bytes on completion. Then PUT the file's bytes to uploadUrl with the uploadHeaders (and a Content-Length equal to size) before uploadExpiresAt, and call CompleteUpload. Until completed the media is PENDING: it is not listed and cannot be used. An upload not completed within an hour is discarded.  A workspace holds each file once. Optionally declare sha256, the file's SHA-256 as hex: a file the workspace already holds is then refused here, before any upload, with 409 MEDIA_ALREADY_EXISTS, whose metadata names that media in existingMediaId and existingFileName (use it instead), and storage refuses bytes that do not match the hash, so the PUT must send the x-amz-checksum-sha256 header from uploadHeaders. Without sha256 the duplicate is caught on completion instead.  Requires the `media:write` scope.
 
         :param create_media_upload_request: (required)
         :type create_media_upload_request: CreateMediaUploadRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2114,7 +2114,7 @@ class MediaApi:
     def media_service_import(
         self,
         import_media_request: ImportMediaRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2130,11 +2130,11 @@ class MediaApi:
     ) -> ImportMediaResponse:
         """Import a media file from a URL
 
-        Fetches a file server-side and stores it as a READY media item, so a file that is already online, or one attached to an Assistant conversation, never has to be downloaded and uploaded again. Give exactly one source: url, a public https address the file is downloaded from, or assistant_attachment_id, a file the caller attached to their own Assistant conversation. The kind is read from the file's bytes, never from its name or a Content-Type header, and the same limits as every upload apply: images (PNG, JPEG, WebP, SVG) up to 10 MB, PDF documents up to 25 MB and MP4 videos up to 50 MB, within the workspace's media storage allowance. A URL must be https on port 443 and resolve to a public address; redirects are followed only to other such URLs, at most five.  A workspace holds each file once. A file whose bytes (SHA-256) match media the workspace already has is refused with 409 MEDIA_ALREADY_EXISTS; the error's metadata names that media in existingMediaId and existingFileName. Use that media instead of uploading the file again.  Requires the `media:write` scope.
+        Fetches a file server-side and stores it as a READY media item, so a file that is already online, or one attached to an Assistant conversation, never has to be downloaded and uploaded again. Give exactly one source: url, a public https address the file is downloaded from, or assistantAttachmentId, a file the caller attached to their own Assistant conversation. The kind is read from the file's bytes, never from its name or a Content-Type header, and the same limits as every upload apply: images (PNG, JPEG, WebP, SVG) up to 10 MB, PDF documents up to 25 MB and MP4 videos up to 50 MB, within the workspace's media storage allowance. A URL must be https on port 443 and resolve to a public address; redirects are followed only to other such URLs, at most five.  A workspace holds each file once. A file whose bytes (SHA-256) match media the workspace already has is refused with 409 MEDIA_ALREADY_EXISTS; the error's metadata names that media in existingMediaId and existingFileName. Use that media instead of uploading the file again.  Requires the `media:write` scope.
 
         :param import_media_request: (required)
         :type import_media_request: ImportMediaRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2186,7 +2186,7 @@ class MediaApi:
     def media_service_import_with_http_info(
         self,
         import_media_request: ImportMediaRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2202,11 +2202,11 @@ class MediaApi:
     ) -> ApiResponse[ImportMediaResponse]:
         """Import a media file from a URL
 
-        Fetches a file server-side and stores it as a READY media item, so a file that is already online, or one attached to an Assistant conversation, never has to be downloaded and uploaded again. Give exactly one source: url, a public https address the file is downloaded from, or assistant_attachment_id, a file the caller attached to their own Assistant conversation. The kind is read from the file's bytes, never from its name or a Content-Type header, and the same limits as every upload apply: images (PNG, JPEG, WebP, SVG) up to 10 MB, PDF documents up to 25 MB and MP4 videos up to 50 MB, within the workspace's media storage allowance. A URL must be https on port 443 and resolve to a public address; redirects are followed only to other such URLs, at most five.  A workspace holds each file once. A file whose bytes (SHA-256) match media the workspace already has is refused with 409 MEDIA_ALREADY_EXISTS; the error's metadata names that media in existingMediaId and existingFileName. Use that media instead of uploading the file again.  Requires the `media:write` scope.
+        Fetches a file server-side and stores it as a READY media item, so a file that is already online, or one attached to an Assistant conversation, never has to be downloaded and uploaded again. Give exactly one source: url, a public https address the file is downloaded from, or assistantAttachmentId, a file the caller attached to their own Assistant conversation. The kind is read from the file's bytes, never from its name or a Content-Type header, and the same limits as every upload apply: images (PNG, JPEG, WebP, SVG) up to 10 MB, PDF documents up to 25 MB and MP4 videos up to 50 MB, within the workspace's media storage allowance. A URL must be https on port 443 and resolve to a public address; redirects are followed only to other such URLs, at most five.  A workspace holds each file once. A file whose bytes (SHA-256) match media the workspace already has is refused with 409 MEDIA_ALREADY_EXISTS; the error's metadata names that media in existingMediaId and existingFileName. Use that media instead of uploading the file again.  Requires the `media:write` scope.
 
         :param import_media_request: (required)
         :type import_media_request: ImportMediaRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2258,7 +2258,7 @@ class MediaApi:
     def media_service_import_without_preload_content(
         self,
         import_media_request: ImportMediaRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2274,11 +2274,11 @@ class MediaApi:
     ) -> RESTResponseType:
         """Import a media file from a URL
 
-        Fetches a file server-side and stores it as a READY media item, so a file that is already online, or one attached to an Assistant conversation, never has to be downloaded and uploaded again. Give exactly one source: url, a public https address the file is downloaded from, or assistant_attachment_id, a file the caller attached to their own Assistant conversation. The kind is read from the file's bytes, never from its name or a Content-Type header, and the same limits as every upload apply: images (PNG, JPEG, WebP, SVG) up to 10 MB, PDF documents up to 25 MB and MP4 videos up to 50 MB, within the workspace's media storage allowance. A URL must be https on port 443 and resolve to a public address; redirects are followed only to other such URLs, at most five.  A workspace holds each file once. A file whose bytes (SHA-256) match media the workspace already has is refused with 409 MEDIA_ALREADY_EXISTS; the error's metadata names that media in existingMediaId and existingFileName. Use that media instead of uploading the file again.  Requires the `media:write` scope.
+        Fetches a file server-side and stores it as a READY media item, so a file that is already online, or one attached to an Assistant conversation, never has to be downloaded and uploaded again. Give exactly one source: url, a public https address the file is downloaded from, or assistantAttachmentId, a file the caller attached to their own Assistant conversation. The kind is read from the file's bytes, never from its name or a Content-Type header, and the same limits as every upload apply: images (PNG, JPEG, WebP, SVG) up to 10 MB, PDF documents up to 25 MB and MP4 videos up to 50 MB, within the workspace's media storage allowance. A URL must be https on port 443 and resolve to a public address; redirects are followed only to other such URLs, at most five.  A workspace holds each file once. A file whose bytes (SHA-256) match media the workspace already has is refused with 409 MEDIA_ALREADY_EXISTS; the error's metadata names that media in existingMediaId and existingFileName. Use that media instead of uploading the file again.  Requires the `media:write` scope.
 
         :param import_media_request: (required)
         :type import_media_request: ImportMediaRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2408,7 +2408,7 @@ class MediaApi:
         self,
         page_size: Annotated[StrictInt, Field(description="The maximum number of media files to return.")],
         page_token: Annotated[Optional[StrictStr], Field(description="The token for retrieving the next page of results If not provided, the first page of results will be returned")] = None,
-        usage: Annotated[Optional[StrictStr], Field(description="Deprecated: filter by uploaded_from instead. Still matches the value recorded at upload, which says nothing about where the media is used.   - USAGE_UNSPECIFIED: Not set  - USAGE_CENTRAL_QRCODE_IMAGE: The logo in the center of a QR code  - USAGE_BACKGROUND_COVER: A page theme's background cover  - USAGE_BADGE: A page theme's badge image  - USAGE_FOOTER_LOGO: A page theme's footer logo  - USAGE_OPEN_MEDIA: Media an Open media workflow step hands to visitors: a PDF menu or brochure, an image or an MP4 video")] = None,
+        usage: Annotated[Optional[StrictStr], Field(description="Deprecated: filter by uploadedFrom instead. Still matches the value recorded at upload, which says nothing about where the media is used.   - USAGE_UNSPECIFIED: Not set  - USAGE_CENTRAL_QRCODE_IMAGE: The logo in the center of a QR code  - USAGE_BACKGROUND_COVER: A page theme's background cover  - USAGE_BADGE: A page theme's badge image  - USAGE_FOOTER_LOGO: A page theme's footer logo  - USAGE_OPEN_MEDIA: Media an Open media workflow step hands to visitors: a PDF menu or brochure, an image or an MP4 video")] = None,
         kind: Annotated[Optional[StrictStr], Field(description="Only media of this kind. Unset lists every kind.   - KIND_UNSPECIFIED: Not set  - KIND_IMAGE: A PNG, JPEG, WebP or SVG image  - KIND_DOCUMENT: A PDF document  - KIND_VIDEO: An MP4 video")] = None,
         uploaded_from: Annotated[Optional[StrictStr], Field(description="Only media uploaded from this place. Unset lists media from everywhere. Where media was uploaded from says nothing about where it can be used: read references for that.   - UPLOAD_ORIGIN_UNSPECIFIED: Not set. Uploads that do not say where they come from are recorded as UPLOAD_ORIGIN_MEDIA_LIBRARY.  - UPLOAD_ORIGIN_MEDIA_LIBRARY: Uploaded from the media library itself  - UPLOAD_ORIGIN_QR_CODE_LOGO: Uploaded while picking a QR code's logo  - UPLOAD_ORIGIN_BACKGROUND_COVER: Uploaded while picking a page theme's background cover  - UPLOAD_ORIGIN_BADGE: Uploaded while picking a page theme's badge  - UPLOAD_ORIGIN_FOOTER_LOGO: Uploaded while picking a page theme's footer logo  - UPLOAD_ORIGIN_OPEN_MEDIA: Uploaded while picking the media an Open media step opens  - UPLOAD_ORIGIN_ASSISTANT: Imported by the Assistant, from a file attached to a conversation or a URL")] = None,
         cursor: Annotated[Optional[StrictStr], Field(description="Opaque cursor from the previous page's nextPageToken. Same as pageToken; when both are sent, pageToken wins.")] = None,
@@ -2427,13 +2427,13 @@ class MediaApi:
     ) -> ListMediaResponse:
         """List media files
 
-        Retrieves the workspace's ready media files, newest first, optionally narrowed to one kind or to where they were uploaded from. total_count is every item matching the filters across all pages. Each item lists its references: where it is used.  Requires the `media:read` scope.
+        Retrieves the workspace's ready media files, newest first, optionally narrowed to one kind or to where they were uploaded from. totalCount is every item matching the filters across all pages. Each item lists its references: where it is used.  Requires the `media:read` scope.
 
         :param page_size: The maximum number of media files to return. (required)
         :type page_size: int
         :param page_token: The token for retrieving the next page of results If not provided, the first page of results will be returned
         :type page_token: str
-        :param usage: Deprecated: filter by uploaded_from instead. Still matches the value recorded at upload, which says nothing about where the media is used.   - USAGE_UNSPECIFIED: Not set  - USAGE_CENTRAL_QRCODE_IMAGE: The logo in the center of a QR code  - USAGE_BACKGROUND_COVER: A page theme's background cover  - USAGE_BADGE: A page theme's badge image  - USAGE_FOOTER_LOGO: A page theme's footer logo  - USAGE_OPEN_MEDIA: Media an Open media workflow step hands to visitors: a PDF menu or brochure, an image or an MP4 video
+        :param usage: Deprecated: filter by uploadedFrom instead. Still matches the value recorded at upload, which says nothing about where the media is used.   - USAGE_UNSPECIFIED: Not set  - USAGE_CENTRAL_QRCODE_IMAGE: The logo in the center of a QR code  - USAGE_BACKGROUND_COVER: A page theme's background cover  - USAGE_BADGE: A page theme's badge image  - USAGE_FOOTER_LOGO: A page theme's footer logo  - USAGE_OPEN_MEDIA: Media an Open media workflow step hands to visitors: a PDF menu or brochure, an image or an MP4 video
         :type usage: str
         :param kind: Only media of this kind. Unset lists every kind.   - KIND_UNSPECIFIED: Not set  - KIND_IMAGE: A PNG, JPEG, WebP or SVG image  - KIND_DOCUMENT: A PDF document  - KIND_VIDEO: An MP4 video
         :type kind: str
@@ -2496,7 +2496,7 @@ class MediaApi:
         self,
         page_size: Annotated[StrictInt, Field(description="The maximum number of media files to return.")],
         page_token: Annotated[Optional[StrictStr], Field(description="The token for retrieving the next page of results If not provided, the first page of results will be returned")] = None,
-        usage: Annotated[Optional[StrictStr], Field(description="Deprecated: filter by uploaded_from instead. Still matches the value recorded at upload, which says nothing about where the media is used.   - USAGE_UNSPECIFIED: Not set  - USAGE_CENTRAL_QRCODE_IMAGE: The logo in the center of a QR code  - USAGE_BACKGROUND_COVER: A page theme's background cover  - USAGE_BADGE: A page theme's badge image  - USAGE_FOOTER_LOGO: A page theme's footer logo  - USAGE_OPEN_MEDIA: Media an Open media workflow step hands to visitors: a PDF menu or brochure, an image or an MP4 video")] = None,
+        usage: Annotated[Optional[StrictStr], Field(description="Deprecated: filter by uploadedFrom instead. Still matches the value recorded at upload, which says nothing about where the media is used.   - USAGE_UNSPECIFIED: Not set  - USAGE_CENTRAL_QRCODE_IMAGE: The logo in the center of a QR code  - USAGE_BACKGROUND_COVER: A page theme's background cover  - USAGE_BADGE: A page theme's badge image  - USAGE_FOOTER_LOGO: A page theme's footer logo  - USAGE_OPEN_MEDIA: Media an Open media workflow step hands to visitors: a PDF menu or brochure, an image or an MP4 video")] = None,
         kind: Annotated[Optional[StrictStr], Field(description="Only media of this kind. Unset lists every kind.   - KIND_UNSPECIFIED: Not set  - KIND_IMAGE: A PNG, JPEG, WebP or SVG image  - KIND_DOCUMENT: A PDF document  - KIND_VIDEO: An MP4 video")] = None,
         uploaded_from: Annotated[Optional[StrictStr], Field(description="Only media uploaded from this place. Unset lists media from everywhere. Where media was uploaded from says nothing about where it can be used: read references for that.   - UPLOAD_ORIGIN_UNSPECIFIED: Not set. Uploads that do not say where they come from are recorded as UPLOAD_ORIGIN_MEDIA_LIBRARY.  - UPLOAD_ORIGIN_MEDIA_LIBRARY: Uploaded from the media library itself  - UPLOAD_ORIGIN_QR_CODE_LOGO: Uploaded while picking a QR code's logo  - UPLOAD_ORIGIN_BACKGROUND_COVER: Uploaded while picking a page theme's background cover  - UPLOAD_ORIGIN_BADGE: Uploaded while picking a page theme's badge  - UPLOAD_ORIGIN_FOOTER_LOGO: Uploaded while picking a page theme's footer logo  - UPLOAD_ORIGIN_OPEN_MEDIA: Uploaded while picking the media an Open media step opens  - UPLOAD_ORIGIN_ASSISTANT: Imported by the Assistant, from a file attached to a conversation or a URL")] = None,
         cursor: Annotated[Optional[StrictStr], Field(description="Opaque cursor from the previous page's nextPageToken. Same as pageToken; when both are sent, pageToken wins.")] = None,
@@ -2515,13 +2515,13 @@ class MediaApi:
     ) -> ApiResponse[ListMediaResponse]:
         """List media files
 
-        Retrieves the workspace's ready media files, newest first, optionally narrowed to one kind or to where they were uploaded from. total_count is every item matching the filters across all pages. Each item lists its references: where it is used.  Requires the `media:read` scope.
+        Retrieves the workspace's ready media files, newest first, optionally narrowed to one kind or to where they were uploaded from. totalCount is every item matching the filters across all pages. Each item lists its references: where it is used.  Requires the `media:read` scope.
 
         :param page_size: The maximum number of media files to return. (required)
         :type page_size: int
         :param page_token: The token for retrieving the next page of results If not provided, the first page of results will be returned
         :type page_token: str
-        :param usage: Deprecated: filter by uploaded_from instead. Still matches the value recorded at upload, which says nothing about where the media is used.   - USAGE_UNSPECIFIED: Not set  - USAGE_CENTRAL_QRCODE_IMAGE: The logo in the center of a QR code  - USAGE_BACKGROUND_COVER: A page theme's background cover  - USAGE_BADGE: A page theme's badge image  - USAGE_FOOTER_LOGO: A page theme's footer logo  - USAGE_OPEN_MEDIA: Media an Open media workflow step hands to visitors: a PDF menu or brochure, an image or an MP4 video
+        :param usage: Deprecated: filter by uploadedFrom instead. Still matches the value recorded at upload, which says nothing about where the media is used.   - USAGE_UNSPECIFIED: Not set  - USAGE_CENTRAL_QRCODE_IMAGE: The logo in the center of a QR code  - USAGE_BACKGROUND_COVER: A page theme's background cover  - USAGE_BADGE: A page theme's badge image  - USAGE_FOOTER_LOGO: A page theme's footer logo  - USAGE_OPEN_MEDIA: Media an Open media workflow step hands to visitors: a PDF menu or brochure, an image or an MP4 video
         :type usage: str
         :param kind: Only media of this kind. Unset lists every kind.   - KIND_UNSPECIFIED: Not set  - KIND_IMAGE: A PNG, JPEG, WebP or SVG image  - KIND_DOCUMENT: A PDF document  - KIND_VIDEO: An MP4 video
         :type kind: str
@@ -2584,7 +2584,7 @@ class MediaApi:
         self,
         page_size: Annotated[StrictInt, Field(description="The maximum number of media files to return.")],
         page_token: Annotated[Optional[StrictStr], Field(description="The token for retrieving the next page of results If not provided, the first page of results will be returned")] = None,
-        usage: Annotated[Optional[StrictStr], Field(description="Deprecated: filter by uploaded_from instead. Still matches the value recorded at upload, which says nothing about where the media is used.   - USAGE_UNSPECIFIED: Not set  - USAGE_CENTRAL_QRCODE_IMAGE: The logo in the center of a QR code  - USAGE_BACKGROUND_COVER: A page theme's background cover  - USAGE_BADGE: A page theme's badge image  - USAGE_FOOTER_LOGO: A page theme's footer logo  - USAGE_OPEN_MEDIA: Media an Open media workflow step hands to visitors: a PDF menu or brochure, an image or an MP4 video")] = None,
+        usage: Annotated[Optional[StrictStr], Field(description="Deprecated: filter by uploadedFrom instead. Still matches the value recorded at upload, which says nothing about where the media is used.   - USAGE_UNSPECIFIED: Not set  - USAGE_CENTRAL_QRCODE_IMAGE: The logo in the center of a QR code  - USAGE_BACKGROUND_COVER: A page theme's background cover  - USAGE_BADGE: A page theme's badge image  - USAGE_FOOTER_LOGO: A page theme's footer logo  - USAGE_OPEN_MEDIA: Media an Open media workflow step hands to visitors: a PDF menu or brochure, an image or an MP4 video")] = None,
         kind: Annotated[Optional[StrictStr], Field(description="Only media of this kind. Unset lists every kind.   - KIND_UNSPECIFIED: Not set  - KIND_IMAGE: A PNG, JPEG, WebP or SVG image  - KIND_DOCUMENT: A PDF document  - KIND_VIDEO: An MP4 video")] = None,
         uploaded_from: Annotated[Optional[StrictStr], Field(description="Only media uploaded from this place. Unset lists media from everywhere. Where media was uploaded from says nothing about where it can be used: read references for that.   - UPLOAD_ORIGIN_UNSPECIFIED: Not set. Uploads that do not say where they come from are recorded as UPLOAD_ORIGIN_MEDIA_LIBRARY.  - UPLOAD_ORIGIN_MEDIA_LIBRARY: Uploaded from the media library itself  - UPLOAD_ORIGIN_QR_CODE_LOGO: Uploaded while picking a QR code's logo  - UPLOAD_ORIGIN_BACKGROUND_COVER: Uploaded while picking a page theme's background cover  - UPLOAD_ORIGIN_BADGE: Uploaded while picking a page theme's badge  - UPLOAD_ORIGIN_FOOTER_LOGO: Uploaded while picking a page theme's footer logo  - UPLOAD_ORIGIN_OPEN_MEDIA: Uploaded while picking the media an Open media step opens  - UPLOAD_ORIGIN_ASSISTANT: Imported by the Assistant, from a file attached to a conversation or a URL")] = None,
         cursor: Annotated[Optional[StrictStr], Field(description="Opaque cursor from the previous page's nextPageToken. Same as pageToken; when both are sent, pageToken wins.")] = None,
@@ -2603,13 +2603,13 @@ class MediaApi:
     ) -> RESTResponseType:
         """List media files
 
-        Retrieves the workspace's ready media files, newest first, optionally narrowed to one kind or to where they were uploaded from. total_count is every item matching the filters across all pages. Each item lists its references: where it is used.  Requires the `media:read` scope.
+        Retrieves the workspace's ready media files, newest first, optionally narrowed to one kind or to where they were uploaded from. totalCount is every item matching the filters across all pages. Each item lists its references: where it is used.  Requires the `media:read` scope.
 
         :param page_size: The maximum number of media files to return. (required)
         :type page_size: int
         :param page_token: The token for retrieving the next page of results If not provided, the first page of results will be returned
         :type page_token: str
-        :param usage: Deprecated: filter by uploaded_from instead. Still matches the value recorded at upload, which says nothing about where the media is used.   - USAGE_UNSPECIFIED: Not set  - USAGE_CENTRAL_QRCODE_IMAGE: The logo in the center of a QR code  - USAGE_BACKGROUND_COVER: A page theme's background cover  - USAGE_BADGE: A page theme's badge image  - USAGE_FOOTER_LOGO: A page theme's footer logo  - USAGE_OPEN_MEDIA: Media an Open media workflow step hands to visitors: a PDF menu or brochure, an image or an MP4 video
+        :param usage: Deprecated: filter by uploadedFrom instead. Still matches the value recorded at upload, which says nothing about where the media is used.   - USAGE_UNSPECIFIED: Not set  - USAGE_CENTRAL_QRCODE_IMAGE: The logo in the center of a QR code  - USAGE_BACKGROUND_COVER: A page theme's background cover  - USAGE_BADGE: A page theme's badge image  - USAGE_FOOTER_LOGO: A page theme's footer logo  - USAGE_OPEN_MEDIA: Media an Open media workflow step hands to visitors: a PDF menu or brochure, an image or an MP4 video
         :type usage: str
         :param kind: Only media of this kind. Unset lists every kind.   - KIND_UNSPECIFIED: Not set  - KIND_IMAGE: A PNG, JPEG, WebP or SVG image  - KIND_DOCUMENT: A PDF document  - KIND_VIDEO: An MP4 video
         :type kind: str
@@ -2760,7 +2760,7 @@ class MediaApi:
         self,
         id: Annotated[StrictStr, Field(description="The ID of the media item whose file is replaced (UUID)")],
         media_service_replace_import_body: MediaServiceReplaceImportBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2782,7 +2782,7 @@ class MediaApi:
         :type id: str
         :param media_service_replace_import_body: (required)
         :type media_service_replace_import_body: MediaServiceReplaceImportBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2836,7 +2836,7 @@ class MediaApi:
         self,
         id: Annotated[StrictStr, Field(description="The ID of the media item whose file is replaced (UUID)")],
         media_service_replace_import_body: MediaServiceReplaceImportBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2858,7 +2858,7 @@ class MediaApi:
         :type id: str
         :param media_service_replace_import_body: (required)
         :type media_service_replace_import_body: MediaServiceReplaceImportBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2912,7 +2912,7 @@ class MediaApi:
         self,
         id: Annotated[StrictStr, Field(description="The ID of the media item whose file is replaced (UUID)")],
         media_service_replace_import_body: MediaServiceReplaceImportBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2934,7 +2934,7 @@ class MediaApi:
         :type id: str
         :param media_service_replace_import_body: (required)
         :type media_service_replace_import_body: MediaServiceReplaceImportBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request

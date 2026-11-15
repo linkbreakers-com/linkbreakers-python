@@ -1,9 +1,9 @@
 """
     Linkbreakers API
 
-    This is a documentation of all the APIs of Linkbreakers  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
+    The Linkbreakers REST API: links, QR codes, workflows, visitors and analytics, as JSON over HTTPS. Send a workspace API token as `Authorization: Bearer <token>`.  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  A renamed operation keeps answering its former path until that path's sunset. Responses on a former path carry the same `Deprecation`, `Sunset` and `Link` header fields; this document lists only the current path, and the policy lists the former ones.  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
 
-    The version of the OpenAPI document: 1.198.0
+    The version of the OpenAPI document: 1.198.1
     Contact: support@linkbreakers.com
     Generated by OpenAPI Generator (https://openapi-generator.tech)
 
@@ -25,13 +25,11 @@ from linkbreakers.models.import_page_theme_template_request import ImportPageThe
 from linkbreakers.models.import_page_theme_template_response import ImportPageThemeTemplateResponse
 from linkbreakers.models.list_page_theme_templates_response import ListPageThemeTemplatesResponse
 from linkbreakers.models.page_theme_template import PageThemeTemplate
-from linkbreakers.models.page_theme_templates_service_update_page_theme_template_body import PageThemeTemplatesServiceUpdatePageThemeTemplateBody
-from linkbreakers.models.page_theme_templates_service_update_page_theme_template_styling_body import PageThemeTemplatesServiceUpdatePageThemeTemplateStylingBody
+from linkbreakers.models.page_theme_templates_service_update_body import PageThemeTemplatesServiceUpdateBody
+from linkbreakers.models.page_theme_templates_service_update_styling_body import PageThemeTemplatesServiceUpdateStylingBody
 from linkbreakers.models.public_list_page_theme_templates_response import PublicListPageThemeTemplatesResponse
 from linkbreakers.models.public_page_theme_template import PublicPageThemeTemplate
 from linkbreakers.models.publish_page_theme_template_response import PublishPageThemeTemplateResponse
-from linkbreakers.models.resolve_page_theme_template_images_request import ResolvePageThemeTemplateImagesRequest
-from linkbreakers.models.resolve_page_theme_template_images_response import ResolvePageThemeTemplateImagesResponse
 from linkbreakers.models.update_page_theme_template_response import UpdatePageThemeTemplateResponse
 from linkbreakers.models.update_page_theme_template_styling_response import UpdatePageThemeTemplateStylingResponse
 
@@ -54,10 +52,10 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_create_page_theme_template(
+    def page_theme_templates_service_create(
         self,
         create_page_theme_template_request: CreatePageThemeTemplateRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -77,7 +75,7 @@ class PageThemeTemplatesApi:
 
         :param create_page_theme_template_request: (required)
         :type create_page_theme_template_request: CreatePageThemeTemplateRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -101,7 +99,7 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_create_page_theme_template_serialize(
+        _param = self._page_theme_templates_service_create_serialize(
             create_page_theme_template_request=create_page_theme_template_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -126,10 +124,10 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_create_page_theme_template_with_http_info(
+    def page_theme_templates_service_create_with_http_info(
         self,
         create_page_theme_template_request: CreatePageThemeTemplateRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -149,7 +147,7 @@ class PageThemeTemplatesApi:
 
         :param create_page_theme_template_request: (required)
         :type create_page_theme_template_request: CreatePageThemeTemplateRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -173,7 +171,7 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_create_page_theme_template_serialize(
+        _param = self._page_theme_templates_service_create_serialize(
             create_page_theme_template_request=create_page_theme_template_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -198,10 +196,10 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_create_page_theme_template_without_preload_content(
+    def page_theme_templates_service_create_without_preload_content(
         self,
         create_page_theme_template_request: CreatePageThemeTemplateRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -221,7 +219,7 @@ class PageThemeTemplatesApi:
 
         :param create_page_theme_template_request: (required)
         :type create_page_theme_template_request: CreatePageThemeTemplateRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -245,7 +243,7 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_create_page_theme_template_serialize(
+        _param = self._page_theme_templates_service_create_serialize(
             create_page_theme_template_request=create_page_theme_template_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -265,7 +263,7 @@ class PageThemeTemplatesApi:
         return response_data.response
 
 
-    def _page_theme_templates_service_create_page_theme_template_serialize(
+    def _page_theme_templates_service_create_serialize(
         self,
         create_page_theme_template_request,
         idempotency_key,
@@ -347,7 +345,7 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_delete_page_theme_template(
+    def page_theme_templates_service_delete(
         self,
         id: StrictStr,
         _request_timeout: Union[
@@ -391,7 +389,7 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_delete_page_theme_template_serialize(
+        _param = self._page_theme_templates_service_delete_serialize(
             id=id,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -416,7 +414,7 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_delete_page_theme_template_with_http_info(
+    def page_theme_templates_service_delete_with_http_info(
         self,
         id: StrictStr,
         _request_timeout: Union[
@@ -460,7 +458,7 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_delete_page_theme_template_serialize(
+        _param = self._page_theme_templates_service_delete_serialize(
             id=id,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -485,7 +483,7 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_delete_page_theme_template_without_preload_content(
+    def page_theme_templates_service_delete_without_preload_content(
         self,
         id: StrictStr,
         _request_timeout: Union[
@@ -529,7 +527,7 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_delete_page_theme_template_serialize(
+        _param = self._page_theme_templates_service_delete_serialize(
             id=id,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -549,7 +547,7 @@ class PageThemeTemplatesApi:
         return response_data.response
 
 
-    def _page_theme_templates_service_delete_page_theme_template_serialize(
+    def _page_theme_templates_service_delete_serialize(
         self,
         id,
         _request_auth,
@@ -615,7 +613,7 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_get_page_theme_template(
+    def page_theme_templates_service_get(
         self,
         id: StrictStr,
         include: Optional[List[StrictStr]] = None,
@@ -662,7 +660,7 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_get_page_theme_template_serialize(
+        _param = self._page_theme_templates_service_get_serialize(
             id=id,
             include=include,
             _request_auth=_request_auth,
@@ -687,7 +685,7 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_get_page_theme_template_with_http_info(
+    def page_theme_templates_service_get_with_http_info(
         self,
         id: StrictStr,
         include: Optional[List[StrictStr]] = None,
@@ -734,7 +732,7 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_get_page_theme_template_serialize(
+        _param = self._page_theme_templates_service_get_serialize(
             id=id,
             include=include,
             _request_auth=_request_auth,
@@ -759,7 +757,7 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_get_page_theme_template_without_preload_content(
+    def page_theme_templates_service_get_without_preload_content(
         self,
         id: StrictStr,
         include: Optional[List[StrictStr]] = None,
@@ -806,7 +804,7 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_get_page_theme_template_serialize(
+        _param = self._page_theme_templates_service_get_serialize(
             id=id,
             include=include,
             _request_auth=_request_auth,
@@ -826,7 +824,7 @@ class PageThemeTemplatesApi:
         return response_data.response
 
 
-    def _page_theme_templates_service_get_page_theme_template_serialize(
+    def _page_theme_templates_service_get_serialize(
         self,
         id,
         include,
@@ -898,10 +896,291 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_import_page_theme_template(
+    def page_theme_templates_service_get_public(
+        self,
+        slug: StrictStr,
+        include: Annotated[Optional[List[StrictStr]], Field(description="Related objects to include in the response  List of related objects to include. Supported values: 'workspace'")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> PublicPageThemeTemplate:
+        """Get a public page theme template
+
+        Retrieve a single published page theme template that is visible in the public gallery.
+
+        :param slug: (required)
+        :type slug: str
+        :param include: Related objects to include in the response  List of related objects to include. Supported values: 'workspace'
+        :type include: List[str]
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._page_theme_templates_service_get_public_serialize(
+            slug=slug,
+            include=include,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "PublicPageThemeTemplate",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def page_theme_templates_service_get_public_with_http_info(
+        self,
+        slug: StrictStr,
+        include: Annotated[Optional[List[StrictStr]], Field(description="Related objects to include in the response  List of related objects to include. Supported values: 'workspace'")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[PublicPageThemeTemplate]:
+        """Get a public page theme template
+
+        Retrieve a single published page theme template that is visible in the public gallery.
+
+        :param slug: (required)
+        :type slug: str
+        :param include: Related objects to include in the response  List of related objects to include. Supported values: 'workspace'
+        :type include: List[str]
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._page_theme_templates_service_get_public_serialize(
+            slug=slug,
+            include=include,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "PublicPageThemeTemplate",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def page_theme_templates_service_get_public_without_preload_content(
+        self,
+        slug: StrictStr,
+        include: Annotated[Optional[List[StrictStr]], Field(description="Related objects to include in the response  List of related objects to include. Supported values: 'workspace'")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Get a public page theme template
+
+        Retrieve a single published page theme template that is visible in the public gallery.
+
+        :param slug: (required)
+        :type slug: str
+        :param include: Related objects to include in the response  List of related objects to include. Supported values: 'workspace'
+        :type include: List[str]
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._page_theme_templates_service_get_public_serialize(
+            slug=slug,
+            include=include,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "PublicPageThemeTemplate",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _page_theme_templates_service_get_public_serialize(
+        self,
+        slug,
+        include,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+            'include': 'multi',
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if slug is not None:
+            _path_params['slug'] = slug
+        # process the query parameters
+        if include is not None:
+            
+            _query_params.append(('include', include))
+            
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+
+        # set the HTTP header `Accept`
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
+
+        # authentication setting
+        _auth_settings: List[str] = [
+        ]
+
+        return self.api_client.param_serialize(
+            method='GET',
+            resource_path='/v1/public/page-theme-templates/{slug}',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def page_theme_templates_service_import(
         self,
         import_page_theme_template_request: ImportPageThemeTemplateRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -921,7 +1200,7 @@ class PageThemeTemplatesApi:
 
         :param import_page_theme_template_request: (required)
         :type import_page_theme_template_request: ImportPageThemeTemplateRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -945,7 +1224,7 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_import_page_theme_template_serialize(
+        _param = self._page_theme_templates_service_import_serialize(
             import_page_theme_template_request=import_page_theme_template_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -970,10 +1249,10 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_import_page_theme_template_with_http_info(
+    def page_theme_templates_service_import_with_http_info(
         self,
         import_page_theme_template_request: ImportPageThemeTemplateRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -993,7 +1272,7 @@ class PageThemeTemplatesApi:
 
         :param import_page_theme_template_request: (required)
         :type import_page_theme_template_request: ImportPageThemeTemplateRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1017,7 +1296,7 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_import_page_theme_template_serialize(
+        _param = self._page_theme_templates_service_import_serialize(
             import_page_theme_template_request=import_page_theme_template_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -1042,10 +1321,10 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_import_page_theme_template_without_preload_content(
+    def page_theme_templates_service_import_without_preload_content(
         self,
         import_page_theme_template_request: ImportPageThemeTemplateRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1065,7 +1344,7 @@ class PageThemeTemplatesApi:
 
         :param import_page_theme_template_request: (required)
         :type import_page_theme_template_request: ImportPageThemeTemplateRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1089,7 +1368,7 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_import_page_theme_template_serialize(
+        _param = self._page_theme_templates_service_import_serialize(
             import_page_theme_template_request=import_page_theme_template_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -1109,7 +1388,7 @@ class PageThemeTemplatesApi:
         return response_data.response
 
 
-    def _page_theme_templates_service_import_page_theme_template_serialize(
+    def _page_theme_templates_service_import_serialize(
         self,
         import_page_theme_template_request,
         idempotency_key,
@@ -1191,7 +1470,7 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_list_page_theme_templates(
+    def page_theme_templates_service_list(
         self,
         include: Optional[List[StrictStr]] = None,
         search: Optional[StrictStr] = None,
@@ -1250,7 +1529,7 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_list_page_theme_templates_serialize(
+        _param = self._page_theme_templates_service_list_serialize(
             include=include,
             search=search,
             page_size=page_size,
@@ -1279,7 +1558,7 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_list_page_theme_templates_with_http_info(
+    def page_theme_templates_service_list_with_http_info(
         self,
         include: Optional[List[StrictStr]] = None,
         search: Optional[StrictStr] = None,
@@ -1338,7 +1617,7 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_list_page_theme_templates_serialize(
+        _param = self._page_theme_templates_service_list_serialize(
             include=include,
             search=search,
             page_size=page_size,
@@ -1367,7 +1646,7 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_list_page_theme_templates_without_preload_content(
+    def page_theme_templates_service_list_without_preload_content(
         self,
         include: Optional[List[StrictStr]] = None,
         search: Optional[StrictStr] = None,
@@ -1426,7 +1705,7 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_list_page_theme_templates_serialize(
+        _param = self._page_theme_templates_service_list_serialize(
             include=include,
             search=search,
             page_size=page_size,
@@ -1450,7 +1729,7 @@ class PageThemeTemplatesApi:
         return response_data.response
 
 
-    def _page_theme_templates_service_list_page_theme_templates_serialize(
+    def _page_theme_templates_service_list_serialize(
         self,
         include,
         search,
@@ -1544,288 +1823,7 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_public_get_page_theme_template(
-        self,
-        slug: StrictStr,
-        include: Annotated[Optional[List[StrictStr]], Field(description="Related objects to include in the response  List of related objects to include. Supported values: 'workspace'")] = None,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> PublicPageThemeTemplate:
-        """Get a public page theme template
-
-        Retrieve a single published page theme template that is visible in the public gallery.
-
-        :param slug: (required)
-        :type slug: str
-        :param include: Related objects to include in the response  List of related objects to include. Supported values: 'workspace'
-        :type include: List[str]
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._page_theme_templates_service_public_get_page_theme_template_serialize(
-            slug=slug,
-            include=include,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "PublicPageThemeTemplate",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        ).data
-
-
-    @validate_call
-    def page_theme_templates_service_public_get_page_theme_template_with_http_info(
-        self,
-        slug: StrictStr,
-        include: Annotated[Optional[List[StrictStr]], Field(description="Related objects to include in the response  List of related objects to include. Supported values: 'workspace'")] = None,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[PublicPageThemeTemplate]:
-        """Get a public page theme template
-
-        Retrieve a single published page theme template that is visible in the public gallery.
-
-        :param slug: (required)
-        :type slug: str
-        :param include: Related objects to include in the response  List of related objects to include. Supported values: 'workspace'
-        :type include: List[str]
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._page_theme_templates_service_public_get_page_theme_template_serialize(
-            slug=slug,
-            include=include,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "PublicPageThemeTemplate",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        )
-
-
-    @validate_call
-    def page_theme_templates_service_public_get_page_theme_template_without_preload_content(
-        self,
-        slug: StrictStr,
-        include: Annotated[Optional[List[StrictStr]], Field(description="Related objects to include in the response  List of related objects to include. Supported values: 'workspace'")] = None,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> RESTResponseType:
-        """Get a public page theme template
-
-        Retrieve a single published page theme template that is visible in the public gallery.
-
-        :param slug: (required)
-        :type slug: str
-        :param include: Related objects to include in the response  List of related objects to include. Supported values: 'workspace'
-        :type include: List[str]
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._page_theme_templates_service_public_get_page_theme_template_serialize(
-            slug=slug,
-            include=include,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "PublicPageThemeTemplate",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        return response_data.response
-
-
-    def _page_theme_templates_service_public_get_page_theme_template_serialize(
-        self,
-        slug,
-        include,
-        _request_auth,
-        _content_type,
-        _headers,
-        _host_index,
-    ) -> RequestSerialized:
-
-        _host = None
-
-        _collection_formats: Dict[str, str] = {
-            'include': 'multi',
-        }
-
-        _path_params: Dict[str, str] = {}
-        _query_params: List[Tuple[str, str]] = []
-        _header_params: Dict[str, Optional[str]] = _headers or {}
-        _form_params: List[Tuple[str, str]] = []
-        _files: Dict[
-            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
-        ] = {}
-        _body_params: Optional[bytes] = None
-
-        # process the path parameters
-        if slug is not None:
-            _path_params['slug'] = slug
-        # process the query parameters
-        if include is not None:
-            
-            _query_params.append(('include', include))
-            
-        # process the header parameters
-        # process the form parameters
-        # process the body parameter
-
-
-        # set the HTTP header `Accept`
-        if 'Accept' not in _header_params:
-            _header_params['Accept'] = self.api_client.select_header_accept(
-                [
-                    'application/json'
-                ]
-            )
-
-
-        # authentication setting
-        _auth_settings: List[str] = [
-        ]
-
-        return self.api_client.param_serialize(
-            method='GET',
-            resource_path='/v1/public/page-theme-templates/{slug}',
-            path_params=_path_params,
-            query_params=_query_params,
-            header_params=_header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
-            auth_settings=_auth_settings,
-            collection_formats=_collection_formats,
-            _host=_host,
-            _request_auth=_request_auth
-        )
-
-
-
-
-    @validate_call
-    def page_theme_templates_service_public_list_page_theme_templates(
+    def page_theme_templates_service_list_public(
         self,
         include: Annotated[Optional[List[StrictStr]], Field(description="Related objects to include in the response  List of related objects to include. Supported values: 'workspace'")] = None,
         search: Annotated[Optional[StrictStr], Field(description="Search query applied to template name/description")] = None,
@@ -1884,7 +1882,7 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_public_list_page_theme_templates_serialize(
+        _param = self._page_theme_templates_service_list_public_serialize(
             include=include,
             search=search,
             page_size=page_size,
@@ -1913,7 +1911,7 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_public_list_page_theme_templates_with_http_info(
+    def page_theme_templates_service_list_public_with_http_info(
         self,
         include: Annotated[Optional[List[StrictStr]], Field(description="Related objects to include in the response  List of related objects to include. Supported values: 'workspace'")] = None,
         search: Annotated[Optional[StrictStr], Field(description="Search query applied to template name/description")] = None,
@@ -1972,7 +1970,7 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_public_list_page_theme_templates_serialize(
+        _param = self._page_theme_templates_service_list_public_serialize(
             include=include,
             search=search,
             page_size=page_size,
@@ -2001,7 +1999,7 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_public_list_page_theme_templates_without_preload_content(
+    def page_theme_templates_service_list_public_without_preload_content(
         self,
         include: Annotated[Optional[List[StrictStr]], Field(description="Related objects to include in the response  List of related objects to include. Supported values: 'workspace'")] = None,
         search: Annotated[Optional[StrictStr], Field(description="Search query applied to template name/description")] = None,
@@ -2060,7 +2058,7 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_public_list_page_theme_templates_serialize(
+        _param = self._page_theme_templates_service_list_public_serialize(
             include=include,
             search=search,
             page_size=page_size,
@@ -2084,7 +2082,7 @@ class PageThemeTemplatesApi:
         return response_data.response
 
 
-    def _page_theme_templates_service_public_list_page_theme_templates_serialize(
+    def _page_theme_templates_service_list_public_serialize(
         self,
         include,
         search,
@@ -2176,11 +2174,11 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_publish_page_theme_template(
+    def page_theme_templates_service_publish(
         self,
         id: Annotated[StrictStr, Field(description="The ID of the page theme template to publish (UUID)")],
         body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2202,7 +2200,7 @@ class PageThemeTemplatesApi:
         :type id: str
         :param body: (required)
         :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2226,7 +2224,7 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_publish_page_theme_template_serialize(
+        _param = self._page_theme_templates_service_publish_serialize(
             id=id,
             body=body,
             idempotency_key=idempotency_key,
@@ -2252,11 +2250,11 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_publish_page_theme_template_with_http_info(
+    def page_theme_templates_service_publish_with_http_info(
         self,
         id: Annotated[StrictStr, Field(description="The ID of the page theme template to publish (UUID)")],
         body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2278,7 +2276,7 @@ class PageThemeTemplatesApi:
         :type id: str
         :param body: (required)
         :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2302,7 +2300,7 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_publish_page_theme_template_serialize(
+        _param = self._page_theme_templates_service_publish_serialize(
             id=id,
             body=body,
             idempotency_key=idempotency_key,
@@ -2328,11 +2326,11 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_publish_page_theme_template_without_preload_content(
+    def page_theme_templates_service_publish_without_preload_content(
         self,
         id: Annotated[StrictStr, Field(description="The ID of the page theme template to publish (UUID)")],
         body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2354,7 +2352,7 @@ class PageThemeTemplatesApi:
         :type id: str
         :param body: (required)
         :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2378,7 +2376,7 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_publish_page_theme_template_serialize(
+        _param = self._page_theme_templates_service_publish_serialize(
             id=id,
             body=body,
             idempotency_key=idempotency_key,
@@ -2399,7 +2397,7 @@ class PageThemeTemplatesApi:
         return response_data.response
 
 
-    def _page_theme_templates_service_publish_page_theme_template_serialize(
+    def _page_theme_templates_service_publish_serialize(
         self,
         id,
         body,
@@ -2484,304 +2482,11 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_resolve_page_theme_template_images(
-        self,
-        resolve_page_theme_template_images_request: ResolvePageThemeTemplateImagesRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ResolvePageThemeTemplateImagesResponse:
-        """Resolve page theme template images
-
-        Return freshly signed thumbnail, cover, badge and footer logo URLs for the given templates. The URLs expire, so callers fetch them when they need to render rather than storing them.  Requires the `page_themes:read` scope.
-
-        :param resolve_page_theme_template_images_request: (required)
-        :type resolve_page_theme_template_images_request: ResolvePageThemeTemplateImagesRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
-        :type idempotency_key: str
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._page_theme_templates_service_resolve_page_theme_template_images_serialize(
-            resolve_page_theme_template_images_request=resolve_page_theme_template_images_request,
-            idempotency_key=idempotency_key,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ResolvePageThemeTemplateImagesResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        ).data
-
-
-    @validate_call
-    def page_theme_templates_service_resolve_page_theme_template_images_with_http_info(
-        self,
-        resolve_page_theme_template_images_request: ResolvePageThemeTemplateImagesRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[ResolvePageThemeTemplateImagesResponse]:
-        """Resolve page theme template images
-
-        Return freshly signed thumbnail, cover, badge and footer logo URLs for the given templates. The URLs expire, so callers fetch them when they need to render rather than storing them.  Requires the `page_themes:read` scope.
-
-        :param resolve_page_theme_template_images_request: (required)
-        :type resolve_page_theme_template_images_request: ResolvePageThemeTemplateImagesRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
-        :type idempotency_key: str
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._page_theme_templates_service_resolve_page_theme_template_images_serialize(
-            resolve_page_theme_template_images_request=resolve_page_theme_template_images_request,
-            idempotency_key=idempotency_key,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ResolvePageThemeTemplateImagesResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        )
-
-
-    @validate_call
-    def page_theme_templates_service_resolve_page_theme_template_images_without_preload_content(
-        self,
-        resolve_page_theme_template_images_request: ResolvePageThemeTemplateImagesRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> RESTResponseType:
-        """Resolve page theme template images
-
-        Return freshly signed thumbnail, cover, badge and footer logo URLs for the given templates. The URLs expire, so callers fetch them when they need to render rather than storing them.  Requires the `page_themes:read` scope.
-
-        :param resolve_page_theme_template_images_request: (required)
-        :type resolve_page_theme_template_images_request: ResolvePageThemeTemplateImagesRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
-        :type idempotency_key: str
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._page_theme_templates_service_resolve_page_theme_template_images_serialize(
-            resolve_page_theme_template_images_request=resolve_page_theme_template_images_request,
-            idempotency_key=idempotency_key,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ResolvePageThemeTemplateImagesResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        return response_data.response
-
-
-    def _page_theme_templates_service_resolve_page_theme_template_images_serialize(
-        self,
-        resolve_page_theme_template_images_request,
-        idempotency_key,
-        _request_auth,
-        _content_type,
-        _headers,
-        _host_index,
-    ) -> RequestSerialized:
-
-        _host = None
-
-        _collection_formats: Dict[str, str] = {
-        }
-
-        _path_params: Dict[str, str] = {}
-        _query_params: List[Tuple[str, str]] = []
-        _header_params: Dict[str, Optional[str]] = _headers or {}
-        _form_params: List[Tuple[str, str]] = []
-        _files: Dict[
-            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
-        ] = {}
-        _body_params: Optional[bytes] = None
-
-        # process the path parameters
-        # process the query parameters
-        # process the header parameters
-        if idempotency_key is not None:
-            _header_params['Idempotency-Key'] = idempotency_key
-        # process the form parameters
-        # process the body parameter
-        if resolve_page_theme_template_images_request is not None:
-            _body_params = resolve_page_theme_template_images_request
-
-
-        # set the HTTP header `Accept`
-        if 'Accept' not in _header_params:
-            _header_params['Accept'] = self.api_client.select_header_accept(
-                [
-                    'application/json'
-                ]
-            )
-
-        # set the HTTP header `Content-Type`
-        if _content_type:
-            _header_params['Content-Type'] = _content_type
-        else:
-            _default_content_type = (
-                self.api_client.select_header_content_type(
-                    [
-                        'application/json'
-                    ]
-                )
-            )
-            if _default_content_type is not None:
-                _header_params['Content-Type'] = _default_content_type
-
-        # authentication setting
-        _auth_settings: List[str] = [
-            'oauth2', 
-            'bearerAuth'
-        ]
-
-        return self.api_client.param_serialize(
-            method='POST',
-            resource_path='/v1/page-theme-templates/images:resolve',
-            path_params=_path_params,
-            query_params=_query_params,
-            header_params=_header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
-            auth_settings=_auth_settings,
-            collection_formats=_collection_formats,
-            _host=_host,
-            _request_auth=_request_auth
-        )
-
-
-
-
-    @validate_call
-    def page_theme_templates_service_update_page_theme_template(
+    def page_theme_templates_service_update(
         self,
         id: Annotated[StrictStr, Field(description="The ID of the page theme template to update (UUID)")],
-        page_theme_templates_service_update_page_theme_template_body: PageThemeTemplatesServiceUpdatePageThemeTemplateBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        page_theme_templates_service_update_body: PageThemeTemplatesServiceUpdateBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2801,9 +2506,9 @@ class PageThemeTemplatesApi:
 
         :param id: The ID of the page theme template to update (UUID) (required)
         :type id: str
-        :param page_theme_templates_service_update_page_theme_template_body: (required)
-        :type page_theme_templates_service_update_page_theme_template_body: PageThemeTemplatesServiceUpdatePageThemeTemplateBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param page_theme_templates_service_update_body: (required)
+        :type page_theme_templates_service_update_body: PageThemeTemplatesServiceUpdateBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2827,9 +2532,9 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_update_page_theme_template_serialize(
+        _param = self._page_theme_templates_service_update_serialize(
             id=id,
-            page_theme_templates_service_update_page_theme_template_body=page_theme_templates_service_update_page_theme_template_body,
+            page_theme_templates_service_update_body=page_theme_templates_service_update_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -2853,11 +2558,11 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_update_page_theme_template_with_http_info(
+    def page_theme_templates_service_update_with_http_info(
         self,
         id: Annotated[StrictStr, Field(description="The ID of the page theme template to update (UUID)")],
-        page_theme_templates_service_update_page_theme_template_body: PageThemeTemplatesServiceUpdatePageThemeTemplateBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        page_theme_templates_service_update_body: PageThemeTemplatesServiceUpdateBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2877,9 +2582,9 @@ class PageThemeTemplatesApi:
 
         :param id: The ID of the page theme template to update (UUID) (required)
         :type id: str
-        :param page_theme_templates_service_update_page_theme_template_body: (required)
-        :type page_theme_templates_service_update_page_theme_template_body: PageThemeTemplatesServiceUpdatePageThemeTemplateBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param page_theme_templates_service_update_body: (required)
+        :type page_theme_templates_service_update_body: PageThemeTemplatesServiceUpdateBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2903,9 +2608,9 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_update_page_theme_template_serialize(
+        _param = self._page_theme_templates_service_update_serialize(
             id=id,
-            page_theme_templates_service_update_page_theme_template_body=page_theme_templates_service_update_page_theme_template_body,
+            page_theme_templates_service_update_body=page_theme_templates_service_update_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -2929,11 +2634,11 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_update_page_theme_template_without_preload_content(
+    def page_theme_templates_service_update_without_preload_content(
         self,
         id: Annotated[StrictStr, Field(description="The ID of the page theme template to update (UUID)")],
-        page_theme_templates_service_update_page_theme_template_body: PageThemeTemplatesServiceUpdatePageThemeTemplateBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        page_theme_templates_service_update_body: PageThemeTemplatesServiceUpdateBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2953,9 +2658,9 @@ class PageThemeTemplatesApi:
 
         :param id: The ID of the page theme template to update (UUID) (required)
         :type id: str
-        :param page_theme_templates_service_update_page_theme_template_body: (required)
-        :type page_theme_templates_service_update_page_theme_template_body: PageThemeTemplatesServiceUpdatePageThemeTemplateBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param page_theme_templates_service_update_body: (required)
+        :type page_theme_templates_service_update_body: PageThemeTemplatesServiceUpdateBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2979,9 +2684,9 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_update_page_theme_template_serialize(
+        _param = self._page_theme_templates_service_update_serialize(
             id=id,
-            page_theme_templates_service_update_page_theme_template_body=page_theme_templates_service_update_page_theme_template_body,
+            page_theme_templates_service_update_body=page_theme_templates_service_update_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -3000,10 +2705,10 @@ class PageThemeTemplatesApi:
         return response_data.response
 
 
-    def _page_theme_templates_service_update_page_theme_template_serialize(
+    def _page_theme_templates_service_update_serialize(
         self,
         id,
-        page_theme_templates_service_update_page_theme_template_body,
+        page_theme_templates_service_update_body,
         idempotency_key,
         _request_auth,
         _content_type,
@@ -3034,8 +2739,8 @@ class PageThemeTemplatesApi:
             _header_params['Idempotency-Key'] = idempotency_key
         # process the form parameters
         # process the body parameter
-        if page_theme_templates_service_update_page_theme_template_body is not None:
-            _body_params = page_theme_templates_service_update_page_theme_template_body
+        if page_theme_templates_service_update_body is not None:
+            _body_params = page_theme_templates_service_update_body
 
 
         # set the HTTP header `Accept`
@@ -3085,11 +2790,11 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_update_page_theme_template_styling(
+    def page_theme_templates_service_update_styling(
         self,
         id: Annotated[StrictStr, Field(description="The ID of the page theme template whose styling to update (UUID)")],
-        page_theme_templates_service_update_page_theme_template_styling_body: PageThemeTemplatesServiceUpdatePageThemeTemplateStylingBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        page_theme_templates_service_update_styling_body: PageThemeTemplatesServiceUpdateStylingBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -3109,9 +2814,9 @@ class PageThemeTemplatesApi:
 
         :param id: The ID of the page theme template whose styling to update (UUID) (required)
         :type id: str
-        :param page_theme_templates_service_update_page_theme_template_styling_body: (required)
-        :type page_theme_templates_service_update_page_theme_template_styling_body: PageThemeTemplatesServiceUpdatePageThemeTemplateStylingBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param page_theme_templates_service_update_styling_body: (required)
+        :type page_theme_templates_service_update_styling_body: PageThemeTemplatesServiceUpdateStylingBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -3135,9 +2840,9 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_update_page_theme_template_styling_serialize(
+        _param = self._page_theme_templates_service_update_styling_serialize(
             id=id,
-            page_theme_templates_service_update_page_theme_template_styling_body=page_theme_templates_service_update_page_theme_template_styling_body,
+            page_theme_templates_service_update_styling_body=page_theme_templates_service_update_styling_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -3161,11 +2866,11 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_update_page_theme_template_styling_with_http_info(
+    def page_theme_templates_service_update_styling_with_http_info(
         self,
         id: Annotated[StrictStr, Field(description="The ID of the page theme template whose styling to update (UUID)")],
-        page_theme_templates_service_update_page_theme_template_styling_body: PageThemeTemplatesServiceUpdatePageThemeTemplateStylingBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        page_theme_templates_service_update_styling_body: PageThemeTemplatesServiceUpdateStylingBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -3185,9 +2890,9 @@ class PageThemeTemplatesApi:
 
         :param id: The ID of the page theme template whose styling to update (UUID) (required)
         :type id: str
-        :param page_theme_templates_service_update_page_theme_template_styling_body: (required)
-        :type page_theme_templates_service_update_page_theme_template_styling_body: PageThemeTemplatesServiceUpdatePageThemeTemplateStylingBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param page_theme_templates_service_update_styling_body: (required)
+        :type page_theme_templates_service_update_styling_body: PageThemeTemplatesServiceUpdateStylingBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -3211,9 +2916,9 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_update_page_theme_template_styling_serialize(
+        _param = self._page_theme_templates_service_update_styling_serialize(
             id=id,
-            page_theme_templates_service_update_page_theme_template_styling_body=page_theme_templates_service_update_page_theme_template_styling_body,
+            page_theme_templates_service_update_styling_body=page_theme_templates_service_update_styling_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -3237,11 +2942,11 @@ class PageThemeTemplatesApi:
 
 
     @validate_call
-    def page_theme_templates_service_update_page_theme_template_styling_without_preload_content(
+    def page_theme_templates_service_update_styling_without_preload_content(
         self,
         id: Annotated[StrictStr, Field(description="The ID of the page theme template whose styling to update (UUID)")],
-        page_theme_templates_service_update_page_theme_template_styling_body: PageThemeTemplatesServiceUpdatePageThemeTemplateStylingBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        page_theme_templates_service_update_styling_body: PageThemeTemplatesServiceUpdateStylingBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -3261,9 +2966,9 @@ class PageThemeTemplatesApi:
 
         :param id: The ID of the page theme template whose styling to update (UUID) (required)
         :type id: str
-        :param page_theme_templates_service_update_page_theme_template_styling_body: (required)
-        :type page_theme_templates_service_update_page_theme_template_styling_body: PageThemeTemplatesServiceUpdatePageThemeTemplateStylingBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param page_theme_templates_service_update_styling_body: (required)
+        :type page_theme_templates_service_update_styling_body: PageThemeTemplatesServiceUpdateStylingBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -3287,9 +2992,9 @@ class PageThemeTemplatesApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._page_theme_templates_service_update_page_theme_template_styling_serialize(
+        _param = self._page_theme_templates_service_update_styling_serialize(
             id=id,
-            page_theme_templates_service_update_page_theme_template_styling_body=page_theme_templates_service_update_page_theme_template_styling_body,
+            page_theme_templates_service_update_styling_body=page_theme_templates_service_update_styling_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -3308,10 +3013,10 @@ class PageThemeTemplatesApi:
         return response_data.response
 
 
-    def _page_theme_templates_service_update_page_theme_template_styling_serialize(
+    def _page_theme_templates_service_update_styling_serialize(
         self,
         id,
-        page_theme_templates_service_update_page_theme_template_styling_body,
+        page_theme_templates_service_update_styling_body,
         idempotency_key,
         _request_auth,
         _content_type,
@@ -3342,8 +3047,8 @@ class PageThemeTemplatesApi:
             _header_params['Idempotency-Key'] = idempotency_key
         # process the form parameters
         # process the body parameter
-        if page_theme_templates_service_update_page_theme_template_styling_body is not None:
-            _body_params = page_theme_templates_service_update_page_theme_template_styling_body
+        if page_theme_templates_service_update_styling_body is not None:
+            _body_params = page_theme_templates_service_update_styling_body
 
 
         # set the HTTP header `Accept`

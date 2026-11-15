@@ -1,9 +1,9 @@
 """
     Linkbreakers API
 
-    This is a documentation of all the APIs of Linkbreakers  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
+    The Linkbreakers REST API: links, QR codes, workflows, visitors and analytics, as JSON over HTTPS. Send a workspace API token as `Authorization: Bearer <token>`.  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  A renamed operation keeps answering its former path until that path's sunset. Responses on a former path carry the same `Deprecation`, `Sunset` and `Link` header fields; this document lists only the current path, and the policy lists the former ones.  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
 
-    The version of the OpenAPI document: 1.198.0
+    The version of the OpenAPI document: 1.198.1
     Contact: support@linkbreakers.com
     Generated by OpenAPI Generator (https://openapi-generator.tech)
 
@@ -31,7 +31,7 @@ from linkbreakers.models.list_workflow_steps_response import ListWorkflowStepsRe
 from linkbreakers.models.resolve_step_collisions_response import ResolveStepCollisionsResponse
 from linkbreakers.models.update_workflow_step_response import UpdateWorkflowStepResponse
 from linkbreakers.models.validate_workflow_response import ValidateWorkflowResponse
-from linkbreakers.models.workflow_steps_service_connect_step_body import WorkflowStepsServiceConnectStepBody
+from linkbreakers.models.workflow_steps_service_connect_body import WorkflowStepsServiceConnectBody
 from linkbreakers.models.workflow_steps_service_create_body import WorkflowStepsServiceCreateBody
 from linkbreakers.models.workflow_steps_service_update_body import WorkflowStepsServiceUpdateBody
 
@@ -58,7 +58,7 @@ class WorkflowStepsApi:
         self,
         link_id: StrictStr,
         body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -80,7 +80,7 @@ class WorkflowStepsApi:
         :type link_id: str
         :param body: (required)
         :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -134,7 +134,7 @@ class WorkflowStepsApi:
         self,
         link_id: StrictStr,
         body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -156,7 +156,7 @@ class WorkflowStepsApi:
         :type link_id: str
         :param body: (required)
         :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -210,7 +210,7 @@ class WorkflowStepsApi:
         self,
         link_id: StrictStr,
         body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -232,7 +232,7 @@ class WorkflowStepsApi:
         :type link_id: str
         :param body: (required)
         :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -362,10 +362,10 @@ class WorkflowStepsApi:
 
 
     @validate_call
-    def workflow_steps_service_bulk_insert_workflow_step(
+    def workflow_steps_service_bulk_insert(
         self,
         bulk_insert_workflow_step_request: BulkInsertWorkflowStepRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -385,7 +385,7 @@ class WorkflowStepsApi:
 
         :param bulk_insert_workflow_step_request: (required)
         :type bulk_insert_workflow_step_request: BulkInsertWorkflowStepRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -409,7 +409,7 @@ class WorkflowStepsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._workflow_steps_service_bulk_insert_workflow_step_serialize(
+        _param = self._workflow_steps_service_bulk_insert_serialize(
             bulk_insert_workflow_step_request=bulk_insert_workflow_step_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -434,10 +434,10 @@ class WorkflowStepsApi:
 
 
     @validate_call
-    def workflow_steps_service_bulk_insert_workflow_step_with_http_info(
+    def workflow_steps_service_bulk_insert_with_http_info(
         self,
         bulk_insert_workflow_step_request: BulkInsertWorkflowStepRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -457,7 +457,7 @@ class WorkflowStepsApi:
 
         :param bulk_insert_workflow_step_request: (required)
         :type bulk_insert_workflow_step_request: BulkInsertWorkflowStepRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -481,7 +481,7 @@ class WorkflowStepsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._workflow_steps_service_bulk_insert_workflow_step_serialize(
+        _param = self._workflow_steps_service_bulk_insert_serialize(
             bulk_insert_workflow_step_request=bulk_insert_workflow_step_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -506,10 +506,10 @@ class WorkflowStepsApi:
 
 
     @validate_call
-    def workflow_steps_service_bulk_insert_workflow_step_without_preload_content(
+    def workflow_steps_service_bulk_insert_without_preload_content(
         self,
         bulk_insert_workflow_step_request: BulkInsertWorkflowStepRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -529,7 +529,7 @@ class WorkflowStepsApi:
 
         :param bulk_insert_workflow_step_request: (required)
         :type bulk_insert_workflow_step_request: BulkInsertWorkflowStepRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -553,7 +553,7 @@ class WorkflowStepsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._workflow_steps_service_bulk_insert_workflow_step_serialize(
+        _param = self._workflow_steps_service_bulk_insert_serialize(
             bulk_insert_workflow_step_request=bulk_insert_workflow_step_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -573,7 +573,7 @@ class WorkflowStepsApi:
         return response_data.response
 
 
-    def _workflow_steps_service_bulk_insert_workflow_step_serialize(
+    def _workflow_steps_service_bulk_insert_serialize(
         self,
         bulk_insert_workflow_step_request,
         idempotency_key,
@@ -655,13 +655,13 @@ class WorkflowStepsApi:
 
 
     @validate_call
-    def workflow_steps_service_connect_step(
+    def workflow_steps_service_connect(
         self,
         link_id: Annotated[StrictStr, Field(description="The ID of the link (UUID)")],
         step_id: Annotated[StrictStr, Field(description="The ID of the step the connection leaves from (UUID)")],
         branch_id: Annotated[StrictStr, Field(description="Which exit of that step to connect. \"next\" for atomic steps, or a button id, option id, range id, country code, or \"else\" for composite steps.")],
-        workflow_steps_service_connect_step_body: WorkflowStepsServiceConnectStepBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        workflow_steps_service_connect_body: WorkflowStepsServiceConnectBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -685,9 +685,9 @@ class WorkflowStepsApi:
         :type step_id: str
         :param branch_id: Which exit of that step to connect. \"next\" for atomic steps, or a button id, option id, range id, country code, or \"else\" for composite steps. (required)
         :type branch_id: str
-        :param workflow_steps_service_connect_step_body: (required)
-        :type workflow_steps_service_connect_step_body: WorkflowStepsServiceConnectStepBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param workflow_steps_service_connect_body: (required)
+        :type workflow_steps_service_connect_body: WorkflowStepsServiceConnectBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -711,11 +711,11 @@ class WorkflowStepsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._workflow_steps_service_connect_step_serialize(
+        _param = self._workflow_steps_service_connect_serialize(
             link_id=link_id,
             step_id=step_id,
             branch_id=branch_id,
-            workflow_steps_service_connect_step_body=workflow_steps_service_connect_step_body,
+            workflow_steps_service_connect_body=workflow_steps_service_connect_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -739,13 +739,13 @@ class WorkflowStepsApi:
 
 
     @validate_call
-    def workflow_steps_service_connect_step_with_http_info(
+    def workflow_steps_service_connect_with_http_info(
         self,
         link_id: Annotated[StrictStr, Field(description="The ID of the link (UUID)")],
         step_id: Annotated[StrictStr, Field(description="The ID of the step the connection leaves from (UUID)")],
         branch_id: Annotated[StrictStr, Field(description="Which exit of that step to connect. \"next\" for atomic steps, or a button id, option id, range id, country code, or \"else\" for composite steps.")],
-        workflow_steps_service_connect_step_body: WorkflowStepsServiceConnectStepBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        workflow_steps_service_connect_body: WorkflowStepsServiceConnectBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -769,9 +769,9 @@ class WorkflowStepsApi:
         :type step_id: str
         :param branch_id: Which exit of that step to connect. \"next\" for atomic steps, or a button id, option id, range id, country code, or \"else\" for composite steps. (required)
         :type branch_id: str
-        :param workflow_steps_service_connect_step_body: (required)
-        :type workflow_steps_service_connect_step_body: WorkflowStepsServiceConnectStepBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param workflow_steps_service_connect_body: (required)
+        :type workflow_steps_service_connect_body: WorkflowStepsServiceConnectBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -795,11 +795,11 @@ class WorkflowStepsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._workflow_steps_service_connect_step_serialize(
+        _param = self._workflow_steps_service_connect_serialize(
             link_id=link_id,
             step_id=step_id,
             branch_id=branch_id,
-            workflow_steps_service_connect_step_body=workflow_steps_service_connect_step_body,
+            workflow_steps_service_connect_body=workflow_steps_service_connect_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -823,13 +823,13 @@ class WorkflowStepsApi:
 
 
     @validate_call
-    def workflow_steps_service_connect_step_without_preload_content(
+    def workflow_steps_service_connect_without_preload_content(
         self,
         link_id: Annotated[StrictStr, Field(description="The ID of the link (UUID)")],
         step_id: Annotated[StrictStr, Field(description="The ID of the step the connection leaves from (UUID)")],
         branch_id: Annotated[StrictStr, Field(description="Which exit of that step to connect. \"next\" for atomic steps, or a button id, option id, range id, country code, or \"else\" for composite steps.")],
-        workflow_steps_service_connect_step_body: WorkflowStepsServiceConnectStepBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        workflow_steps_service_connect_body: WorkflowStepsServiceConnectBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -853,9 +853,9 @@ class WorkflowStepsApi:
         :type step_id: str
         :param branch_id: Which exit of that step to connect. \"next\" for atomic steps, or a button id, option id, range id, country code, or \"else\" for composite steps. (required)
         :type branch_id: str
-        :param workflow_steps_service_connect_step_body: (required)
-        :type workflow_steps_service_connect_step_body: WorkflowStepsServiceConnectStepBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param workflow_steps_service_connect_body: (required)
+        :type workflow_steps_service_connect_body: WorkflowStepsServiceConnectBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -879,11 +879,11 @@ class WorkflowStepsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._workflow_steps_service_connect_step_serialize(
+        _param = self._workflow_steps_service_connect_serialize(
             link_id=link_id,
             step_id=step_id,
             branch_id=branch_id,
-            workflow_steps_service_connect_step_body=workflow_steps_service_connect_step_body,
+            workflow_steps_service_connect_body=workflow_steps_service_connect_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -902,12 +902,12 @@ class WorkflowStepsApi:
         return response_data.response
 
 
-    def _workflow_steps_service_connect_step_serialize(
+    def _workflow_steps_service_connect_serialize(
         self,
         link_id,
         step_id,
         branch_id,
-        workflow_steps_service_connect_step_body,
+        workflow_steps_service_connect_body,
         idempotency_key,
         _request_auth,
         _content_type,
@@ -942,8 +942,8 @@ class WorkflowStepsApi:
             _header_params['Idempotency-Key'] = idempotency_key
         # process the form parameters
         # process the body parameter
-        if workflow_steps_service_connect_step_body is not None:
-            _body_params = workflow_steps_service_connect_step_body
+        if workflow_steps_service_connect_body is not None:
+            _body_params = workflow_steps_service_connect_body
 
 
         # set the HTTP header `Accept`
@@ -997,7 +997,7 @@ class WorkflowStepsApi:
         self,
         link_id: Annotated[StrictStr, Field(description="The ID of the link to create the workflow step for (UUID)")],
         workflow_steps_service_create_body: WorkflowStepsServiceCreateBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1019,7 +1019,7 @@ class WorkflowStepsApi:
         :type link_id: str
         :param workflow_steps_service_create_body: (required)
         :type workflow_steps_service_create_body: WorkflowStepsServiceCreateBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1073,7 +1073,7 @@ class WorkflowStepsApi:
         self,
         link_id: Annotated[StrictStr, Field(description="The ID of the link to create the workflow step for (UUID)")],
         workflow_steps_service_create_body: WorkflowStepsServiceCreateBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1095,7 +1095,7 @@ class WorkflowStepsApi:
         :type link_id: str
         :param workflow_steps_service_create_body: (required)
         :type workflow_steps_service_create_body: WorkflowStepsServiceCreateBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1149,7 +1149,7 @@ class WorkflowStepsApi:
         self,
         link_id: Annotated[StrictStr, Field(description="The ID of the link to create the workflow step for (UUID)")],
         workflow_steps_service_create_body: WorkflowStepsServiceCreateBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1171,7 +1171,7 @@ class WorkflowStepsApi:
         :type link_id: str
         :param workflow_steps_service_create_body: (required)
         :type workflow_steps_service_create_body: WorkflowStepsServiceCreateBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1581,7 +1581,7 @@ class WorkflowStepsApi:
 
 
     @validate_call
-    def workflow_steps_service_disconnect_step(
+    def workflow_steps_service_disconnect(
         self,
         link_id: Annotated[StrictStr, Field(description="The ID of the link (UUID)")],
         step_id: Annotated[StrictStr, Field(description="The ID of the step the connection leaves from (UUID)")],
@@ -1601,7 +1601,7 @@ class WorkflowStepsApi:
     ) -> DisconnectWorkflowStepResponse:
         """Clear one exit of a workflow step
 
-        Leaves the branch with no destination. Clearing a branch that is already clear succeeds. See ConnectStep for what a branch id is.  Requires the `workflows:write` scope.
+        Leaves the branch with no destination. Clearing a branch that is already clear succeeds. See Connect for what a branch id is.  Requires the `workflows:write` scope.
 
         :param link_id: The ID of the link (UUID) (required)
         :type link_id: str
@@ -1631,7 +1631,7 @@ class WorkflowStepsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._workflow_steps_service_disconnect_step_serialize(
+        _param = self._workflow_steps_service_disconnect_serialize(
             link_id=link_id,
             step_id=step_id,
             branch_id=branch_id,
@@ -1657,7 +1657,7 @@ class WorkflowStepsApi:
 
 
     @validate_call
-    def workflow_steps_service_disconnect_step_with_http_info(
+    def workflow_steps_service_disconnect_with_http_info(
         self,
         link_id: Annotated[StrictStr, Field(description="The ID of the link (UUID)")],
         step_id: Annotated[StrictStr, Field(description="The ID of the step the connection leaves from (UUID)")],
@@ -1677,7 +1677,7 @@ class WorkflowStepsApi:
     ) -> ApiResponse[DisconnectWorkflowStepResponse]:
         """Clear one exit of a workflow step
 
-        Leaves the branch with no destination. Clearing a branch that is already clear succeeds. See ConnectStep for what a branch id is.  Requires the `workflows:write` scope.
+        Leaves the branch with no destination. Clearing a branch that is already clear succeeds. See Connect for what a branch id is.  Requires the `workflows:write` scope.
 
         :param link_id: The ID of the link (UUID) (required)
         :type link_id: str
@@ -1707,7 +1707,7 @@ class WorkflowStepsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._workflow_steps_service_disconnect_step_serialize(
+        _param = self._workflow_steps_service_disconnect_serialize(
             link_id=link_id,
             step_id=step_id,
             branch_id=branch_id,
@@ -1733,7 +1733,7 @@ class WorkflowStepsApi:
 
 
     @validate_call
-    def workflow_steps_service_disconnect_step_without_preload_content(
+    def workflow_steps_service_disconnect_without_preload_content(
         self,
         link_id: Annotated[StrictStr, Field(description="The ID of the link (UUID)")],
         step_id: Annotated[StrictStr, Field(description="The ID of the step the connection leaves from (UUID)")],
@@ -1753,7 +1753,7 @@ class WorkflowStepsApi:
     ) -> RESTResponseType:
         """Clear one exit of a workflow step
 
-        Leaves the branch with no destination. Clearing a branch that is already clear succeeds. See ConnectStep for what a branch id is.  Requires the `workflows:write` scope.
+        Leaves the branch with no destination. Clearing a branch that is already clear succeeds. See Connect for what a branch id is.  Requires the `workflows:write` scope.
 
         :param link_id: The ID of the link (UUID) (required)
         :type link_id: str
@@ -1783,7 +1783,7 @@ class WorkflowStepsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._workflow_steps_service_disconnect_step_serialize(
+        _param = self._workflow_steps_service_disconnect_serialize(
             link_id=link_id,
             step_id=step_id,
             branch_id=branch_id,
@@ -1804,7 +1804,7 @@ class WorkflowStepsApi:
         return response_data.response
 
 
-    def _workflow_steps_service_disconnect_step_serialize(
+    def _workflow_steps_service_disconnect_serialize(
         self,
         link_id,
         step_id,
@@ -2173,7 +2173,7 @@ class WorkflowStepsApi:
     ) -> GetWalletPassSupportResponse:
         """Get wallet pass support
 
-        Tells which wallets a contact card's wallet pass option (wallet_pass_enabled) can currently add the card to. A wallet that is not available shows no button to visitors.  Requires the `workflows:read` scope.
+        Tells which wallets a contact card's wallet pass option (walletPassEnabled) can currently add the card to. A wallet that is not available shows no button to visitors.  Requires the `workflows:read` scope.
 
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2237,7 +2237,7 @@ class WorkflowStepsApi:
     ) -> ApiResponse[GetWalletPassSupportResponse]:
         """Get wallet pass support
 
-        Tells which wallets a contact card's wallet pass option (wallet_pass_enabled) can currently add the card to. A wallet that is not available shows no button to visitors.  Requires the `workflows:read` scope.
+        Tells which wallets a contact card's wallet pass option (walletPassEnabled) can currently add the card to. A wallet that is not available shows no button to visitors.  Requires the `workflows:read` scope.
 
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2301,7 +2301,7 @@ class WorkflowStepsApi:
     ) -> RESTResponseType:
         """Get wallet pass support
 
-        Tells which wallets a contact card's wallet pass option (wallet_pass_enabled) can currently add the card to. A wallet that is not available shows no button to visitors.  Requires the `workflows:read` scope.
+        Tells which wallets a contact card's wallet pass option (walletPassEnabled) can currently add the card to. A wallet that is not available shows no button to visitors.  Requires the `workflows:read` scope.
 
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2722,12 +2722,12 @@ class WorkflowStepsApi:
 
 
     @validate_call
-    def workflow_steps_service_resolve_step_collisions(
+    def workflow_steps_service_resolve_collisions(
         self,
         link_id: StrictStr,
         step_id: StrictStr,
         body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2751,7 +2751,7 @@ class WorkflowStepsApi:
         :type step_id: str
         :param body: (required)
         :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2775,7 +2775,7 @@ class WorkflowStepsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._workflow_steps_service_resolve_step_collisions_serialize(
+        _param = self._workflow_steps_service_resolve_collisions_serialize(
             link_id=link_id,
             step_id=step_id,
             body=body,
@@ -2802,12 +2802,12 @@ class WorkflowStepsApi:
 
 
     @validate_call
-    def workflow_steps_service_resolve_step_collisions_with_http_info(
+    def workflow_steps_service_resolve_collisions_with_http_info(
         self,
         link_id: StrictStr,
         step_id: StrictStr,
         body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2831,7 +2831,7 @@ class WorkflowStepsApi:
         :type step_id: str
         :param body: (required)
         :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2855,7 +2855,7 @@ class WorkflowStepsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._workflow_steps_service_resolve_step_collisions_serialize(
+        _param = self._workflow_steps_service_resolve_collisions_serialize(
             link_id=link_id,
             step_id=step_id,
             body=body,
@@ -2882,12 +2882,12 @@ class WorkflowStepsApi:
 
 
     @validate_call
-    def workflow_steps_service_resolve_step_collisions_without_preload_content(
+    def workflow_steps_service_resolve_collisions_without_preload_content(
         self,
         link_id: StrictStr,
         step_id: StrictStr,
         body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2911,7 +2911,7 @@ class WorkflowStepsApi:
         :type step_id: str
         :param body: (required)
         :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2935,7 +2935,7 @@ class WorkflowStepsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._workflow_steps_service_resolve_step_collisions_serialize(
+        _param = self._workflow_steps_service_resolve_collisions_serialize(
             link_id=link_id,
             step_id=step_id,
             body=body,
@@ -2957,7 +2957,7 @@ class WorkflowStepsApi:
         return response_data.response
 
 
-    def _workflow_steps_service_resolve_step_collisions_serialize(
+    def _workflow_steps_service_resolve_collisions_serialize(
         self,
         link_id,
         step_id,
@@ -3050,7 +3050,7 @@ class WorkflowStepsApi:
         link_id: Annotated[StrictStr, Field(description="The ID of the link (UUID)")],
         id: Annotated[StrictStr, Field(description="The ID of the workflow step to update (UUID)")],
         workflow_steps_service_update_body: WorkflowStepsServiceUpdateBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -3074,7 +3074,7 @@ class WorkflowStepsApi:
         :type id: str
         :param workflow_steps_service_update_body: (required)
         :type workflow_steps_service_update_body: WorkflowStepsServiceUpdateBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -3130,7 +3130,7 @@ class WorkflowStepsApi:
         link_id: Annotated[StrictStr, Field(description="The ID of the link (UUID)")],
         id: Annotated[StrictStr, Field(description="The ID of the workflow step to update (UUID)")],
         workflow_steps_service_update_body: WorkflowStepsServiceUpdateBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -3154,7 +3154,7 @@ class WorkflowStepsApi:
         :type id: str
         :param workflow_steps_service_update_body: (required)
         :type workflow_steps_service_update_body: WorkflowStepsServiceUpdateBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -3210,7 +3210,7 @@ class WorkflowStepsApi:
         link_id: Annotated[StrictStr, Field(description="The ID of the link (UUID)")],
         id: Annotated[StrictStr, Field(description="The ID of the workflow step to update (UUID)")],
         workflow_steps_service_update_body: WorkflowStepsServiceUpdateBody,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -3234,7 +3234,7 @@ class WorkflowStepsApi:
         :type id: str
         :param workflow_steps_service_update_body: (required)
         :type workflow_steps_service_update_body: WorkflowStepsServiceUpdateBody
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -3384,9 +3384,9 @@ class WorkflowStepsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ValidateWorkflowResponse:
-        """workflow_steps_service_validate_workflow
+        """Validate a link's workflow
 
-        Requires the `workflows:read` scope.
+        Check the link's workflow for problems before visitors meet them: a start (Link Visit) that leads nowhere, steps no path from the start reaches, and steps other than exits that lead nowhere. An empty list of issues means the workflow is sound.  Requires the `workflows:read` scope.
 
         :param link_id: (required)
         :type link_id: str
@@ -3452,9 +3452,9 @@ class WorkflowStepsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ApiResponse[ValidateWorkflowResponse]:
-        """workflow_steps_service_validate_workflow
+        """Validate a link's workflow
 
-        Requires the `workflows:read` scope.
+        Check the link's workflow for problems before visitors meet them: a start (Link Visit) that leads nowhere, steps no path from the start reaches, and steps other than exits that lead nowhere. An empty list of issues means the workflow is sound.  Requires the `workflows:read` scope.
 
         :param link_id: (required)
         :type link_id: str
@@ -3520,9 +3520,9 @@ class WorkflowStepsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """workflow_steps_service_validate_workflow
+        """Validate a link's workflow
 
-        Requires the `workflows:read` scope.
+        Check the link's workflow for problems before visitors meet them: a start (Link Visit) that leads nowhere, steps no path from the start reaches, and steps other than exits that lead nowhere. An empty list of issues means the workflow is sound.  Requires the `workflows:read` scope.
 
         :param link_id: (required)
         :type link_id: str

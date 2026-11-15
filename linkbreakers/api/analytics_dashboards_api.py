@@ -1,9 +1,9 @@
 """
     Linkbreakers API
 
-    This is a documentation of all the APIs of Linkbreakers  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
+    The Linkbreakers REST API: links, QR codes, workflows, visitors and analytics, as JSON over HTTPS. Send a workspace API token as `Authorization: Bearer <token>`.  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  A renamed operation keeps answering its former path until that path's sunset. Responses on a former path carry the same `Deprecation`, `Sunset` and `Link` header fields; this document lists only the current path, and the policy lists the former ones.  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
 
-    The version of the OpenAPI document: 1.198.0
+    The version of the OpenAPI document: 1.198.1
     Contact: support@linkbreakers.com
     Generated by OpenAPI Generator (https://openapi-generator.tech)
 
@@ -16,24 +16,24 @@ from pydantic import validate_call, Field, StrictFloat, StrictStr, StrictInt
 from typing import Any, Dict, List, Optional, Tuple, Union
 from typing_extensions import Annotated
 
-from pydantic import Field, StrictStr
+from pydantic import Field, StrictInt, StrictStr
 from typing import Any, Dict, Optional
 from typing_extensions import Annotated
-from linkbreakers.models.assistant_complete_attachment_upload_response import AssistantCompleteAttachmentUploadResponse
-from linkbreakers.models.assistant_create_attachment_upload_request import AssistantCreateAttachmentUploadRequest
-from linkbreakers.models.assistant_create_attachment_upload_response import AssistantCreateAttachmentUploadResponse
-from linkbreakers.models.assistant_get_conversation_response import AssistantGetConversationResponse
-from linkbreakers.models.assistant_mark_conversation_read_request import AssistantMarkConversationReadRequest
-from linkbreakers.models.assistant_mark_conversation_read_response import AssistantMarkConversationReadResponse
-from linkbreakers.models.assistant_upload_file_request import AssistantUploadFileRequest
-from linkbreakers.models.assistant_upload_file_response import AssistantUploadFileResponse
+from linkbreakers.models.analytics_dashboards_service_generate_widget_summary_body import AnalyticsDashboardsServiceGenerateWidgetSummaryBody
+from linkbreakers.models.analytics_dashboards_service_update_body import AnalyticsDashboardsServiceUpdateBody
+from linkbreakers.models.create_dashboard_request import CreateDashboardRequest
+from linkbreakers.models.create_dashboard_response import CreateDashboardResponse
+from linkbreakers.models.generate_widget_summary_response import GenerateWidgetSummaryResponse
+from linkbreakers.models.get_widget_summary_response import GetWidgetSummaryResponse
+from linkbreakers.models.list_dashboards_response import ListDashboardsResponse
+from linkbreakers.models.update_dashboard_response import UpdateDashboardResponse
 
 from linkbreakers.api_client import ApiClient, RequestSerialized
 from linkbreakers.api_response import ApiResponse
 from linkbreakers.rest import RESTResponseType
 
 
-class AssistantApi:
+class AnalyticsDashboardsApi:
     """NOTE: This class is auto generated by OpenAPI Generator
     Ref: https://openapi-generator.tech
 
@@ -47,10 +47,10 @@ class AssistantApi:
 
 
     @validate_call
-    def assistant_service_clear_conversation(
+    def analytics_dashboards_service_create(
         self,
-        context_type: Annotated[Optional[StrictStr], Field(description=" - ASSISTANT_CONTEXT_TYPE_LINK_ANALYTICS: Building a link's analytics dashboard. context_id is the LINK id, not a dashboard id — the dashboard does not exist yet while the user and the assistant are still agreeing on what it should show. Once it exists, editing it happens under ASSISTANT_CONTEXT_TYPE_ANALYTICS_DASHBOARD instead.  - ASSISTANT_CONTEXT_TYPE_WORKSPACE: The workspace-wide assistant, with no resource selected. The context id is the WORKSPACE id: this thread is not about any one link, dashboard or design, and every capability the resource-scoped assistants have is available from it. One conversation per workspace, so it survives navigation.")] = None,
-        context_id: Optional[StrictStr] = None,
+        create_dashboard_request: CreateDashboardRequest,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -63,15 +63,15 @@ class AssistantApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> object:
-        """Clear assistant conversation
+    ) -> CreateDashboardResponse:
+        """Create analytics dashboard
 
-        Clear the conversation history for a specific context.  Requires the `assistant:write` scope.
+        Create a dashboard with its widgets, for the whole workspace or scoped to one link.  Requires the `analytics:write` scope.
 
-        :param context_type:  - ASSISTANT_CONTEXT_TYPE_LINK_ANALYTICS: Building a link's analytics dashboard. context_id is the LINK id, not a dashboard id — the dashboard does not exist yet while the user and the assistant are still agreeing on what it should show. Once it exists, editing it happens under ASSISTANT_CONTEXT_TYPE_ANALYTICS_DASHBOARD instead.  - ASSISTANT_CONTEXT_TYPE_WORKSPACE: The workspace-wide assistant, with no resource selected. The context id is the WORKSPACE id: this thread is not about any one link, dashboard or design, and every capability the resource-scoped assistants have is available from it. One conversation per workspace, so it survives navigation.
-        :type context_type: str
-        :param context_id:
-        :type context_id: str
+        :param create_dashboard_request: (required)
+        :type create_dashboard_request: CreateDashboardRequest
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
+        :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -94,9 +94,9 @@ class AssistantApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._assistant_service_clear_conversation_serialize(
-            context_type=context_type,
-            context_id=context_id,
+        _param = self._analytics_dashboards_service_create_serialize(
+            create_dashboard_request=create_dashboard_request,
+            idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -104,7 +104,7 @@ class AssistantApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "object",
+            '200': "CreateDashboardResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -119,10 +119,10 @@ class AssistantApi:
 
 
     @validate_call
-    def assistant_service_clear_conversation_with_http_info(
+    def analytics_dashboards_service_create_with_http_info(
         self,
-        context_type: Annotated[Optional[StrictStr], Field(description=" - ASSISTANT_CONTEXT_TYPE_LINK_ANALYTICS: Building a link's analytics dashboard. context_id is the LINK id, not a dashboard id — the dashboard does not exist yet while the user and the assistant are still agreeing on what it should show. Once it exists, editing it happens under ASSISTANT_CONTEXT_TYPE_ANALYTICS_DASHBOARD instead.  - ASSISTANT_CONTEXT_TYPE_WORKSPACE: The workspace-wide assistant, with no resource selected. The context id is the WORKSPACE id: this thread is not about any one link, dashboard or design, and every capability the resource-scoped assistants have is available from it. One conversation per workspace, so it survives navigation.")] = None,
-        context_id: Optional[StrictStr] = None,
+        create_dashboard_request: CreateDashboardRequest,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -135,15 +135,15 @@ class AssistantApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[object]:
-        """Clear assistant conversation
+    ) -> ApiResponse[CreateDashboardResponse]:
+        """Create analytics dashboard
 
-        Clear the conversation history for a specific context.  Requires the `assistant:write` scope.
+        Create a dashboard with its widgets, for the whole workspace or scoped to one link.  Requires the `analytics:write` scope.
 
-        :param context_type:  - ASSISTANT_CONTEXT_TYPE_LINK_ANALYTICS: Building a link's analytics dashboard. context_id is the LINK id, not a dashboard id — the dashboard does not exist yet while the user and the assistant are still agreeing on what it should show. Once it exists, editing it happens under ASSISTANT_CONTEXT_TYPE_ANALYTICS_DASHBOARD instead.  - ASSISTANT_CONTEXT_TYPE_WORKSPACE: The workspace-wide assistant, with no resource selected. The context id is the WORKSPACE id: this thread is not about any one link, dashboard or design, and every capability the resource-scoped assistants have is available from it. One conversation per workspace, so it survives navigation.
-        :type context_type: str
-        :param context_id:
-        :type context_id: str
+        :param create_dashboard_request: (required)
+        :type create_dashboard_request: CreateDashboardRequest
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
+        :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -166,9 +166,9 @@ class AssistantApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._assistant_service_clear_conversation_serialize(
-            context_type=context_type,
-            context_id=context_id,
+        _param = self._analytics_dashboards_service_create_serialize(
+            create_dashboard_request=create_dashboard_request,
+            idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -176,7 +176,7 @@ class AssistantApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "object",
+            '200': "CreateDashboardResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -191,10 +191,10 @@ class AssistantApi:
 
 
     @validate_call
-    def assistant_service_clear_conversation_without_preload_content(
+    def analytics_dashboards_service_create_without_preload_content(
         self,
-        context_type: Annotated[Optional[StrictStr], Field(description=" - ASSISTANT_CONTEXT_TYPE_LINK_ANALYTICS: Building a link's analytics dashboard. context_id is the LINK id, not a dashboard id — the dashboard does not exist yet while the user and the assistant are still agreeing on what it should show. Once it exists, editing it happens under ASSISTANT_CONTEXT_TYPE_ANALYTICS_DASHBOARD instead.  - ASSISTANT_CONTEXT_TYPE_WORKSPACE: The workspace-wide assistant, with no resource selected. The context id is the WORKSPACE id: this thread is not about any one link, dashboard or design, and every capability the resource-scoped assistants have is available from it. One conversation per workspace, so it survives navigation.")] = None,
-        context_id: Optional[StrictStr] = None,
+        create_dashboard_request: CreateDashboardRequest,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -208,14 +208,14 @@ class AssistantApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Clear assistant conversation
+        """Create analytics dashboard
 
-        Clear the conversation history for a specific context.  Requires the `assistant:write` scope.
+        Create a dashboard with its widgets, for the whole workspace or scoped to one link.  Requires the `analytics:write` scope.
 
-        :param context_type:  - ASSISTANT_CONTEXT_TYPE_LINK_ANALYTICS: Building a link's analytics dashboard. context_id is the LINK id, not a dashboard id — the dashboard does not exist yet while the user and the assistant are still agreeing on what it should show. Once it exists, editing it happens under ASSISTANT_CONTEXT_TYPE_ANALYTICS_DASHBOARD instead.  - ASSISTANT_CONTEXT_TYPE_WORKSPACE: The workspace-wide assistant, with no resource selected. The context id is the WORKSPACE id: this thread is not about any one link, dashboard or design, and every capability the resource-scoped assistants have is available from it. One conversation per workspace, so it survives navigation.
-        :type context_type: str
-        :param context_id:
-        :type context_id: str
+        :param create_dashboard_request: (required)
+        :type create_dashboard_request: CreateDashboardRequest
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
+        :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -238,9 +238,9 @@ class AssistantApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._assistant_service_clear_conversation_serialize(
-            context_type=context_type,
-            context_id=context_id,
+        _param = self._analytics_dashboards_service_create_serialize(
+            create_dashboard_request=create_dashboard_request,
+            idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -248,7 +248,7 @@ class AssistantApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "object",
+            '200': "CreateDashboardResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -258,10 +258,10 @@ class AssistantApi:
         return response_data.response
 
 
-    def _assistant_service_clear_conversation_serialize(
+    def _analytics_dashboards_service_create_serialize(
         self,
-        context_type,
-        context_id,
+        create_dashboard_request,
+        idempotency_key,
         _request_auth,
         _content_type,
         _headers,
@@ -284,14 +284,288 @@ class AssistantApi:
 
         # process the path parameters
         # process the query parameters
-        if context_type is not None:
-            
-            _query_params.append(('contextType', context_type))
-            
-        if context_id is not None:
-            
-            _query_params.append(('contextId', context_id))
-            
+        # process the header parameters
+        if idempotency_key is not None:
+            _header_params['Idempotency-Key'] = idempotency_key
+        # process the form parameters
+        # process the body parameter
+        if create_dashboard_request is not None:
+            _body_params = create_dashboard_request
+
+
+        # set the HTTP header `Accept`
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
+        # set the HTTP header `Content-Type`
+        if _content_type:
+            _header_params['Content-Type'] = _content_type
+        else:
+            _default_content_type = (
+                self.api_client.select_header_content_type(
+                    [
+                        'application/json'
+                    ]
+                )
+            )
+            if _default_content_type is not None:
+                _header_params['Content-Type'] = _default_content_type
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'oauth2', 
+            'bearerAuth'
+        ]
+
+        return self.api_client.param_serialize(
+            method='POST',
+            resource_path='/v1/analytics/dashboards',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def analytics_dashboards_service_delete(
+        self,
+        id: StrictStr,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> object:
+        """Delete analytics dashboard
+
+        Delete a dashboard and its associated assistant conversation.  Requires the `analytics:write` scope.
+
+        :param id: (required)
+        :type id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._analytics_dashboards_service_delete_serialize(
+            id=id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "object",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def analytics_dashboards_service_delete_with_http_info(
+        self,
+        id: StrictStr,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[object]:
+        """Delete analytics dashboard
+
+        Delete a dashboard and its associated assistant conversation.  Requires the `analytics:write` scope.
+
+        :param id: (required)
+        :type id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._analytics_dashboards_service_delete_serialize(
+            id=id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "object",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def analytics_dashboards_service_delete_without_preload_content(
+        self,
+        id: StrictStr,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Delete analytics dashboard
+
+        Delete a dashboard and its associated assistant conversation.  Requires the `analytics:write` scope.
+
+        :param id: (required)
+        :type id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._analytics_dashboards_service_delete_serialize(
+            id=id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "object",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _analytics_dashboards_service_delete_serialize(
+        self,
+        id,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if id is not None:
+            _path_params['id'] = id
+        # process the query parameters
         # process the header parameters
         # process the form parameters
         # process the body parameter
@@ -314,7 +588,7 @@ class AssistantApi:
 
         return self.api_client.param_serialize(
             method='DELETE',
-            resource_path='/v1/assistant/conversation',
+            resource_path='/v1/analytics/dashboards/{id}',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -331,11 +605,12 @@ class AssistantApi:
 
 
     @validate_call
-    def assistant_service_complete_attachment_upload(
+    def analytics_dashboards_service_generate_widget_summary(
         self,
-        file_id: Annotated[StrictStr, Field(description="The attachment's id, from CreateAttachmentUpload")],
-        body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        dashboard_id: Annotated[StrictStr, Field(description="Dashboard holding the widget")],
+        widget_id: Annotated[StrictStr, Field(description="Widget whose values should be analysed")],
+        analytics_dashboards_service_generate_widget_summary_body: AnalyticsDashboardsServiceGenerateWidgetSummaryBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -348,16 +623,18 @@ class AssistantApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> AssistantCompleteAttachmentUploadResponse:
-        """Complete a direct attachment upload
+    ) -> GenerateWidgetSummaryResponse:
+        """Generate a widget assistant summary
 
-        Check the file PUT to the upload_url and make the attachment ready to send with a message.  Requires the `assistant:write` scope.
+        Analyses the widget's current values and stores the result. Consumes platform credits, so it runs only when requested.  Requires the `analytics:write` scope.
 
-        :param file_id: The attachment's id, from CreateAttachmentUpload (required)
-        :type file_id: str
-        :param body: (required)
-        :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param dashboard_id: Dashboard holding the widget (required)
+        :type dashboard_id: str
+        :param widget_id: Widget whose values should be analysed (required)
+        :type widget_id: str
+        :param analytics_dashboards_service_generate_widget_summary_body: (required)
+        :type analytics_dashboards_service_generate_widget_summary_body: AnalyticsDashboardsServiceGenerateWidgetSummaryBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -381,9 +658,10 @@ class AssistantApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._assistant_service_complete_attachment_upload_serialize(
-            file_id=file_id,
-            body=body,
+        _param = self._analytics_dashboards_service_generate_widget_summary_serialize(
+            dashboard_id=dashboard_id,
+            widget_id=widget_id,
+            analytics_dashboards_service_generate_widget_summary_body=analytics_dashboards_service_generate_widget_summary_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -392,7 +670,7 @@ class AssistantApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "AssistantCompleteAttachmentUploadResponse",
+            '200': "GenerateWidgetSummaryResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -407,11 +685,12 @@ class AssistantApi:
 
 
     @validate_call
-    def assistant_service_complete_attachment_upload_with_http_info(
+    def analytics_dashboards_service_generate_widget_summary_with_http_info(
         self,
-        file_id: Annotated[StrictStr, Field(description="The attachment's id, from CreateAttachmentUpload")],
-        body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        dashboard_id: Annotated[StrictStr, Field(description="Dashboard holding the widget")],
+        widget_id: Annotated[StrictStr, Field(description="Widget whose values should be analysed")],
+        analytics_dashboards_service_generate_widget_summary_body: AnalyticsDashboardsServiceGenerateWidgetSummaryBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -424,16 +703,18 @@ class AssistantApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[AssistantCompleteAttachmentUploadResponse]:
-        """Complete a direct attachment upload
+    ) -> ApiResponse[GenerateWidgetSummaryResponse]:
+        """Generate a widget assistant summary
 
-        Check the file PUT to the upload_url and make the attachment ready to send with a message.  Requires the `assistant:write` scope.
+        Analyses the widget's current values and stores the result. Consumes platform credits, so it runs only when requested.  Requires the `analytics:write` scope.
 
-        :param file_id: The attachment's id, from CreateAttachmentUpload (required)
-        :type file_id: str
-        :param body: (required)
-        :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param dashboard_id: Dashboard holding the widget (required)
+        :type dashboard_id: str
+        :param widget_id: Widget whose values should be analysed (required)
+        :type widget_id: str
+        :param analytics_dashboards_service_generate_widget_summary_body: (required)
+        :type analytics_dashboards_service_generate_widget_summary_body: AnalyticsDashboardsServiceGenerateWidgetSummaryBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -457,9 +738,10 @@ class AssistantApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._assistant_service_complete_attachment_upload_serialize(
-            file_id=file_id,
-            body=body,
+        _param = self._analytics_dashboards_service_generate_widget_summary_serialize(
+            dashboard_id=dashboard_id,
+            widget_id=widget_id,
+            analytics_dashboards_service_generate_widget_summary_body=analytics_dashboards_service_generate_widget_summary_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -468,7 +750,7 @@ class AssistantApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "AssistantCompleteAttachmentUploadResponse",
+            '200': "GenerateWidgetSummaryResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -483,11 +765,12 @@ class AssistantApi:
 
 
     @validate_call
-    def assistant_service_complete_attachment_upload_without_preload_content(
+    def analytics_dashboards_service_generate_widget_summary_without_preload_content(
         self,
-        file_id: Annotated[StrictStr, Field(description="The attachment's id, from CreateAttachmentUpload")],
-        body: Dict[str, Any],
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        dashboard_id: Annotated[StrictStr, Field(description="Dashboard holding the widget")],
+        widget_id: Annotated[StrictStr, Field(description="Widget whose values should be analysed")],
+        analytics_dashboards_service_generate_widget_summary_body: AnalyticsDashboardsServiceGenerateWidgetSummaryBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -501,15 +784,17 @@ class AssistantApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Complete a direct attachment upload
+        """Generate a widget assistant summary
 
-        Check the file PUT to the upload_url and make the attachment ready to send with a message.  Requires the `assistant:write` scope.
+        Analyses the widget's current values and stores the result. Consumes platform credits, so it runs only when requested.  Requires the `analytics:write` scope.
 
-        :param file_id: The attachment's id, from CreateAttachmentUpload (required)
-        :type file_id: str
-        :param body: (required)
-        :type body: object
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param dashboard_id: Dashboard holding the widget (required)
+        :type dashboard_id: str
+        :param widget_id: Widget whose values should be analysed (required)
+        :type widget_id: str
+        :param analytics_dashboards_service_generate_widget_summary_body: (required)
+        :type analytics_dashboards_service_generate_widget_summary_body: AnalyticsDashboardsServiceGenerateWidgetSummaryBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -533,9 +818,10 @@ class AssistantApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._assistant_service_complete_attachment_upload_serialize(
-            file_id=file_id,
-            body=body,
+        _param = self._analytics_dashboards_service_generate_widget_summary_serialize(
+            dashboard_id=dashboard_id,
+            widget_id=widget_id,
+            analytics_dashboards_service_generate_widget_summary_body=analytics_dashboards_service_generate_widget_summary_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -544,7 +830,7 @@ class AssistantApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "AssistantCompleteAttachmentUploadResponse",
+            '200': "GenerateWidgetSummaryResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -554,10 +840,11 @@ class AssistantApi:
         return response_data.response
 
 
-    def _assistant_service_complete_attachment_upload_serialize(
+    def _analytics_dashboards_service_generate_widget_summary_serialize(
         self,
-        file_id,
-        body,
+        dashboard_id,
+        widget_id,
+        analytics_dashboards_service_generate_widget_summary_body,
         idempotency_key,
         _request_auth,
         _content_type,
@@ -580,16 +867,18 @@ class AssistantApi:
         _body_params: Optional[bytes] = None
 
         # process the path parameters
-        if file_id is not None:
-            _path_params['fileId'] = file_id
+        if dashboard_id is not None:
+            _path_params['dashboardId'] = dashboard_id
+        if widget_id is not None:
+            _path_params['widgetId'] = widget_id
         # process the query parameters
         # process the header parameters
         if idempotency_key is not None:
             _header_params['Idempotency-Key'] = idempotency_key
         # process the form parameters
         # process the body parameter
-        if body is not None:
-            _body_params = body
+        if analytics_dashboards_service_generate_widget_summary_body is not None:
+            _body_params = analytics_dashboards_service_generate_widget_summary_body
 
 
         # set the HTTP header `Accept`
@@ -622,7 +911,7 @@ class AssistantApi:
 
         return self.api_client.param_serialize(
             method='POST',
-            resource_path='/v1/assistant/uploads/{fileId}:complete',
+            resource_path='/v1/analytics/dashboards/{dashboardId}/widgets/{widgetId}/summary',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -639,10 +928,10 @@ class AssistantApi:
 
 
     @validate_call
-    def assistant_service_create_attachment_upload(
+    def analytics_dashboards_service_get_widget_summary(
         self,
-        assistant_create_attachment_upload_request: AssistantCreateAttachmentUploadRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        dashboard_id: StrictStr,
+        widget_id: StrictStr,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -655,15 +944,15 @@ class AssistantApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> AssistantCreateAttachmentUploadResponse:
-        """Start a direct attachment upload
+    ) -> GetWidgetSummaryResponse:
+        """Get a stored widget assistant summary
 
-        Reserve an attachment of up to 50 MB and get a presigned upload_url to PUT its bytes to, then call CompleteAttachmentUpload.  Requires the `assistant:write` scope.
+        Returns the last generated analysis, and whether the underlying values have changed since.  Requires the `analytics:read` scope.
 
-        :param assistant_create_attachment_upload_request: (required)
-        :type assistant_create_attachment_upload_request: AssistantCreateAttachmentUploadRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
-        :type idempotency_key: str
+        :param dashboard_id: (required)
+        :type dashboard_id: str
+        :param widget_id: (required)
+        :type widget_id: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -686,9 +975,9 @@ class AssistantApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._assistant_service_create_attachment_upload_serialize(
-            assistant_create_attachment_upload_request=assistant_create_attachment_upload_request,
-            idempotency_key=idempotency_key,
+        _param = self._analytics_dashboards_service_get_widget_summary_serialize(
+            dashboard_id=dashboard_id,
+            widget_id=widget_id,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -696,7 +985,7 @@ class AssistantApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "AssistantCreateAttachmentUploadResponse",
+            '200': "GetWidgetSummaryResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -711,10 +1000,10 @@ class AssistantApi:
 
 
     @validate_call
-    def assistant_service_create_attachment_upload_with_http_info(
+    def analytics_dashboards_service_get_widget_summary_with_http_info(
         self,
-        assistant_create_attachment_upload_request: AssistantCreateAttachmentUploadRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        dashboard_id: StrictStr,
+        widget_id: StrictStr,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -727,15 +1016,15 @@ class AssistantApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[AssistantCreateAttachmentUploadResponse]:
-        """Start a direct attachment upload
+    ) -> ApiResponse[GetWidgetSummaryResponse]:
+        """Get a stored widget assistant summary
 
-        Reserve an attachment of up to 50 MB and get a presigned upload_url to PUT its bytes to, then call CompleteAttachmentUpload.  Requires the `assistant:write` scope.
+        Returns the last generated analysis, and whether the underlying values have changed since.  Requires the `analytics:read` scope.
 
-        :param assistant_create_attachment_upload_request: (required)
-        :type assistant_create_attachment_upload_request: AssistantCreateAttachmentUploadRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
-        :type idempotency_key: str
+        :param dashboard_id: (required)
+        :type dashboard_id: str
+        :param widget_id: (required)
+        :type widget_id: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -758,9 +1047,9 @@ class AssistantApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._assistant_service_create_attachment_upload_serialize(
-            assistant_create_attachment_upload_request=assistant_create_attachment_upload_request,
-            idempotency_key=idempotency_key,
+        _param = self._analytics_dashboards_service_get_widget_summary_serialize(
+            dashboard_id=dashboard_id,
+            widget_id=widget_id,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -768,7 +1057,7 @@ class AssistantApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "AssistantCreateAttachmentUploadResponse",
+            '200': "GetWidgetSummaryResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -783,10 +1072,10 @@ class AssistantApi:
 
 
     @validate_call
-    def assistant_service_create_attachment_upload_without_preload_content(
+    def analytics_dashboards_service_get_widget_summary_without_preload_content(
         self,
-        assistant_create_attachment_upload_request: AssistantCreateAttachmentUploadRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        dashboard_id: StrictStr,
+        widget_id: StrictStr,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -800,14 +1089,14 @@ class AssistantApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Start a direct attachment upload
+        """Get a stored widget assistant summary
 
-        Reserve an attachment of up to 50 MB and get a presigned upload_url to PUT its bytes to, then call CompleteAttachmentUpload.  Requires the `assistant:write` scope.
+        Returns the last generated analysis, and whether the underlying values have changed since.  Requires the `analytics:read` scope.
 
-        :param assistant_create_attachment_upload_request: (required)
-        :type assistant_create_attachment_upload_request: AssistantCreateAttachmentUploadRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
-        :type idempotency_key: str
+        :param dashboard_id: (required)
+        :type dashboard_id: str
+        :param widget_id: (required)
+        :type widget_id: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -830,9 +1119,9 @@ class AssistantApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._assistant_service_create_attachment_upload_serialize(
-            assistant_create_attachment_upload_request=assistant_create_attachment_upload_request,
-            idempotency_key=idempotency_key,
+        _param = self._analytics_dashboards_service_get_widget_summary_serialize(
+            dashboard_id=dashboard_id,
+            widget_id=widget_id,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -840,7 +1129,7 @@ class AssistantApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "AssistantCreateAttachmentUploadResponse",
+            '200': "GetWidgetSummaryResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -850,10 +1139,10 @@ class AssistantApi:
         return response_data.response
 
 
-    def _assistant_service_create_attachment_upload_serialize(
+    def _analytics_dashboards_service_get_widget_summary_serialize(
         self,
-        assistant_create_attachment_upload_request,
-        idempotency_key,
+        dashboard_id,
+        widget_id,
         _request_auth,
         _content_type,
         _headers,
@@ -875,14 +1164,14 @@ class AssistantApi:
         _body_params: Optional[bytes] = None
 
         # process the path parameters
+        if dashboard_id is not None:
+            _path_params['dashboardId'] = dashboard_id
+        if widget_id is not None:
+            _path_params['widgetId'] = widget_id
         # process the query parameters
         # process the header parameters
-        if idempotency_key is not None:
-            _header_params['Idempotency-Key'] = idempotency_key
         # process the form parameters
         # process the body parameter
-        if assistant_create_attachment_upload_request is not None:
-            _body_params = assistant_create_attachment_upload_request
 
 
         # set the HTTP header `Accept`
@@ -893,19 +1182,6 @@ class AssistantApi:
                 ]
             )
 
-        # set the HTTP header `Content-Type`
-        if _content_type:
-            _header_params['Content-Type'] = _content_type
-        else:
-            _default_content_type = (
-                self.api_client.select_header_content_type(
-                    [
-                        'application/json'
-                    ]
-                )
-            )
-            if _default_content_type is not None:
-                _header_params['Content-Type'] = _default_content_type
 
         # authentication setting
         _auth_settings: List[str] = [
@@ -914,8 +1190,8 @@ class AssistantApi:
         ]
 
         return self.api_client.param_serialize(
-            method='POST',
-            resource_path='/v1/assistant/uploads',
+            method='GET',
+            resource_path='/v1/analytics/dashboards/{dashboardId}/widgets/{widgetId}/summary',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -932,10 +1208,13 @@ class AssistantApi:
 
 
     @validate_call
-    def assistant_service_get_conversation(
+    def analytics_dashboards_service_list(
         self,
-        context_type: Annotated[Optional[StrictStr], Field(description=" - ASSISTANT_CONTEXT_TYPE_LINK_ANALYTICS: Building a link's analytics dashboard. context_id is the LINK id, not a dashboard id — the dashboard does not exist yet while the user and the assistant are still agreeing on what it should show. Once it exists, editing it happens under ASSISTANT_CONTEXT_TYPE_ANALYTICS_DASHBOARD instead.  - ASSISTANT_CONTEXT_TYPE_WORKSPACE: The workspace-wide assistant, with no resource selected. The context id is the WORKSPACE id: this thread is not about any one link, dashboard or design, and every capability the resource-scoped assistants have is available from it. One conversation per workspace, so it survives navigation.")] = None,
-        context_id: Optional[StrictStr] = None,
+        link_id: Annotated[Optional[StrictStr], Field(description="Restricts the result to the dashboard scoped to this link. Takes precedence over scope when both are set.")] = None,
+        scope: Annotated[Optional[StrictStr], Field(description="Restricts the result by scope. Unset returns every dashboard.   - DASHBOARD_SCOPE_UNSPECIFIED: Every dashboard in the workspace, link-scoped or not.  - DASHBOARD_SCOPE_WORKSPACE: Only the workspace-wide dashboard, the one with no link.  - DASHBOARD_SCOPE_LINK: Only dashboards tied to a link.")] = None,
+        page_size: Annotated[Optional[StrictInt], Field(description="Maximum number to return. Defaults to 100, capped at 1000.")] = None,
+        page_token: Annotated[Optional[StrictStr], Field(description="Cursor from a previous response's nextPageToken. Empty starts at the first page. Pages are ordered by (createdAt, id), which never change, so a record cannot move between pages while a client is walking them.")] = None,
+        cursor: Annotated[Optional[StrictStr], Field(description="Opaque cursor from the previous page's nextPageToken. Same as pageToken; when both are sent, pageToken wins.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -948,15 +1227,21 @@ class AssistantApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> AssistantGetConversationResponse:
-        """Get assistant conversation
+    ) -> ListDashboardsResponse:
+        """List analytics dashboards
 
-        Get the display-ready chat history for a specific context.  Requires the `assistant:read` scope.
+        List the workspace's analytics dashboards: the workspace-wide one and those scoped to a link. Filter by link or by scope.  Requires the `analytics:read` scope.
 
-        :param context_type:  - ASSISTANT_CONTEXT_TYPE_LINK_ANALYTICS: Building a link's analytics dashboard. context_id is the LINK id, not a dashboard id — the dashboard does not exist yet while the user and the assistant are still agreeing on what it should show. Once it exists, editing it happens under ASSISTANT_CONTEXT_TYPE_ANALYTICS_DASHBOARD instead.  - ASSISTANT_CONTEXT_TYPE_WORKSPACE: The workspace-wide assistant, with no resource selected. The context id is the WORKSPACE id: this thread is not about any one link, dashboard or design, and every capability the resource-scoped assistants have is available from it. One conversation per workspace, so it survives navigation.
-        :type context_type: str
-        :param context_id:
-        :type context_id: str
+        :param link_id: Restricts the result to the dashboard scoped to this link. Takes precedence over scope when both are set.
+        :type link_id: str
+        :param scope: Restricts the result by scope. Unset returns every dashboard.   - DASHBOARD_SCOPE_UNSPECIFIED: Every dashboard in the workspace, link-scoped or not.  - DASHBOARD_SCOPE_WORKSPACE: Only the workspace-wide dashboard, the one with no link.  - DASHBOARD_SCOPE_LINK: Only dashboards tied to a link.
+        :type scope: str
+        :param page_size: Maximum number to return. Defaults to 100, capped at 1000.
+        :type page_size: int
+        :param page_token: Cursor from a previous response's nextPageToken. Empty starts at the first page. Pages are ordered by (createdAt, id), which never change, so a record cannot move between pages while a client is walking them.
+        :type page_token: str
+        :param cursor: Opaque cursor from the previous page's nextPageToken. Same as pageToken; when both are sent, pageToken wins.
+        :type cursor: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -979,9 +1264,12 @@ class AssistantApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._assistant_service_get_conversation_serialize(
-            context_type=context_type,
-            context_id=context_id,
+        _param = self._analytics_dashboards_service_list_serialize(
+            link_id=link_id,
+            scope=scope,
+            page_size=page_size,
+            page_token=page_token,
+            cursor=cursor,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -989,7 +1277,7 @@ class AssistantApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "AssistantGetConversationResponse",
+            '200': "ListDashboardsResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -1004,10 +1292,13 @@ class AssistantApi:
 
 
     @validate_call
-    def assistant_service_get_conversation_with_http_info(
+    def analytics_dashboards_service_list_with_http_info(
         self,
-        context_type: Annotated[Optional[StrictStr], Field(description=" - ASSISTANT_CONTEXT_TYPE_LINK_ANALYTICS: Building a link's analytics dashboard. context_id is the LINK id, not a dashboard id — the dashboard does not exist yet while the user and the assistant are still agreeing on what it should show. Once it exists, editing it happens under ASSISTANT_CONTEXT_TYPE_ANALYTICS_DASHBOARD instead.  - ASSISTANT_CONTEXT_TYPE_WORKSPACE: The workspace-wide assistant, with no resource selected. The context id is the WORKSPACE id: this thread is not about any one link, dashboard or design, and every capability the resource-scoped assistants have is available from it. One conversation per workspace, so it survives navigation.")] = None,
-        context_id: Optional[StrictStr] = None,
+        link_id: Annotated[Optional[StrictStr], Field(description="Restricts the result to the dashboard scoped to this link. Takes precedence over scope when both are set.")] = None,
+        scope: Annotated[Optional[StrictStr], Field(description="Restricts the result by scope. Unset returns every dashboard.   - DASHBOARD_SCOPE_UNSPECIFIED: Every dashboard in the workspace, link-scoped or not.  - DASHBOARD_SCOPE_WORKSPACE: Only the workspace-wide dashboard, the one with no link.  - DASHBOARD_SCOPE_LINK: Only dashboards tied to a link.")] = None,
+        page_size: Annotated[Optional[StrictInt], Field(description="Maximum number to return. Defaults to 100, capped at 1000.")] = None,
+        page_token: Annotated[Optional[StrictStr], Field(description="Cursor from a previous response's nextPageToken. Empty starts at the first page. Pages are ordered by (createdAt, id), which never change, so a record cannot move between pages while a client is walking them.")] = None,
+        cursor: Annotated[Optional[StrictStr], Field(description="Opaque cursor from the previous page's nextPageToken. Same as pageToken; when both are sent, pageToken wins.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1020,15 +1311,21 @@ class AssistantApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[AssistantGetConversationResponse]:
-        """Get assistant conversation
+    ) -> ApiResponse[ListDashboardsResponse]:
+        """List analytics dashboards
 
-        Get the display-ready chat history for a specific context.  Requires the `assistant:read` scope.
+        List the workspace's analytics dashboards: the workspace-wide one and those scoped to a link. Filter by link or by scope.  Requires the `analytics:read` scope.
 
-        :param context_type:  - ASSISTANT_CONTEXT_TYPE_LINK_ANALYTICS: Building a link's analytics dashboard. context_id is the LINK id, not a dashboard id — the dashboard does not exist yet while the user and the assistant are still agreeing on what it should show. Once it exists, editing it happens under ASSISTANT_CONTEXT_TYPE_ANALYTICS_DASHBOARD instead.  - ASSISTANT_CONTEXT_TYPE_WORKSPACE: The workspace-wide assistant, with no resource selected. The context id is the WORKSPACE id: this thread is not about any one link, dashboard or design, and every capability the resource-scoped assistants have is available from it. One conversation per workspace, so it survives navigation.
-        :type context_type: str
-        :param context_id:
-        :type context_id: str
+        :param link_id: Restricts the result to the dashboard scoped to this link. Takes precedence over scope when both are set.
+        :type link_id: str
+        :param scope: Restricts the result by scope. Unset returns every dashboard.   - DASHBOARD_SCOPE_UNSPECIFIED: Every dashboard in the workspace, link-scoped or not.  - DASHBOARD_SCOPE_WORKSPACE: Only the workspace-wide dashboard, the one with no link.  - DASHBOARD_SCOPE_LINK: Only dashboards tied to a link.
+        :type scope: str
+        :param page_size: Maximum number to return. Defaults to 100, capped at 1000.
+        :type page_size: int
+        :param page_token: Cursor from a previous response's nextPageToken. Empty starts at the first page. Pages are ordered by (createdAt, id), which never change, so a record cannot move between pages while a client is walking them.
+        :type page_token: str
+        :param cursor: Opaque cursor from the previous page's nextPageToken. Same as pageToken; when both are sent, pageToken wins.
+        :type cursor: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1051,9 +1348,12 @@ class AssistantApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._assistant_service_get_conversation_serialize(
-            context_type=context_type,
-            context_id=context_id,
+        _param = self._analytics_dashboards_service_list_serialize(
+            link_id=link_id,
+            scope=scope,
+            page_size=page_size,
+            page_token=page_token,
+            cursor=cursor,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1061,7 +1361,7 @@ class AssistantApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "AssistantGetConversationResponse",
+            '200': "ListDashboardsResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -1076,10 +1376,13 @@ class AssistantApi:
 
 
     @validate_call
-    def assistant_service_get_conversation_without_preload_content(
+    def analytics_dashboards_service_list_without_preload_content(
         self,
-        context_type: Annotated[Optional[StrictStr], Field(description=" - ASSISTANT_CONTEXT_TYPE_LINK_ANALYTICS: Building a link's analytics dashboard. context_id is the LINK id, not a dashboard id — the dashboard does not exist yet while the user and the assistant are still agreeing on what it should show. Once it exists, editing it happens under ASSISTANT_CONTEXT_TYPE_ANALYTICS_DASHBOARD instead.  - ASSISTANT_CONTEXT_TYPE_WORKSPACE: The workspace-wide assistant, with no resource selected. The context id is the WORKSPACE id: this thread is not about any one link, dashboard or design, and every capability the resource-scoped assistants have is available from it. One conversation per workspace, so it survives navigation.")] = None,
-        context_id: Optional[StrictStr] = None,
+        link_id: Annotated[Optional[StrictStr], Field(description="Restricts the result to the dashboard scoped to this link. Takes precedence over scope when both are set.")] = None,
+        scope: Annotated[Optional[StrictStr], Field(description="Restricts the result by scope. Unset returns every dashboard.   - DASHBOARD_SCOPE_UNSPECIFIED: Every dashboard in the workspace, link-scoped or not.  - DASHBOARD_SCOPE_WORKSPACE: Only the workspace-wide dashboard, the one with no link.  - DASHBOARD_SCOPE_LINK: Only dashboards tied to a link.")] = None,
+        page_size: Annotated[Optional[StrictInt], Field(description="Maximum number to return. Defaults to 100, capped at 1000.")] = None,
+        page_token: Annotated[Optional[StrictStr], Field(description="Cursor from a previous response's nextPageToken. Empty starts at the first page. Pages are ordered by (createdAt, id), which never change, so a record cannot move between pages while a client is walking them.")] = None,
+        cursor: Annotated[Optional[StrictStr], Field(description="Opaque cursor from the previous page's nextPageToken. Same as pageToken; when both are sent, pageToken wins.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1093,14 +1396,20 @@ class AssistantApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Get assistant conversation
+        """List analytics dashboards
 
-        Get the display-ready chat history for a specific context.  Requires the `assistant:read` scope.
+        List the workspace's analytics dashboards: the workspace-wide one and those scoped to a link. Filter by link or by scope.  Requires the `analytics:read` scope.
 
-        :param context_type:  - ASSISTANT_CONTEXT_TYPE_LINK_ANALYTICS: Building a link's analytics dashboard. context_id is the LINK id, not a dashboard id — the dashboard does not exist yet while the user and the assistant are still agreeing on what it should show. Once it exists, editing it happens under ASSISTANT_CONTEXT_TYPE_ANALYTICS_DASHBOARD instead.  - ASSISTANT_CONTEXT_TYPE_WORKSPACE: The workspace-wide assistant, with no resource selected. The context id is the WORKSPACE id: this thread is not about any one link, dashboard or design, and every capability the resource-scoped assistants have is available from it. One conversation per workspace, so it survives navigation.
-        :type context_type: str
-        :param context_id:
-        :type context_id: str
+        :param link_id: Restricts the result to the dashboard scoped to this link. Takes precedence over scope when both are set.
+        :type link_id: str
+        :param scope: Restricts the result by scope. Unset returns every dashboard.   - DASHBOARD_SCOPE_UNSPECIFIED: Every dashboard in the workspace, link-scoped or not.  - DASHBOARD_SCOPE_WORKSPACE: Only the workspace-wide dashboard, the one with no link.  - DASHBOARD_SCOPE_LINK: Only dashboards tied to a link.
+        :type scope: str
+        :param page_size: Maximum number to return. Defaults to 100, capped at 1000.
+        :type page_size: int
+        :param page_token: Cursor from a previous response's nextPageToken. Empty starts at the first page. Pages are ordered by (createdAt, id), which never change, so a record cannot move between pages while a client is walking them.
+        :type page_token: str
+        :param cursor: Opaque cursor from the previous page's nextPageToken. Same as pageToken; when both are sent, pageToken wins.
+        :type cursor: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1123,9 +1432,12 @@ class AssistantApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._assistant_service_get_conversation_serialize(
-            context_type=context_type,
-            context_id=context_id,
+        _param = self._analytics_dashboards_service_list_serialize(
+            link_id=link_id,
+            scope=scope,
+            page_size=page_size,
+            page_token=page_token,
+            cursor=cursor,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1133,7 +1445,7 @@ class AssistantApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "AssistantGetConversationResponse",
+            '200': "ListDashboardsResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -1143,10 +1455,13 @@ class AssistantApi:
         return response_data.response
 
 
-    def _assistant_service_get_conversation_serialize(
+    def _analytics_dashboards_service_list_serialize(
         self,
-        context_type,
-        context_id,
+        link_id,
+        scope,
+        page_size,
+        page_token,
+        cursor,
         _request_auth,
         _content_type,
         _headers,
@@ -1169,13 +1484,25 @@ class AssistantApi:
 
         # process the path parameters
         # process the query parameters
-        if context_type is not None:
+        if link_id is not None:
             
-            _query_params.append(('contextType', context_type))
+            _query_params.append(('linkId', link_id))
             
-        if context_id is not None:
+        if scope is not None:
             
-            _query_params.append(('contextId', context_id))
+            _query_params.append(('scope', scope))
+            
+        if page_size is not None:
+            
+            _query_params.append(('pageSize', page_size))
+            
+        if page_token is not None:
+            
+            _query_params.append(('pageToken', page_token))
+            
+        if cursor is not None:
+            
+            _query_params.append(('cursor', cursor))
             
         # process the header parameters
         # process the form parameters
@@ -1199,7 +1526,7 @@ class AssistantApi:
 
         return self.api_client.param_serialize(
             method='GET',
-            resource_path='/v1/assistant/conversation',
+            resource_path='/v1/analytics/dashboards',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -1216,10 +1543,11 @@ class AssistantApi:
 
 
     @validate_call
-    def assistant_service_mark_conversation_read(
+    def analytics_dashboards_service_update(
         self,
-        assistant_mark_conversation_read_request: AssistantMarkConversationReadRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        id: Annotated[StrictStr, Field(description="ID of the dashboard to update.")],
+        analytics_dashboards_service_update_body: AnalyticsDashboardsServiceUpdateBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1232,14 +1560,16 @@ class AssistantApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> AssistantMarkConversationReadResponse:
-        """Mark assistant conversation read
+    ) -> UpdateDashboardResponse:
+        """Update analytics dashboard
 
-        Record that the member has seen every assistant reply in this conversation. Call it when the thread is actually on screen, not when history is fetched.  Requires the `assistant:write` scope.
+        Replace a dashboard's name and its widget configuration. Each widget names its own data source and visualization.  Requires the `analytics:write` scope.
 
-        :param assistant_mark_conversation_read_request: (required)
-        :type assistant_mark_conversation_read_request: AssistantMarkConversationReadRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param id: ID of the dashboard to update. (required)
+        :type id: str
+        :param analytics_dashboards_service_update_body: (required)
+        :type analytics_dashboards_service_update_body: AnalyticsDashboardsServiceUpdateBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1263,8 +1593,9 @@ class AssistantApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._assistant_service_mark_conversation_read_serialize(
-            assistant_mark_conversation_read_request=assistant_mark_conversation_read_request,
+        _param = self._analytics_dashboards_service_update_serialize(
+            id=id,
+            analytics_dashboards_service_update_body=analytics_dashboards_service_update_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -1273,7 +1604,7 @@ class AssistantApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "AssistantMarkConversationReadResponse",
+            '200': "UpdateDashboardResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -1288,10 +1619,11 @@ class AssistantApi:
 
 
     @validate_call
-    def assistant_service_mark_conversation_read_with_http_info(
+    def analytics_dashboards_service_update_with_http_info(
         self,
-        assistant_mark_conversation_read_request: AssistantMarkConversationReadRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        id: Annotated[StrictStr, Field(description="ID of the dashboard to update.")],
+        analytics_dashboards_service_update_body: AnalyticsDashboardsServiceUpdateBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1304,14 +1636,16 @@ class AssistantApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[AssistantMarkConversationReadResponse]:
-        """Mark assistant conversation read
+    ) -> ApiResponse[UpdateDashboardResponse]:
+        """Update analytics dashboard
 
-        Record that the member has seen every assistant reply in this conversation. Call it when the thread is actually on screen, not when history is fetched.  Requires the `assistant:write` scope.
+        Replace a dashboard's name and its widget configuration. Each widget names its own data source and visualization.  Requires the `analytics:write` scope.
 
-        :param assistant_mark_conversation_read_request: (required)
-        :type assistant_mark_conversation_read_request: AssistantMarkConversationReadRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param id: ID of the dashboard to update. (required)
+        :type id: str
+        :param analytics_dashboards_service_update_body: (required)
+        :type analytics_dashboards_service_update_body: AnalyticsDashboardsServiceUpdateBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1335,8 +1669,9 @@ class AssistantApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._assistant_service_mark_conversation_read_serialize(
-            assistant_mark_conversation_read_request=assistant_mark_conversation_read_request,
+        _param = self._analytics_dashboards_service_update_serialize(
+            id=id,
+            analytics_dashboards_service_update_body=analytics_dashboards_service_update_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -1345,7 +1680,7 @@ class AssistantApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "AssistantMarkConversationReadResponse",
+            '200': "UpdateDashboardResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -1360,10 +1695,11 @@ class AssistantApi:
 
 
     @validate_call
-    def assistant_service_mark_conversation_read_without_preload_content(
+    def analytics_dashboards_service_update_without_preload_content(
         self,
-        assistant_mark_conversation_read_request: AssistantMarkConversationReadRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        id: Annotated[StrictStr, Field(description="ID of the dashboard to update.")],
+        analytics_dashboards_service_update_body: AnalyticsDashboardsServiceUpdateBody,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1377,13 +1713,15 @@ class AssistantApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Mark assistant conversation read
+        """Update analytics dashboard
 
-        Record that the member has seen every assistant reply in this conversation. Call it when the thread is actually on screen, not when history is fetched.  Requires the `assistant:write` scope.
+        Replace a dashboard's name and its widget configuration. Each widget names its own data source and visualization.  Requires the `analytics:write` scope.
 
-        :param assistant_mark_conversation_read_request: (required)
-        :type assistant_mark_conversation_read_request: AssistantMarkConversationReadRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param id: ID of the dashboard to update. (required)
+        :type id: str
+        :param analytics_dashboards_service_update_body: (required)
+        :type analytics_dashboards_service_update_body: AnalyticsDashboardsServiceUpdateBody
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1407,8 +1745,9 @@ class AssistantApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._assistant_service_mark_conversation_read_serialize(
-            assistant_mark_conversation_read_request=assistant_mark_conversation_read_request,
+        _param = self._analytics_dashboards_service_update_serialize(
+            id=id,
+            analytics_dashboards_service_update_body=analytics_dashboards_service_update_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -1417,7 +1756,7 @@ class AssistantApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "AssistantMarkConversationReadResponse",
+            '200': "UpdateDashboardResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -1427,9 +1766,10 @@ class AssistantApi:
         return response_data.response
 
 
-    def _assistant_service_mark_conversation_read_serialize(
+    def _analytics_dashboards_service_update_serialize(
         self,
-        assistant_mark_conversation_read_request,
+        id,
+        analytics_dashboards_service_update_body,
         idempotency_key,
         _request_auth,
         _content_type,
@@ -1452,14 +1792,16 @@ class AssistantApi:
         _body_params: Optional[bytes] = None
 
         # process the path parameters
+        if id is not None:
+            _path_params['id'] = id
         # process the query parameters
         # process the header parameters
         if idempotency_key is not None:
             _header_params['Idempotency-Key'] = idempotency_key
         # process the form parameters
         # process the body parameter
-        if assistant_mark_conversation_read_request is not None:
-            _body_params = assistant_mark_conversation_read_request
+        if analytics_dashboards_service_update_body is not None:
+            _body_params = analytics_dashboards_service_update_body
 
 
         # set the HTTP header `Accept`
@@ -1491,301 +1833,8 @@ class AssistantApi:
         ]
 
         return self.api_client.param_serialize(
-            method='POST',
-            resource_path='/v1/assistant/conversation/read',
-            path_params=_path_params,
-            query_params=_query_params,
-            header_params=_header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
-            auth_settings=_auth_settings,
-            collection_formats=_collection_formats,
-            _host=_host,
-            _request_auth=_request_auth
-        )
-
-
-
-
-    @validate_call
-    def assistant_service_upload_file(
-        self,
-        assistant_upload_file_request: AssistantUploadFileRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> AssistantUploadFileResponse:
-        """Upload file for assistant chat
-
-        Upload a small file, base64 encoded, to attach to the next assistant message. Returns a temporary file ID. Larger files go through CreateAttachmentUpload.  Requires the `assistant:write` scope.
-
-        :param assistant_upload_file_request: (required)
-        :type assistant_upload_file_request: AssistantUploadFileRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
-        :type idempotency_key: str
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._assistant_service_upload_file_serialize(
-            assistant_upload_file_request=assistant_upload_file_request,
-            idempotency_key=idempotency_key,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "AssistantUploadFileResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        ).data
-
-
-    @validate_call
-    def assistant_service_upload_file_with_http_info(
-        self,
-        assistant_upload_file_request: AssistantUploadFileRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[AssistantUploadFileResponse]:
-        """Upload file for assistant chat
-
-        Upload a small file, base64 encoded, to attach to the next assistant message. Returns a temporary file ID. Larger files go through CreateAttachmentUpload.  Requires the `assistant:write` scope.
-
-        :param assistant_upload_file_request: (required)
-        :type assistant_upload_file_request: AssistantUploadFileRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
-        :type idempotency_key: str
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._assistant_service_upload_file_serialize(
-            assistant_upload_file_request=assistant_upload_file_request,
-            idempotency_key=idempotency_key,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "AssistantUploadFileResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        )
-
-
-    @validate_call
-    def assistant_service_upload_file_without_preload_content(
-        self,
-        assistant_upload_file_request: AssistantUploadFileRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> RESTResponseType:
-        """Upload file for assistant chat
-
-        Upload a small file, base64 encoded, to attach to the next assistant message. Returns a temporary file ID. Larger files go through CreateAttachmentUpload.  Requires the `assistant:write` scope.
-
-        :param assistant_upload_file_request: (required)
-        :type assistant_upload_file_request: AssistantUploadFileRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
-        :type idempotency_key: str
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._assistant_service_upload_file_serialize(
-            assistant_upload_file_request=assistant_upload_file_request,
-            idempotency_key=idempotency_key,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "AssistantUploadFileResponse",
-            '429': "ErrorResponse",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        return response_data.response
-
-
-    def _assistant_service_upload_file_serialize(
-        self,
-        assistant_upload_file_request,
-        idempotency_key,
-        _request_auth,
-        _content_type,
-        _headers,
-        _host_index,
-    ) -> RequestSerialized:
-
-        _host = None
-
-        _collection_formats: Dict[str, str] = {
-        }
-
-        _path_params: Dict[str, str] = {}
-        _query_params: List[Tuple[str, str]] = []
-        _header_params: Dict[str, Optional[str]] = _headers or {}
-        _form_params: List[Tuple[str, str]] = []
-        _files: Dict[
-            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
-        ] = {}
-        _body_params: Optional[bytes] = None
-
-        # process the path parameters
-        # process the query parameters
-        # process the header parameters
-        if idempotency_key is not None:
-            _header_params['Idempotency-Key'] = idempotency_key
-        # process the form parameters
-        # process the body parameter
-        if assistant_upload_file_request is not None:
-            _body_params = assistant_upload_file_request
-
-
-        # set the HTTP header `Accept`
-        if 'Accept' not in _header_params:
-            _header_params['Accept'] = self.api_client.select_header_accept(
-                [
-                    'application/json'
-                ]
-            )
-
-        # set the HTTP header `Content-Type`
-        if _content_type:
-            _header_params['Content-Type'] = _content_type
-        else:
-            _default_content_type = (
-                self.api_client.select_header_content_type(
-                    [
-                        'application/json'
-                    ]
-                )
-            )
-            if _default_content_type is not None:
-                _header_params['Content-Type'] = _default_content_type
-
-        # authentication setting
-        _auth_settings: List[str] = [
-            'oauth2', 
-            'bearerAuth'
-        ]
-
-        return self.api_client.param_serialize(
-            method='POST',
-            resource_path='/v1/assistant/upload',
+            method='PUT',
+            resource_path='/v1/analytics/dashboards/{id}',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,

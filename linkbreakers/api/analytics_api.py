@@ -1,9 +1,9 @@
 """
     Linkbreakers API
 
-    This is a documentation of all the APIs of Linkbreakers  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
+    The Linkbreakers REST API: links, QR codes, workflows, visitors and analytics, as JSON over HTTPS. Send a workspace API token as `Authorization: Bearer <token>`.  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  A renamed operation keeps answering its former path until that path's sunset. Responses on a former path carry the same `Deprecation`, `Sunset` and `Link` header fields; this document lists only the current path, and the policy lists the former ones.  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
 
-    The version of the OpenAPI document: 1.198.0
+    The version of the OpenAPI document: 1.198.1
     Contact: support@linkbreakers.com
     Generated by OpenAPI Generator (https://openapi-generator.tech)
 
@@ -20,6 +20,7 @@ from datetime import datetime
 from pydantic import Field, StrictInt, StrictStr
 from typing import List, Optional
 from typing_extensions import Annotated
+from linkbreakers.models.events_metric import EventsMetric
 from linkbreakers.models.get_attribute_distribution_request import GetAttributeDistributionRequest
 from linkbreakers.models.get_attribute_distribution_response import GetAttributeDistributionResponse
 from linkbreakers.models.get_attribute_metric_request import GetAttributeMetricRequest
@@ -46,13 +47,14 @@ from linkbreakers.models.get_traffic_split_results_response import GetTrafficSpl
 from linkbreakers.models.get_visitor_trends_request import GetVisitorTrendsRequest
 from linkbreakers.models.get_visitor_trends_response import GetVisitorTrendsResponse
 from linkbreakers.models.list_visitor_countries_response import ListVisitorCountriesResponse
+from linkbreakers.models.workspace_metric import WorkspaceMetric
 
 from linkbreakers.api_client import ApiClient, RequestSerialized
 from linkbreakers.api_response import ApiResponse
 from linkbreakers.rest import RESTResponseType
 
 
-class AnalyticsDataApi:
+class AnalyticsApi:
     """NOTE: This class is auto generated by OpenAPI Generator
     Ref: https://openapi-generator.tech
 
@@ -66,10 +68,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_attribute_distribution(
+    def analytics_service_get_attribute_distribution(
         self,
         get_attribute_distribution_request: GetAttributeDistributionRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -89,7 +91,7 @@ class AnalyticsDataApi:
 
         :param get_attribute_distribution_request: (required)
         :type get_attribute_distribution_request: GetAttributeDistributionRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -113,7 +115,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_attribute_distribution_serialize(
+        _param = self._analytics_service_get_attribute_distribution_serialize(
             get_attribute_distribution_request=get_attribute_distribution_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -138,10 +140,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_attribute_distribution_with_http_info(
+    def analytics_service_get_attribute_distribution_with_http_info(
         self,
         get_attribute_distribution_request: GetAttributeDistributionRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -161,7 +163,7 @@ class AnalyticsDataApi:
 
         :param get_attribute_distribution_request: (required)
         :type get_attribute_distribution_request: GetAttributeDistributionRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -185,7 +187,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_attribute_distribution_serialize(
+        _param = self._analytics_service_get_attribute_distribution_serialize(
             get_attribute_distribution_request=get_attribute_distribution_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -210,10 +212,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_attribute_distribution_without_preload_content(
+    def analytics_service_get_attribute_distribution_without_preload_content(
         self,
         get_attribute_distribution_request: GetAttributeDistributionRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -233,7 +235,7 @@ class AnalyticsDataApi:
 
         :param get_attribute_distribution_request: (required)
         :type get_attribute_distribution_request: GetAttributeDistributionRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -257,7 +259,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_attribute_distribution_serialize(
+        _param = self._analytics_service_get_attribute_distribution_serialize(
             get_attribute_distribution_request=get_attribute_distribution_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -277,7 +279,7 @@ class AnalyticsDataApi:
         return response_data.response
 
 
-    def _analytics_data_service_get_attribute_distribution_serialize(
+    def _analytics_service_get_attribute_distribution_serialize(
         self,
         get_attribute_distribution_request,
         idempotency_key,
@@ -359,10 +361,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_attribute_metric(
+    def analytics_service_get_attribute_metric(
         self,
         get_attribute_metric_request: GetAttributeMetricRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -382,7 +384,7 @@ class AnalyticsDataApi:
 
         :param get_attribute_metric_request: (required)
         :type get_attribute_metric_request: GetAttributeMetricRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -406,7 +408,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_attribute_metric_serialize(
+        _param = self._analytics_service_get_attribute_metric_serialize(
             get_attribute_metric_request=get_attribute_metric_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -431,10 +433,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_attribute_metric_with_http_info(
+    def analytics_service_get_attribute_metric_with_http_info(
         self,
         get_attribute_metric_request: GetAttributeMetricRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -454,7 +456,7 @@ class AnalyticsDataApi:
 
         :param get_attribute_metric_request: (required)
         :type get_attribute_metric_request: GetAttributeMetricRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -478,7 +480,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_attribute_metric_serialize(
+        _param = self._analytics_service_get_attribute_metric_serialize(
             get_attribute_metric_request=get_attribute_metric_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -503,10 +505,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_attribute_metric_without_preload_content(
+    def analytics_service_get_attribute_metric_without_preload_content(
         self,
         get_attribute_metric_request: GetAttributeMetricRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -526,7 +528,7 @@ class AnalyticsDataApi:
 
         :param get_attribute_metric_request: (required)
         :type get_attribute_metric_request: GetAttributeMetricRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -550,7 +552,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_attribute_metric_serialize(
+        _param = self._analytics_service_get_attribute_metric_serialize(
             get_attribute_metric_request=get_attribute_metric_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -570,7 +572,7 @@ class AnalyticsDataApi:
         return response_data.response
 
 
-    def _analytics_data_service_get_attribute_metric_serialize(
+    def _analytics_service_get_attribute_metric_serialize(
         self,
         get_attribute_metric_request,
         idempotency_key,
@@ -652,10 +654,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_attribute_values(
+    def analytics_service_get_attribute_values(
         self,
         get_attribute_values_request: GetAttributeValuesRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -675,7 +677,7 @@ class AnalyticsDataApi:
 
         :param get_attribute_values_request: (required)
         :type get_attribute_values_request: GetAttributeValuesRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -699,7 +701,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_attribute_values_serialize(
+        _param = self._analytics_service_get_attribute_values_serialize(
             get_attribute_values_request=get_attribute_values_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -724,10 +726,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_attribute_values_with_http_info(
+    def analytics_service_get_attribute_values_with_http_info(
         self,
         get_attribute_values_request: GetAttributeValuesRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -747,7 +749,7 @@ class AnalyticsDataApi:
 
         :param get_attribute_values_request: (required)
         :type get_attribute_values_request: GetAttributeValuesRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -771,7 +773,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_attribute_values_serialize(
+        _param = self._analytics_service_get_attribute_values_serialize(
             get_attribute_values_request=get_attribute_values_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -796,10 +798,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_attribute_values_without_preload_content(
+    def analytics_service_get_attribute_values_without_preload_content(
         self,
         get_attribute_values_request: GetAttributeValuesRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -819,7 +821,7 @@ class AnalyticsDataApi:
 
         :param get_attribute_values_request: (required)
         :type get_attribute_values_request: GetAttributeValuesRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -843,7 +845,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_attribute_values_serialize(
+        _param = self._analytics_service_get_attribute_values_serialize(
             get_attribute_values_request=get_attribute_values_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -863,7 +865,7 @@ class AnalyticsDataApi:
         return response_data.response
 
 
-    def _analytics_data_service_get_attribute_values_serialize(
+    def _analytics_service_get_attribute_values_serialize(
         self,
         get_attribute_values_request,
         idempotency_key,
@@ -945,10 +947,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_breakdown(
+    def analytics_service_get_breakdown(
         self,
         get_breakdown_request: GetBreakdownRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -968,7 +970,7 @@ class AnalyticsDataApi:
 
         :param get_breakdown_request: (required)
         :type get_breakdown_request: GetBreakdownRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -992,7 +994,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_breakdown_serialize(
+        _param = self._analytics_service_get_breakdown_serialize(
             get_breakdown_request=get_breakdown_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -1017,10 +1019,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_breakdown_with_http_info(
+    def analytics_service_get_breakdown_with_http_info(
         self,
         get_breakdown_request: GetBreakdownRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1040,7 +1042,7 @@ class AnalyticsDataApi:
 
         :param get_breakdown_request: (required)
         :type get_breakdown_request: GetBreakdownRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1064,7 +1066,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_breakdown_serialize(
+        _param = self._analytics_service_get_breakdown_serialize(
             get_breakdown_request=get_breakdown_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -1089,10 +1091,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_breakdown_without_preload_content(
+    def analytics_service_get_breakdown_without_preload_content(
         self,
         get_breakdown_request: GetBreakdownRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1112,7 +1114,7 @@ class AnalyticsDataApi:
 
         :param get_breakdown_request: (required)
         :type get_breakdown_request: GetBreakdownRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1136,7 +1138,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_breakdown_serialize(
+        _param = self._analytics_service_get_breakdown_serialize(
             get_breakdown_request=get_breakdown_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -1156,7 +1158,7 @@ class AnalyticsDataApi:
         return response_data.response
 
 
-    def _analytics_data_service_get_breakdown_serialize(
+    def _analytics_service_get_breakdown_serialize(
         self,
         get_breakdown_request,
         idempotency_key,
@@ -1238,10 +1240,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_device_distribution(
+    def analytics_service_get_device_distribution(
         self,
         get_device_distribution_request: GetDeviceDistributionRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1261,7 +1263,7 @@ class AnalyticsDataApi:
 
         :param get_device_distribution_request: (required)
         :type get_device_distribution_request: GetDeviceDistributionRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1285,7 +1287,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_device_distribution_serialize(
+        _param = self._analytics_service_get_device_distribution_serialize(
             get_device_distribution_request=get_device_distribution_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -1310,10 +1312,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_device_distribution_with_http_info(
+    def analytics_service_get_device_distribution_with_http_info(
         self,
         get_device_distribution_request: GetDeviceDistributionRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1333,7 +1335,7 @@ class AnalyticsDataApi:
 
         :param get_device_distribution_request: (required)
         :type get_device_distribution_request: GetDeviceDistributionRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1357,7 +1359,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_device_distribution_serialize(
+        _param = self._analytics_service_get_device_distribution_serialize(
             get_device_distribution_request=get_device_distribution_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -1382,10 +1384,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_device_distribution_without_preload_content(
+    def analytics_service_get_device_distribution_without_preload_content(
         self,
         get_device_distribution_request: GetDeviceDistributionRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1405,7 +1407,7 @@ class AnalyticsDataApi:
 
         :param get_device_distribution_request: (required)
         :type get_device_distribution_request: GetDeviceDistributionRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1429,7 +1431,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_device_distribution_serialize(
+        _param = self._analytics_service_get_device_distribution_serialize(
             get_device_distribution_request=get_device_distribution_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -1449,7 +1451,7 @@ class AnalyticsDataApi:
         return response_data.response
 
 
-    def _analytics_data_service_get_device_distribution_serialize(
+    def _analytics_service_get_device_distribution_serialize(
         self,
         get_device_distribution_request,
         idempotency_key,
@@ -1531,10 +1533,381 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_geo_breakdown(
+    def analytics_service_get_events_metric(
+        self,
+        start_date: Annotated[Optional[datetime], Field(description="Inclusive start timestamp for the aggregation")] = None,
+        end_date: Annotated[Optional[datetime], Field(description="Inclusive end timestamp for the aggregation")] = None,
+        link_id: Annotated[Optional[StrictStr], Field(description="Optional link filter (UUID); when omitted aggregates workspace-wide  UUID format")] = None,
+        directory_id: Annotated[Optional[StrictStr], Field(description="Optional directory filter (UUID): the links of this directory and of every directory below it. Send linkId or directoryId, not both; when both are omitted aggregates workspace-wide")] = None,
+        tag_id: Annotated[Optional[StrictStr], Field(description="Optional tag filter (UUID): every link carrying this tag. Send at most one of linkId, directoryId and tagId")] = None,
+        countries: Annotated[Optional[List[StrictStr]], Field(description="Optional country filter: visits from any of these countries (ISO 3166-1 alpha-2 codes, e.g. \"FR\"). Combines with the link, directory or tag filter")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> EventsMetric:
+        """Get events metric
+
+        Retrieve aggregated event analytics for the provided time window and optional link filter.  Requires the `analytics:read` scope.
+
+        :param start_date: Inclusive start timestamp for the aggregation
+        :type start_date: datetime
+        :param end_date: Inclusive end timestamp for the aggregation
+        :type end_date: datetime
+        :param link_id: Optional link filter (UUID); when omitted aggregates workspace-wide  UUID format
+        :type link_id: str
+        :param directory_id: Optional directory filter (UUID): the links of this directory and of every directory below it. Send linkId or directoryId, not both; when both are omitted aggregates workspace-wide
+        :type directory_id: str
+        :param tag_id: Optional tag filter (UUID): every link carrying this tag. Send at most one of linkId, directoryId and tagId
+        :type tag_id: str
+        :param countries: Optional country filter: visits from any of these countries (ISO 3166-1 alpha-2 codes, e.g. \"FR\"). Combines with the link, directory or tag filter
+        :type countries: List[str]
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._analytics_service_get_events_metric_serialize(
+            start_date=start_date,
+            end_date=end_date,
+            link_id=link_id,
+            directory_id=directory_id,
+            tag_id=tag_id,
+            countries=countries,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "EventsMetric",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def analytics_service_get_events_metric_with_http_info(
+        self,
+        start_date: Annotated[Optional[datetime], Field(description="Inclusive start timestamp for the aggregation")] = None,
+        end_date: Annotated[Optional[datetime], Field(description="Inclusive end timestamp for the aggregation")] = None,
+        link_id: Annotated[Optional[StrictStr], Field(description="Optional link filter (UUID); when omitted aggregates workspace-wide  UUID format")] = None,
+        directory_id: Annotated[Optional[StrictStr], Field(description="Optional directory filter (UUID): the links of this directory and of every directory below it. Send linkId or directoryId, not both; when both are omitted aggregates workspace-wide")] = None,
+        tag_id: Annotated[Optional[StrictStr], Field(description="Optional tag filter (UUID): every link carrying this tag. Send at most one of linkId, directoryId and tagId")] = None,
+        countries: Annotated[Optional[List[StrictStr]], Field(description="Optional country filter: visits from any of these countries (ISO 3166-1 alpha-2 codes, e.g. \"FR\"). Combines with the link, directory or tag filter")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[EventsMetric]:
+        """Get events metric
+
+        Retrieve aggregated event analytics for the provided time window and optional link filter.  Requires the `analytics:read` scope.
+
+        :param start_date: Inclusive start timestamp for the aggregation
+        :type start_date: datetime
+        :param end_date: Inclusive end timestamp for the aggregation
+        :type end_date: datetime
+        :param link_id: Optional link filter (UUID); when omitted aggregates workspace-wide  UUID format
+        :type link_id: str
+        :param directory_id: Optional directory filter (UUID): the links of this directory and of every directory below it. Send linkId or directoryId, not both; when both are omitted aggregates workspace-wide
+        :type directory_id: str
+        :param tag_id: Optional tag filter (UUID): every link carrying this tag. Send at most one of linkId, directoryId and tagId
+        :type tag_id: str
+        :param countries: Optional country filter: visits from any of these countries (ISO 3166-1 alpha-2 codes, e.g. \"FR\"). Combines with the link, directory or tag filter
+        :type countries: List[str]
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._analytics_service_get_events_metric_serialize(
+            start_date=start_date,
+            end_date=end_date,
+            link_id=link_id,
+            directory_id=directory_id,
+            tag_id=tag_id,
+            countries=countries,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "EventsMetric",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def analytics_service_get_events_metric_without_preload_content(
+        self,
+        start_date: Annotated[Optional[datetime], Field(description="Inclusive start timestamp for the aggregation")] = None,
+        end_date: Annotated[Optional[datetime], Field(description="Inclusive end timestamp for the aggregation")] = None,
+        link_id: Annotated[Optional[StrictStr], Field(description="Optional link filter (UUID); when omitted aggregates workspace-wide  UUID format")] = None,
+        directory_id: Annotated[Optional[StrictStr], Field(description="Optional directory filter (UUID): the links of this directory and of every directory below it. Send linkId or directoryId, not both; when both are omitted aggregates workspace-wide")] = None,
+        tag_id: Annotated[Optional[StrictStr], Field(description="Optional tag filter (UUID): every link carrying this tag. Send at most one of linkId, directoryId and tagId")] = None,
+        countries: Annotated[Optional[List[StrictStr]], Field(description="Optional country filter: visits from any of these countries (ISO 3166-1 alpha-2 codes, e.g. \"FR\"). Combines with the link, directory or tag filter")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Get events metric
+
+        Retrieve aggregated event analytics for the provided time window and optional link filter.  Requires the `analytics:read` scope.
+
+        :param start_date: Inclusive start timestamp for the aggregation
+        :type start_date: datetime
+        :param end_date: Inclusive end timestamp for the aggregation
+        :type end_date: datetime
+        :param link_id: Optional link filter (UUID); when omitted aggregates workspace-wide  UUID format
+        :type link_id: str
+        :param directory_id: Optional directory filter (UUID): the links of this directory and of every directory below it. Send linkId or directoryId, not both; when both are omitted aggregates workspace-wide
+        :type directory_id: str
+        :param tag_id: Optional tag filter (UUID): every link carrying this tag. Send at most one of linkId, directoryId and tagId
+        :type tag_id: str
+        :param countries: Optional country filter: visits from any of these countries (ISO 3166-1 alpha-2 codes, e.g. \"FR\"). Combines with the link, directory or tag filter
+        :type countries: List[str]
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._analytics_service_get_events_metric_serialize(
+            start_date=start_date,
+            end_date=end_date,
+            link_id=link_id,
+            directory_id=directory_id,
+            tag_id=tag_id,
+            countries=countries,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "EventsMetric",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _analytics_service_get_events_metric_serialize(
+        self,
+        start_date,
+        end_date,
+        link_id,
+        directory_id,
+        tag_id,
+        countries,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+            'countries': 'multi',
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        # process the query parameters
+        if start_date is not None:
+            if isinstance(start_date, datetime):
+                _query_params.append(
+                    (
+                        'startDate',
+                        start_date.strftime(
+                            self.api_client.configuration.datetime_format
+                        )
+                    )
+                )
+            else:
+                _query_params.append(('startDate', start_date))
+            
+        if end_date is not None:
+            if isinstance(end_date, datetime):
+                _query_params.append(
+                    (
+                        'endDate',
+                        end_date.strftime(
+                            self.api_client.configuration.datetime_format
+                        )
+                    )
+                )
+            else:
+                _query_params.append(('endDate', end_date))
+            
+        if link_id is not None:
+            
+            _query_params.append(('linkId', link_id))
+            
+        if directory_id is not None:
+            
+            _query_params.append(('directoryId', directory_id))
+            
+        if tag_id is not None:
+            
+            _query_params.append(('tagId', tag_id))
+            
+        if countries is not None:
+            
+            _query_params.append(('countries', countries))
+            
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+
+        # set the HTTP header `Accept`
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'oauth2', 
+            'bearerAuth'
+        ]
+
+        return self.api_client.param_serialize(
+            method='GET',
+            resource_path='/v1/metrics/events',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def analytics_service_get_geo_breakdown(
         self,
         get_geo_breakdown_request: GetGeoBreakdownRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1554,7 +1927,7 @@ class AnalyticsDataApi:
 
         :param get_geo_breakdown_request: (required)
         :type get_geo_breakdown_request: GetGeoBreakdownRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1578,7 +1951,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_geo_breakdown_serialize(
+        _param = self._analytics_service_get_geo_breakdown_serialize(
             get_geo_breakdown_request=get_geo_breakdown_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -1603,10 +1976,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_geo_breakdown_with_http_info(
+    def analytics_service_get_geo_breakdown_with_http_info(
         self,
         get_geo_breakdown_request: GetGeoBreakdownRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1626,7 +1999,7 @@ class AnalyticsDataApi:
 
         :param get_geo_breakdown_request: (required)
         :type get_geo_breakdown_request: GetGeoBreakdownRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1650,7 +2023,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_geo_breakdown_serialize(
+        _param = self._analytics_service_get_geo_breakdown_serialize(
             get_geo_breakdown_request=get_geo_breakdown_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -1675,10 +2048,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_geo_breakdown_without_preload_content(
+    def analytics_service_get_geo_breakdown_without_preload_content(
         self,
         get_geo_breakdown_request: GetGeoBreakdownRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1698,7 +2071,7 @@ class AnalyticsDataApi:
 
         :param get_geo_breakdown_request: (required)
         :type get_geo_breakdown_request: GetGeoBreakdownRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1722,7 +2095,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_geo_breakdown_serialize(
+        _param = self._analytics_service_get_geo_breakdown_serialize(
             get_geo_breakdown_request=get_geo_breakdown_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -1742,7 +2115,7 @@ class AnalyticsDataApi:
         return response_data.response
 
 
-    def _analytics_data_service_get_geo_breakdown_serialize(
+    def _analytics_service_get_geo_breakdown_serialize(
         self,
         get_geo_breakdown_request,
         idempotency_key,
@@ -1824,10 +2197,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_grouped_time_series(
+    def analytics_service_get_grouped_time_series(
         self,
         get_grouped_time_series_request: GetGroupedTimeSeriesRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1847,7 +2220,7 @@ class AnalyticsDataApi:
 
         :param get_grouped_time_series_request: (required)
         :type get_grouped_time_series_request: GetGroupedTimeSeriesRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1871,7 +2244,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_grouped_time_series_serialize(
+        _param = self._analytics_service_get_grouped_time_series_serialize(
             get_grouped_time_series_request=get_grouped_time_series_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -1896,10 +2269,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_grouped_time_series_with_http_info(
+    def analytics_service_get_grouped_time_series_with_http_info(
         self,
         get_grouped_time_series_request: GetGroupedTimeSeriesRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1919,7 +2292,7 @@ class AnalyticsDataApi:
 
         :param get_grouped_time_series_request: (required)
         :type get_grouped_time_series_request: GetGroupedTimeSeriesRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1943,7 +2316,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_grouped_time_series_serialize(
+        _param = self._analytics_service_get_grouped_time_series_serialize(
             get_grouped_time_series_request=get_grouped_time_series_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -1968,10 +2341,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_grouped_time_series_without_preload_content(
+    def analytics_service_get_grouped_time_series_without_preload_content(
         self,
         get_grouped_time_series_request: GetGroupedTimeSeriesRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1991,7 +2364,7 @@ class AnalyticsDataApi:
 
         :param get_grouped_time_series_request: (required)
         :type get_grouped_time_series_request: GetGroupedTimeSeriesRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2015,7 +2388,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_grouped_time_series_serialize(
+        _param = self._analytics_service_get_grouped_time_series_serialize(
             get_grouped_time_series_request=get_grouped_time_series_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -2035,7 +2408,7 @@ class AnalyticsDataApi:
         return response_data.response
 
 
-    def _analytics_data_service_get_grouped_time_series_serialize(
+    def _analytics_service_get_grouped_time_series_serialize(
         self,
         get_grouped_time_series_request,
         idempotency_key,
@@ -2117,10 +2490,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_hour_of_day_distribution(
+    def analytics_service_get_hour_of_day_distribution(
         self,
         get_hour_of_day_distribution_request: GetHourOfDayDistributionRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2140,7 +2513,7 @@ class AnalyticsDataApi:
 
         :param get_hour_of_day_distribution_request: (required)
         :type get_hour_of_day_distribution_request: GetHourOfDayDistributionRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2164,7 +2537,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_hour_of_day_distribution_serialize(
+        _param = self._analytics_service_get_hour_of_day_distribution_serialize(
             get_hour_of_day_distribution_request=get_hour_of_day_distribution_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -2189,10 +2562,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_hour_of_day_distribution_with_http_info(
+    def analytics_service_get_hour_of_day_distribution_with_http_info(
         self,
         get_hour_of_day_distribution_request: GetHourOfDayDistributionRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2212,7 +2585,7 @@ class AnalyticsDataApi:
 
         :param get_hour_of_day_distribution_request: (required)
         :type get_hour_of_day_distribution_request: GetHourOfDayDistributionRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2236,7 +2609,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_hour_of_day_distribution_serialize(
+        _param = self._analytics_service_get_hour_of_day_distribution_serialize(
             get_hour_of_day_distribution_request=get_hour_of_day_distribution_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -2261,10 +2634,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_hour_of_day_distribution_without_preload_content(
+    def analytics_service_get_hour_of_day_distribution_without_preload_content(
         self,
         get_hour_of_day_distribution_request: GetHourOfDayDistributionRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2284,7 +2657,7 @@ class AnalyticsDataApi:
 
         :param get_hour_of_day_distribution_request: (required)
         :type get_hour_of_day_distribution_request: GetHourOfDayDistributionRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2308,7 +2681,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_hour_of_day_distribution_serialize(
+        _param = self._analytics_service_get_hour_of_day_distribution_serialize(
             get_hour_of_day_distribution_request=get_hour_of_day_distribution_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -2328,7 +2701,7 @@ class AnalyticsDataApi:
         return response_data.response
 
 
-    def _analytics_data_service_get_hour_of_day_distribution_serialize(
+    def _analytics_service_get_hour_of_day_distribution_serialize(
         self,
         get_hour_of_day_distribution_request,
         idempotency_key,
@@ -2410,14 +2783,14 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_shared_locations(
+    def analytics_service_get_shared_locations(
         self,
-        start_date: Annotated[Optional[datetime], Field(description="Inclusive start timestamp. Without start_date and end_date the request covers all time.")] = None,
+        start_date: Annotated[Optional[datetime], Field(description="Inclusive start timestamp. Without startDate and endDate the request covers all time.")] = None,
         end_date: Annotated[Optional[datetime], Field(description="Exclusive end timestamp")] = None,
         limit: Annotated[Optional[StrictInt], Field(description="Maximum number of positions returned, newest first. Defaults to and may not exceed 2000. total still counts every match.")] = None,
         link_id: Annotated[Optional[StrictStr], Field(description="Optional link filter (UUID); when omitted covers the whole workspace")] = None,
-        directory_id: Annotated[Optional[StrictStr], Field(description="Optional directory filter (UUID): the links of this directory and of every directory below it. Send at most one of link_id, directory_id and tag_id")] = None,
-        tag_id: Annotated[Optional[StrictStr], Field(description="Optional tag filter (UUID): every link carrying this tag. Send at most one of link_id, directory_id and tag_id")] = None,
+        directory_id: Annotated[Optional[StrictStr], Field(description="Optional directory filter (UUID): the links of this directory and of every directory below it. Send at most one of linkId, directoryId and tagId")] = None,
+        tag_id: Annotated[Optional[StrictStr], Field(description="Optional tag filter (UUID): every link carrying this tag. Send at most one of linkId, directoryId and tagId")] = None,
         countries: Annotated[Optional[List[StrictStr]], Field(description="Optional country filter: visits from any of these countries (ISO 3166-1 alpha-2 codes, e.g. \"FR\"). Combines with the link, directory or tag filter")] = None,
         _request_timeout: Union[
             None,
@@ -2434,9 +2807,9 @@ class AnalyticsDataApi:
     ) -> GetSharedLocationsResponse:
         """List shared locations
 
-        Returns the precise positions visitors shared through a Location request workflow step, newest first, capped at 2000, with the total count. Without start_date and end_date it covers all time.  Requires the `analytics:read` scope.
+        Returns the precise positions visitors shared through a Location request workflow step, newest first, capped at 2000, with the total count. Without startDate and endDate it covers all time.  Requires the `analytics:read` scope.
 
-        :param start_date: Inclusive start timestamp. Without start_date and end_date the request covers all time.
+        :param start_date: Inclusive start timestamp. Without startDate and endDate the request covers all time.
         :type start_date: datetime
         :param end_date: Exclusive end timestamp
         :type end_date: datetime
@@ -2444,9 +2817,9 @@ class AnalyticsDataApi:
         :type limit: int
         :param link_id: Optional link filter (UUID); when omitted covers the whole workspace
         :type link_id: str
-        :param directory_id: Optional directory filter (UUID): the links of this directory and of every directory below it. Send at most one of link_id, directory_id and tag_id
+        :param directory_id: Optional directory filter (UUID): the links of this directory and of every directory below it. Send at most one of linkId, directoryId and tagId
         :type directory_id: str
-        :param tag_id: Optional tag filter (UUID): every link carrying this tag. Send at most one of link_id, directory_id and tag_id
+        :param tag_id: Optional tag filter (UUID): every link carrying this tag. Send at most one of linkId, directoryId and tagId
         :type tag_id: str
         :param countries: Optional country filter: visits from any of these countries (ISO 3166-1 alpha-2 codes, e.g. \"FR\"). Combines with the link, directory or tag filter
         :type countries: List[str]
@@ -2472,7 +2845,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_shared_locations_serialize(
+        _param = self._analytics_service_get_shared_locations_serialize(
             start_date=start_date,
             end_date=end_date,
             limit=limit,
@@ -2502,14 +2875,14 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_shared_locations_with_http_info(
+    def analytics_service_get_shared_locations_with_http_info(
         self,
-        start_date: Annotated[Optional[datetime], Field(description="Inclusive start timestamp. Without start_date and end_date the request covers all time.")] = None,
+        start_date: Annotated[Optional[datetime], Field(description="Inclusive start timestamp. Without startDate and endDate the request covers all time.")] = None,
         end_date: Annotated[Optional[datetime], Field(description="Exclusive end timestamp")] = None,
         limit: Annotated[Optional[StrictInt], Field(description="Maximum number of positions returned, newest first. Defaults to and may not exceed 2000. total still counts every match.")] = None,
         link_id: Annotated[Optional[StrictStr], Field(description="Optional link filter (UUID); when omitted covers the whole workspace")] = None,
-        directory_id: Annotated[Optional[StrictStr], Field(description="Optional directory filter (UUID): the links of this directory and of every directory below it. Send at most one of link_id, directory_id and tag_id")] = None,
-        tag_id: Annotated[Optional[StrictStr], Field(description="Optional tag filter (UUID): every link carrying this tag. Send at most one of link_id, directory_id and tag_id")] = None,
+        directory_id: Annotated[Optional[StrictStr], Field(description="Optional directory filter (UUID): the links of this directory and of every directory below it. Send at most one of linkId, directoryId and tagId")] = None,
+        tag_id: Annotated[Optional[StrictStr], Field(description="Optional tag filter (UUID): every link carrying this tag. Send at most one of linkId, directoryId and tagId")] = None,
         countries: Annotated[Optional[List[StrictStr]], Field(description="Optional country filter: visits from any of these countries (ISO 3166-1 alpha-2 codes, e.g. \"FR\"). Combines with the link, directory or tag filter")] = None,
         _request_timeout: Union[
             None,
@@ -2526,9 +2899,9 @@ class AnalyticsDataApi:
     ) -> ApiResponse[GetSharedLocationsResponse]:
         """List shared locations
 
-        Returns the precise positions visitors shared through a Location request workflow step, newest first, capped at 2000, with the total count. Without start_date and end_date it covers all time.  Requires the `analytics:read` scope.
+        Returns the precise positions visitors shared through a Location request workflow step, newest first, capped at 2000, with the total count. Without startDate and endDate it covers all time.  Requires the `analytics:read` scope.
 
-        :param start_date: Inclusive start timestamp. Without start_date and end_date the request covers all time.
+        :param start_date: Inclusive start timestamp. Without startDate and endDate the request covers all time.
         :type start_date: datetime
         :param end_date: Exclusive end timestamp
         :type end_date: datetime
@@ -2536,9 +2909,9 @@ class AnalyticsDataApi:
         :type limit: int
         :param link_id: Optional link filter (UUID); when omitted covers the whole workspace
         :type link_id: str
-        :param directory_id: Optional directory filter (UUID): the links of this directory and of every directory below it. Send at most one of link_id, directory_id and tag_id
+        :param directory_id: Optional directory filter (UUID): the links of this directory and of every directory below it. Send at most one of linkId, directoryId and tagId
         :type directory_id: str
-        :param tag_id: Optional tag filter (UUID): every link carrying this tag. Send at most one of link_id, directory_id and tag_id
+        :param tag_id: Optional tag filter (UUID): every link carrying this tag. Send at most one of linkId, directoryId and tagId
         :type tag_id: str
         :param countries: Optional country filter: visits from any of these countries (ISO 3166-1 alpha-2 codes, e.g. \"FR\"). Combines with the link, directory or tag filter
         :type countries: List[str]
@@ -2564,7 +2937,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_shared_locations_serialize(
+        _param = self._analytics_service_get_shared_locations_serialize(
             start_date=start_date,
             end_date=end_date,
             limit=limit,
@@ -2594,14 +2967,14 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_shared_locations_without_preload_content(
+    def analytics_service_get_shared_locations_without_preload_content(
         self,
-        start_date: Annotated[Optional[datetime], Field(description="Inclusive start timestamp. Without start_date and end_date the request covers all time.")] = None,
+        start_date: Annotated[Optional[datetime], Field(description="Inclusive start timestamp. Without startDate and endDate the request covers all time.")] = None,
         end_date: Annotated[Optional[datetime], Field(description="Exclusive end timestamp")] = None,
         limit: Annotated[Optional[StrictInt], Field(description="Maximum number of positions returned, newest first. Defaults to and may not exceed 2000. total still counts every match.")] = None,
         link_id: Annotated[Optional[StrictStr], Field(description="Optional link filter (UUID); when omitted covers the whole workspace")] = None,
-        directory_id: Annotated[Optional[StrictStr], Field(description="Optional directory filter (UUID): the links of this directory and of every directory below it. Send at most one of link_id, directory_id and tag_id")] = None,
-        tag_id: Annotated[Optional[StrictStr], Field(description="Optional tag filter (UUID): every link carrying this tag. Send at most one of link_id, directory_id and tag_id")] = None,
+        directory_id: Annotated[Optional[StrictStr], Field(description="Optional directory filter (UUID): the links of this directory and of every directory below it. Send at most one of linkId, directoryId and tagId")] = None,
+        tag_id: Annotated[Optional[StrictStr], Field(description="Optional tag filter (UUID): every link carrying this tag. Send at most one of linkId, directoryId and tagId")] = None,
         countries: Annotated[Optional[List[StrictStr]], Field(description="Optional country filter: visits from any of these countries (ISO 3166-1 alpha-2 codes, e.g. \"FR\"). Combines with the link, directory or tag filter")] = None,
         _request_timeout: Union[
             None,
@@ -2618,9 +2991,9 @@ class AnalyticsDataApi:
     ) -> RESTResponseType:
         """List shared locations
 
-        Returns the precise positions visitors shared through a Location request workflow step, newest first, capped at 2000, with the total count. Without start_date and end_date it covers all time.  Requires the `analytics:read` scope.
+        Returns the precise positions visitors shared through a Location request workflow step, newest first, capped at 2000, with the total count. Without startDate and endDate it covers all time.  Requires the `analytics:read` scope.
 
-        :param start_date: Inclusive start timestamp. Without start_date and end_date the request covers all time.
+        :param start_date: Inclusive start timestamp. Without startDate and endDate the request covers all time.
         :type start_date: datetime
         :param end_date: Exclusive end timestamp
         :type end_date: datetime
@@ -2628,9 +3001,9 @@ class AnalyticsDataApi:
         :type limit: int
         :param link_id: Optional link filter (UUID); when omitted covers the whole workspace
         :type link_id: str
-        :param directory_id: Optional directory filter (UUID): the links of this directory and of every directory below it. Send at most one of link_id, directory_id and tag_id
+        :param directory_id: Optional directory filter (UUID): the links of this directory and of every directory below it. Send at most one of linkId, directoryId and tagId
         :type directory_id: str
-        :param tag_id: Optional tag filter (UUID): every link carrying this tag. Send at most one of link_id, directory_id and tag_id
+        :param tag_id: Optional tag filter (UUID): every link carrying this tag. Send at most one of linkId, directoryId and tagId
         :type tag_id: str
         :param countries: Optional country filter: visits from any of these countries (ISO 3166-1 alpha-2 codes, e.g. \"FR\"). Combines with the link, directory or tag filter
         :type countries: List[str]
@@ -2656,7 +3029,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_shared_locations_serialize(
+        _param = self._analytics_service_get_shared_locations_serialize(
             start_date=start_date,
             end_date=end_date,
             limit=limit,
@@ -2681,7 +3054,7 @@ class AnalyticsDataApi:
         return response_data.response
 
 
-    def _analytics_data_service_get_shared_locations_serialize(
+    def _analytics_service_get_shared_locations_serialize(
         self,
         start_date,
         end_date,
@@ -2798,10 +3171,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_step_funnel(
+    def analytics_service_get_step_funnel(
         self,
         get_step_funnel_request: GetStepFunnelRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2821,7 +3194,7 @@ class AnalyticsDataApi:
 
         :param get_step_funnel_request: (required)
         :type get_step_funnel_request: GetStepFunnelRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2845,7 +3218,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_step_funnel_serialize(
+        _param = self._analytics_service_get_step_funnel_serialize(
             get_step_funnel_request=get_step_funnel_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -2870,10 +3243,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_step_funnel_with_http_info(
+    def analytics_service_get_step_funnel_with_http_info(
         self,
         get_step_funnel_request: GetStepFunnelRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2893,7 +3266,7 @@ class AnalyticsDataApi:
 
         :param get_step_funnel_request: (required)
         :type get_step_funnel_request: GetStepFunnelRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2917,7 +3290,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_step_funnel_serialize(
+        _param = self._analytics_service_get_step_funnel_serialize(
             get_step_funnel_request=get_step_funnel_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -2942,10 +3315,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_step_funnel_without_preload_content(
+    def analytics_service_get_step_funnel_without_preload_content(
         self,
         get_step_funnel_request: GetStepFunnelRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2965,7 +3338,7 @@ class AnalyticsDataApi:
 
         :param get_step_funnel_request: (required)
         :type get_step_funnel_request: GetStepFunnelRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -2989,7 +3362,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_step_funnel_serialize(
+        _param = self._analytics_service_get_step_funnel_serialize(
             get_step_funnel_request=get_step_funnel_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -3009,7 +3382,7 @@ class AnalyticsDataApi:
         return response_data.response
 
 
-    def _analytics_data_service_get_step_funnel_serialize(
+    def _analytics_service_get_step_funnel_serialize(
         self,
         get_step_funnel_request,
         idempotency_key,
@@ -3091,10 +3464,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_top_links(
+    def analytics_service_get_top_links(
         self,
         get_top_links_request: GetTopLinksRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -3114,7 +3487,7 @@ class AnalyticsDataApi:
 
         :param get_top_links_request: (required)
         :type get_top_links_request: GetTopLinksRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -3138,7 +3511,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_top_links_serialize(
+        _param = self._analytics_service_get_top_links_serialize(
             get_top_links_request=get_top_links_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -3163,10 +3536,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_top_links_with_http_info(
+    def analytics_service_get_top_links_with_http_info(
         self,
         get_top_links_request: GetTopLinksRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -3186,7 +3559,7 @@ class AnalyticsDataApi:
 
         :param get_top_links_request: (required)
         :type get_top_links_request: GetTopLinksRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -3210,7 +3583,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_top_links_serialize(
+        _param = self._analytics_service_get_top_links_serialize(
             get_top_links_request=get_top_links_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -3235,10 +3608,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_top_links_without_preload_content(
+    def analytics_service_get_top_links_without_preload_content(
         self,
         get_top_links_request: GetTopLinksRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -3258,7 +3631,7 @@ class AnalyticsDataApi:
 
         :param get_top_links_request: (required)
         :type get_top_links_request: GetTopLinksRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -3282,7 +3655,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_top_links_serialize(
+        _param = self._analytics_service_get_top_links_serialize(
             get_top_links_request=get_top_links_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -3302,7 +3675,7 @@ class AnalyticsDataApi:
         return response_data.response
 
 
-    def _analytics_data_service_get_top_links_serialize(
+    def _analytics_service_get_top_links_serialize(
         self,
         get_top_links_request,
         idempotency_key,
@@ -3384,10 +3757,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_traffic_split_results(
+    def analytics_service_get_traffic_split_results(
         self,
         get_traffic_split_results_request: GetTrafficSplitResultsRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -3407,7 +3780,7 @@ class AnalyticsDataApi:
 
         :param get_traffic_split_results_request: (required)
         :type get_traffic_split_results_request: GetTrafficSplitResultsRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -3431,7 +3804,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_traffic_split_results_serialize(
+        _param = self._analytics_service_get_traffic_split_results_serialize(
             get_traffic_split_results_request=get_traffic_split_results_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -3456,10 +3829,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_traffic_split_results_with_http_info(
+    def analytics_service_get_traffic_split_results_with_http_info(
         self,
         get_traffic_split_results_request: GetTrafficSplitResultsRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -3479,7 +3852,7 @@ class AnalyticsDataApi:
 
         :param get_traffic_split_results_request: (required)
         :type get_traffic_split_results_request: GetTrafficSplitResultsRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -3503,7 +3876,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_traffic_split_results_serialize(
+        _param = self._analytics_service_get_traffic_split_results_serialize(
             get_traffic_split_results_request=get_traffic_split_results_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -3528,10 +3901,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_traffic_split_results_without_preload_content(
+    def analytics_service_get_traffic_split_results_without_preload_content(
         self,
         get_traffic_split_results_request: GetTrafficSplitResultsRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -3551,7 +3924,7 @@ class AnalyticsDataApi:
 
         :param get_traffic_split_results_request: (required)
         :type get_traffic_split_results_request: GetTrafficSplitResultsRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -3575,7 +3948,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_traffic_split_results_serialize(
+        _param = self._analytics_service_get_traffic_split_results_serialize(
             get_traffic_split_results_request=get_traffic_split_results_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -3595,7 +3968,7 @@ class AnalyticsDataApi:
         return response_data.response
 
 
-    def _analytics_data_service_get_traffic_split_results_serialize(
+    def _analytics_service_get_traffic_split_results_serialize(
         self,
         get_traffic_split_results_request,
         idempotency_key,
@@ -3677,10 +4050,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_visitor_trends(
+    def analytics_service_get_visitor_trends(
         self,
         get_visitor_trends_request: GetVisitorTrendsRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -3700,7 +4073,7 @@ class AnalyticsDataApi:
 
         :param get_visitor_trends_request: (required)
         :type get_visitor_trends_request: GetVisitorTrendsRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -3724,7 +4097,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_visitor_trends_serialize(
+        _param = self._analytics_service_get_visitor_trends_serialize(
             get_visitor_trends_request=get_visitor_trends_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -3749,10 +4122,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_visitor_trends_with_http_info(
+    def analytics_service_get_visitor_trends_with_http_info(
         self,
         get_visitor_trends_request: GetVisitorTrendsRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -3772,7 +4145,7 @@ class AnalyticsDataApi:
 
         :param get_visitor_trends_request: (required)
         :type get_visitor_trends_request: GetVisitorTrendsRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -3796,7 +4169,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_visitor_trends_serialize(
+        _param = self._analytics_service_get_visitor_trends_serialize(
             get_visitor_trends_request=get_visitor_trends_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -3821,10 +4194,10 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_get_visitor_trends_without_preload_content(
+    def analytics_service_get_visitor_trends_without_preload_content(
         self,
         get_visitor_trends_request: GetVisitorTrendsRequest,
-        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="Makes retrying this request safe. See components.parameters.IdempotencyKey.")] = None,
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -3844,7 +4217,7 @@ class AnalyticsDataApi:
 
         :param get_visitor_trends_request: (required)
         :type get_visitor_trends_request: GetVisitorTrendsRequest
-        :param idempotency_key: Makes retrying this request safe. See components.parameters.IdempotencyKey.
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -3868,7 +4241,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_get_visitor_trends_serialize(
+        _param = self._analytics_service_get_visitor_trends_serialize(
             get_visitor_trends_request=get_visitor_trends_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
@@ -3888,7 +4261,7 @@ class AnalyticsDataApi:
         return response_data.response
 
 
-    def _analytics_data_service_get_visitor_trends_serialize(
+    def _analytics_service_get_visitor_trends_serialize(
         self,
         get_visitor_trends_request,
         idempotency_key,
@@ -3970,7 +4343,257 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_list_visitor_countries(
+    def analytics_service_get_workspace_metric(
+        self,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> WorkspaceMetric:
+        """Get workspace metric
+
+        Return high-level workspace totals covering members, links, and activity volume.  Requires the `analytics:read` scope.
+
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._analytics_service_get_workspace_metric_serialize(
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "WorkspaceMetric",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def analytics_service_get_workspace_metric_with_http_info(
+        self,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[WorkspaceMetric]:
+        """Get workspace metric
+
+        Return high-level workspace totals covering members, links, and activity volume.  Requires the `analytics:read` scope.
+
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._analytics_service_get_workspace_metric_serialize(
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "WorkspaceMetric",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def analytics_service_get_workspace_metric_without_preload_content(
+        self,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Get workspace metric
+
+        Return high-level workspace totals covering members, links, and activity volume.  Requires the `analytics:read` scope.
+
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._analytics_service_get_workspace_metric_serialize(
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "WorkspaceMetric",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _analytics_service_get_workspace_metric_serialize(
+        self,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+
+        # set the HTTP header `Accept`
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'oauth2', 
+            'bearerAuth'
+        ]
+
+        return self.api_client.param_serialize(
+            method='GET',
+            resource_path='/v1/metrics/workspace',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def analytics_service_list_visitor_countries(
         self,
         _request_timeout: Union[
             None,
@@ -4011,7 +4634,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_list_visitor_countries_serialize(
+        _param = self._analytics_service_list_visitor_countries_serialize(
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -4034,7 +4657,7 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_list_visitor_countries_with_http_info(
+    def analytics_service_list_visitor_countries_with_http_info(
         self,
         _request_timeout: Union[
             None,
@@ -4075,7 +4698,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_list_visitor_countries_serialize(
+        _param = self._analytics_service_list_visitor_countries_serialize(
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -4098,7 +4721,7 @@ class AnalyticsDataApi:
 
 
     @validate_call
-    def analytics_data_service_list_visitor_countries_without_preload_content(
+    def analytics_service_list_visitor_countries_without_preload_content(
         self,
         _request_timeout: Union[
             None,
@@ -4139,7 +4762,7 @@ class AnalyticsDataApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._analytics_data_service_list_visitor_countries_serialize(
+        _param = self._analytics_service_list_visitor_countries_serialize(
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -4157,7 +4780,7 @@ class AnalyticsDataApi:
         return response_data.response
 
 
-    def _analytics_data_service_list_visitor_countries_serialize(
+    def _analytics_service_list_visitor_countries_serialize(
         self,
         _request_auth,
         _content_type,
