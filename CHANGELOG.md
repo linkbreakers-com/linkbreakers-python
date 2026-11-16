@@ -142,19 +142,17 @@ and `...Response` are `CreateQrcodeDesignRequest` and `...Response`,
 
 Paths changed too, and this release calls the new ones. The API removes a
 former path once no client has called it for 14 days; the production logs
-showed no outside call on most of them, so they are gone and an older release
-of this SDK gets `404` there. Only the identify path still answers, with
-`Deprecation` and `Sunset` response headers, until 2027-06-01 or until it
-goes 14 days without a call:
+showed no outside call on any of them, so they are all gone and an older
+release of this SDK gets `404` there:
 
-| Former path | Current path | Former path still answers |
-|---|---|---|
-| `POST /v1/visitor/identify` | `POST /v1/visitors:identify` | yes |
-| `POST /v1/public/qrcode-designs` | `POST /v1/qrcode-designs` | no |
-| `GET /v1/allowances` | `GET /v1/plan-usage` | no |
-| `POST /v1/allowances/dismiss` | `POST /v1/plan-usage/dismiss` | no |
-| `POST /v1/custom-domains/{id}/check` | `POST /v1/custom-domains/{id}:verify` | no |
-| `POST /v1/auth/email/verification/request` | `POST /v1/members/email-verification` | no |
+| Former path | Current path |
+|---|---|
+| `POST /v1/visitor/identify` | `POST /v1/visitors:identify` |
+| `POST /v1/public/qrcode-designs` | `POST /v1/qrcode-designs` |
+| `GET /v1/allowances` | `GET /v1/plan-usage` |
+| `POST /v1/allowances/dismiss` | `POST /v1/plan-usage/dismiss` |
+| `POST /v1/custom-domains/{id}/check` | `POST /v1/custom-domains/{id}:verify` |
+| `POST /v1/auth/email/verification/request` | `POST /v1/members/email-verification` |
 
 ### Moved operation (2026-11-16)
 
