@@ -16,7 +16,6 @@ linkbreakers/api/integrations_api.py
 linkbreakers/api/integrations_contact_tools_api.py
 linkbreakers/api/integrations_forms_api.py
 linkbreakers/api/integrations_google_analytics_api.py
-linkbreakers/api/integrations_google_forms_api.py
 linkbreakers/api/integrations_retargeting_pixels_api.py
 linkbreakers/api/integrations_slack_api.py
 linkbreakers/api/jobs_api.py
@@ -279,6 +278,7 @@ linkbreakers/models/form_connection_status.py
 linkbreakers/models/form_field.py
 linkbreakers/models/form_field_option.py
 linkbreakers/models/form_field_type.py
+linkbreakers/models/form_integrations_service_choose_form_link_body.py
 linkbreakers/models/form_integrations_service_complete_o_auth_body.py
 linkbreakers/models/form_integrations_service_connect_body.py
 linkbreakers/models/form_integrations_service_update_body.py
