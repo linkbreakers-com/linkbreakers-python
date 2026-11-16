@@ -9,7 +9,6 @@ linkbreakers/api/agents_api.py
 linkbreakers/api/analytics_api.py
 linkbreakers/api/analytics_dashboards_api.py
 linkbreakers/api/api_scopes_api.py
-linkbreakers/api/auth_api.py
 linkbreakers/api/custom_domains_api.py
 linkbreakers/api/directories_api.py
 linkbreakers/api/events_api.py

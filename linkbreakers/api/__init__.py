@@ -5,7 +5,6 @@ from linkbreakers.api.api_scopes_api import APIScopesApi
 from linkbreakers.api.agents_api import AgentsApi
 from linkbreakers.api.analytics_api import AnalyticsApi
 from linkbreakers.api.analytics_dashboards_api import AnalyticsDashboardsApi
-from linkbreakers.api.auth_api import AuthApi
 from linkbreakers.api.custom_domains_api import CustomDomainsApi
 from linkbreakers.api.directories_api import DirectoriesApi
 from linkbreakers.api.events_api import EventsApi
