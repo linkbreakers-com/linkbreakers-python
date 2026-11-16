@@ -18,7 +18,7 @@ class (the methods keep their names):
 | AnalyticsDashboardApi | AnalyticsDashboardsApi |
 | ContactIntegrationsApi | IntegrationsContactToolsApi |
 | FormIntegrationsApi | IntegrationsFormsApi |
-| GoogleFormsIntegrationsApi | IntegrationsGoogleFormsApi |
+| GoogleFormsIntegrationsApi | removed: Google Forms is a form tool, see below |
 | SlackIntegrationsApi | IntegrationsSlackApi |
 | GoogleAnalyticsIntegrationsApi | IntegrationsGoogleAnalyticsApi |
 | RetargetingPixelsApi | IntegrationsRetargetingPixelsApi |
@@ -166,3 +166,32 @@ sends the verification email again, and verifying the address lifts the pause.
 - POST /v1/links/batch has its own summary, distinct from /v1/links/bulk.
 - ErrorResponse.code is documented as the gRPC status code (16 for missing
   credentials), which is what the API has always returned.
+
+### Google Forms is one of the form tools (2026-11-16)
+
+Google Forms and the other form tools were two separate parts of the API. Google
+Forms is now the tool `FORM_TOOL_GOOGLE_FORMS` of IntegrationsFormsApi, under
+`/v1/form-integrations/{tool}`, and the Integrations: Google Forms section is
+gone, so IntegrationsGoogleFormsApi (GoogleFormsIntegrationsApi before) and its
+models (`GoogleFormsIntegration`, `GoogleFormsIntegrationStatus`,
+`DetectedGoogleForm`, ...) go away. Over the 14 days before the change nothing
+outside the Linkbreakers dashboard called `/v1/google-forms-integrations`; it is
+removed with no alias, and an older release gets `404` there.
+
+| Before (GoogleFormsIntegrationsService_...) | After (FormIntegrationsService_..., tool `FORM_TOOL_GOOGLE_FORMS`) |
+|---|---|
+| Get | Get |
+| Update | Update (status `ACTIVE` or `PAUSED`, delivery) |
+| Delete | Disconnect |
+| ListDetectedForms | ListForms |
+| SyncNow | PrepareForms (reads the new responses now, then lists the forms) |
+| ChooseFormLink | ChooseFormLink (new: `POST /v1/form-integrations/{tool}/forms/{formId}/link`) |
+
+New in the form tools models: `FormTool.FORM_TOOL_GOOGLE_FORMS`,
+`FormConnectionStatus.FORM_CONNECTION_STATUS_ACCESS_REVOKED` (Google access
+removed: disconnect and connect again), `FormConnection.lastSyncedAt`,
+`FormReadiness.FORM_READINESS_NEEDS_ACCESS` and
+`FORM_READINESS_OTHER_LINK_CHOSEN`, `DetectedToolForm.shared` and `chosen`, and
+the `ChooseFormToolFormLinkRequest` body. `Connect` with an API key answers
+`FORM_TOOL_SIGN_IN_REQUIRED` for Google Forms, which connects by signing in to
+Google in the dashboard.
