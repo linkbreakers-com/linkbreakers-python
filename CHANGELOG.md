@@ -134,17 +134,21 @@ and `...Response` are `CreateQrcodeDesignRequest` and `...Response`,
 `ShortlinkRandomResponse` is `GenerateShortlinkResponse` and
 `ShortlinkAvailabilityResponse` is `CheckShortlinkAvailabilityResponse`.
 
-Four paths changed. The API keeps answering the former ones until at least
-2027-06-01 (with `Deprecation` and `Sunset` response headers), so an older
-release of this SDK keeps working until then; this release calls the new ones:
+Paths changed too, and this release calls the new ones. The API removes a
+former path once no client has called it for 14 days; the production logs
+showed no outside call on most of them, so they are gone and an older release
+of this SDK gets `404` there. Only the identify path still answers, with
+`Deprecation` and `Sunset` response headers, until 2027-06-01 or until it
+goes 14 days without a call:
 
-| Former path | Current path |
-|---|---|
-| `POST /v1/visitor/identify` | `POST /v1/visitors:identify` |
-| `POST /v1/public/qrcode-designs` | `POST /v1/qrcode-designs` |
-| `GET /v1/allowances` | `GET /v1/plan-usage` |
-| `POST /v1/custom-domains/{id}/check` | `POST /v1/custom-domains/{id}:verify` |
-| `POST /v1/auth/email/verification/request` | `POST /v1/members/email-verification` |
+| Former path | Current path | Former path still answers |
+|---|---|---|
+| `POST /v1/visitor/identify` | `POST /v1/visitors:identify` | yes |
+| `POST /v1/public/qrcode-designs` | `POST /v1/qrcode-designs` | no |
+| `GET /v1/allowances` | `GET /v1/plan-usage` | no |
+| `POST /v1/allowances/dismiss` | `POST /v1/plan-usage/dismiss` | no |
+| `POST /v1/custom-domains/{id}/check` | `POST /v1/custom-domains/{id}:verify` | no |
+| `POST /v1/auth/email/verification/request` | `POST /v1/members/email-verification` | no |
 
 ### Moved operation (2026-11-16)
 
@@ -153,8 +157,8 @@ Resending a member's verification email is now in the Members section, so
 method keeps its name; the operation id is still
 `AuthService_RequestEmailVerification`). AuthApi had no other public
 operation and goes away. Its path is now `POST /v1/members/email-verification`;
-the former `POST /v1/auth/email/verification/request` keeps answering until
-at least 2027-06-01. Call it when a call answers `WORKSPACE_UNVERIFIED`: it
+the former `POST /v1/auth/email/verification/request` is removed (only the
+dashboard called it). Call it when a call answers `WORKSPACE_UNVERIFIED`: it
 sends the verification email again, and verifying the address lifts the pause.
 
 ### Other
