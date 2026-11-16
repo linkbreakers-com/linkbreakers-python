@@ -6,7 +6,7 @@
 
     The Linkbreakers REST API: links, QR codes, workflows, visitors and analytics, as JSON over HTTPS. Send a workspace API token as `Authorization: Bearer <token>`.  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Paused workspaces  A free workspace whose members have not verified any email address is paused 7 days after sign-up. Its calls then answer `403` with the code `WORKSPACE_UNVERIFIED` and change nothing; QR codes and links keep working for visitors. To lift the pause, ask the workspace owner to verify their email: `POST /v1/members/email-verification` sends the verification email again, and works while the workspace is paused. `unverifiedPauseAt` on the workspace says when the pause starts.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  A renamed operation keeps answering its former path while clients still call it, until that path's sunset at the latest: a former path no client calls for 14 days is removed. Responses on a former path carry the same `Deprecation`, `Sunset` and `Link` header fields; this document lists only the current path, and the policy lists the former paths that still answer.  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
 
-    The version of the OpenAPI document: 1.200.1
+    The version of the OpenAPI document: 1.200.2
     Contact: support@linkbreakers.com
     Generated by OpenAPI Generator (https://openapi-generator.tech)
 
@@ -56,8 +56,6 @@ from linkbreakers.models.assistant_display_message_attachment import AssistantDi
 from linkbreakers.models.assistant_get_conversation_response import AssistantGetConversationResponse
 from linkbreakers.models.assistant_mark_conversation_read_request import AssistantMarkConversationReadRequest
 from linkbreakers.models.assistant_mark_conversation_read_response import AssistantMarkConversationReadResponse
-from linkbreakers.models.assistant_upload_file_request import AssistantUploadFileRequest
-from linkbreakers.models.assistant_upload_file_response import AssistantUploadFileResponse
 from linkbreakers.models.attribute_capture import AttributeCapture
 from linkbreakers.models.attribute_value_data_point import AttributeValueDataPoint
 from linkbreakers.models.attribute_value_entry import AttributeValueEntry
@@ -97,6 +95,7 @@ from linkbreakers.models.complete_contact_tool_o_auth_response import CompleteCo
 from linkbreakers.models.complete_form_tool_o_auth_response import CompleteFormToolOAuthResponse
 from linkbreakers.models.complete_media_replace_response import CompleteMediaReplaceResponse
 from linkbreakers.models.complete_media_upload_response import CompleteMediaUploadResponse
+from linkbreakers.models.complete_public_media_upload_response import CompletePublicMediaUploadResponse
 from linkbreakers.models.complete_slack_o_auth_request import CompleteSlackOAuthRequest
 from linkbreakers.models.complete_slack_o_auth_response import CompleteSlackOAuthResponse
 from linkbreakers.models.connect_contact_tool_response import ConnectContactToolResponse
@@ -146,8 +145,6 @@ from linkbreakers.models.create_event_trace_response import CreateEventTraceResp
 from linkbreakers.models.create_link_request import CreateLinkRequest
 from linkbreakers.models.create_link_response import CreateLinkResponse
 from linkbreakers.models.create_media_replace_upload_response import CreateMediaReplaceUploadResponse
-from linkbreakers.models.create_media_request import CreateMediaRequest
-from linkbreakers.models.create_media_response import CreateMediaResponse
 from linkbreakers.models.create_media_upload_request import CreateMediaUploadRequest
 from linkbreakers.models.create_media_upload_response import CreateMediaUploadResponse
 from linkbreakers.models.create_my_workspace_request import CreateMyWorkspaceRequest
@@ -156,6 +153,8 @@ from linkbreakers.models.create_open_media_link_request import CreateOpenMediaLi
 from linkbreakers.models.create_open_media_link_response import CreateOpenMediaLinkResponse
 from linkbreakers.models.create_page_theme_template_request import CreatePageThemeTemplateRequest
 from linkbreakers.models.create_page_theme_template_response import CreatePageThemeTemplateResponse
+from linkbreakers.models.create_public_media_upload_request import CreatePublicMediaUploadRequest
+from linkbreakers.models.create_public_media_upload_response import CreatePublicMediaUploadResponse
 from linkbreakers.models.create_qrcode_design_request import CreateQrcodeDesignRequest
 from linkbreakers.models.create_qrcode_design_response import CreateQrcodeDesignResponse
 from linkbreakers.models.create_qrcode_template_request import CreateQrcodeTemplateRequest
@@ -224,7 +223,7 @@ from linkbreakers.models.digest_frequency import DigestFrequency
 from linkbreakers.models.directories_service_update_body import DirectoriesServiceUpdateBody
 from linkbreakers.models.directory import Directory
 from linkbreakers.models.disconnect_workflow_step_response import DisconnectWorkflowStepResponse
-from linkbreakers.models.dismiss_allowance_notice_request import DismissAllowanceNoticeRequest
+from linkbreakers.models.dismiss_workspace_usage_notice_request import DismissWorkspaceUsageNoticeRequest
 from linkbreakers.models.dns_provider import DnsProvider
 from linkbreakers.models.dns_record_purpose import DnsRecordPurpose
 from linkbreakers.models.dns_record_type import DnsRecordType
@@ -356,7 +355,6 @@ from linkbreakers.models.links_service_render_qrcode_images_body import LinksSer
 from linkbreakers.models.links_service_update_body import LinksServiceUpdateBody
 from linkbreakers.models.list_agent_presets_response import ListAgentPresetsResponse
 from linkbreakers.models.list_agents_response import ListAgentsResponse
-from linkbreakers.models.list_allowances_response import ListAllowancesResponse
 from linkbreakers.models.list_api_scopes_response import ListApiScopesResponse
 from linkbreakers.models.list_contact_connections_response import ListContactConnectionsResponse
 from linkbreakers.models.list_contact_tool_fields_response import ListContactToolFieldsResponse
@@ -410,6 +408,7 @@ from linkbreakers.models.media_upload_origin import MediaUploadOrigin
 from linkbreakers.models.media_usage import MediaUsage
 from linkbreakers.models.media_visibility import MediaVisibility
 from linkbreakers.models.member import Member
+from linkbreakers.models.member_session import MemberSession
 from linkbreakers.models.members_service_switch_workspace_body import MembersServiceSwitchWorkspaceBody
 from linkbreakers.models.members_service_update_body import MembersServiceUpdateBody
 from linkbreakers.models.message_page_navigation_type import MessagePageNavigationType
@@ -636,4 +635,5 @@ from linkbreakers.models.workspace_metric import WorkspaceMetric
 from linkbreakers.models.workspace_token import WorkspaceToken
 from linkbreakers.models.workspace_token_key_type import WorkspaceTokenKeyType
 from linkbreakers.models.workspace_tokens_service_update_body import WorkspaceTokensServiceUpdateBody
+from linkbreakers.models.workspace_usage import WorkspaceUsage
 

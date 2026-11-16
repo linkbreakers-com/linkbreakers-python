@@ -19,7 +19,6 @@ from linkbreakers.api.media_api import MediaApi
 from linkbreakers.api.members_api import MembersApi
 from linkbreakers.api.page_theme_templates_api import PageThemeTemplatesApi
 from linkbreakers.api.page_themes_api import PageThemesApi
-from linkbreakers.api.plan_usage_api import PlanUsageApi
 from linkbreakers.api.pricing_api import PricingApi
 from linkbreakers.api.qr_code_designs_api import QRCodeDesignsApi
 from linkbreakers.api.qr_code_templates_api import QRCodeTemplatesApi

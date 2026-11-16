@@ -3,7 +3,7 @@
 
     The Linkbreakers REST API: links, QR codes, workflows, visitors and analytics, as JSON over HTTPS. Send a workspace API token as `Authorization: Bearer <token>`.  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Paused workspaces  A free workspace whose members have not verified any email address is paused 7 days after sign-up. Its calls then answer `403` with the code `WORKSPACE_UNVERIFIED` and change nothing; QR codes and links keep working for visitors. To lift the pause, ask the workspace owner to verify their email: `POST /v1/members/email-verification` sends the verification email again, and works while the workspace is paused. `unverifiedPauseAt` on the workspace says when the pause starts.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  A renamed operation keeps answering its former path while clients still call it, until that path's sunset at the latest: a former path no client calls for 14 days is removed. Responses on a former path carry the same `Deprecation`, `Sunset` and `Link` header fields; this document lists only the current path, and the policy lists the former paths that still answer.  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
 
-    The version of the OpenAPI document: 1.200.1
+    The version of the OpenAPI document: 1.200.2
     Contact: support@linkbreakers.com
     Generated by OpenAPI Generator (https://openapi-generator.tech)
 
@@ -21,11 +21,12 @@ from typing import Any, Dict, Optional
 from typing_extensions import Annotated
 from linkbreakers.models.complete_media_replace_response import CompleteMediaReplaceResponse
 from linkbreakers.models.complete_media_upload_response import CompleteMediaUploadResponse
+from linkbreakers.models.complete_public_media_upload_response import CompletePublicMediaUploadResponse
 from linkbreakers.models.create_media_replace_upload_response import CreateMediaReplaceUploadResponse
-from linkbreakers.models.create_media_request import CreateMediaRequest
-from linkbreakers.models.create_media_response import CreateMediaResponse
 from linkbreakers.models.create_media_upload_request import CreateMediaUploadRequest
 from linkbreakers.models.create_media_upload_response import CreateMediaUploadResponse
+from linkbreakers.models.create_public_media_upload_request import CreatePublicMediaUploadRequest
+from linkbreakers.models.create_public_media_upload_response import CreatePublicMediaUploadResponse
 from linkbreakers.models.get_media_response import GetMediaResponse
 from linkbreakers.models.import_media_request import ImportMediaRequest
 from linkbreakers.models.import_media_response import ImportMediaResponse
@@ -50,6 +51,312 @@ class MediaApi:
         if api_client is None:
             api_client = ApiClient.get_default()
         self.api_client = api_client
+
+
+    @validate_call
+    def media_service_complete_public_upload(
+        self,
+        id: Annotated[StrictStr, Field(description="The id of the pending public upload (UUID), from CreatePublicUpload")],
+        body: Dict[str, Any],
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> CompletePublicMediaUploadResponse:
+        """Complete a public QR code logo upload
+
+        Checks the image PUT to the uploadUrl of a public upload: its size, and its real format read from its first bytes. When it matches what CreatePublicUpload declared, the upload is ready to be a QR code design's centralImageMediaId within the hour. When it does not, it is discarded and the error says why; start a new upload. Completing an upload that is already ready returns it.
+
+        :param id: The id of the pending public upload (UUID), from CreatePublicUpload (required)
+        :type id: str
+        :param body: (required)
+        :type body: object
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
+        :type idempotency_key: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._media_service_complete_public_upload_serialize(
+            id=id,
+            body=body,
+            idempotency_key=idempotency_key,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "CompletePublicMediaUploadResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def media_service_complete_public_upload_with_http_info(
+        self,
+        id: Annotated[StrictStr, Field(description="The id of the pending public upload (UUID), from CreatePublicUpload")],
+        body: Dict[str, Any],
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[CompletePublicMediaUploadResponse]:
+        """Complete a public QR code logo upload
+
+        Checks the image PUT to the uploadUrl of a public upload: its size, and its real format read from its first bytes. When it matches what CreatePublicUpload declared, the upload is ready to be a QR code design's centralImageMediaId within the hour. When it does not, it is discarded and the error says why; start a new upload. Completing an upload that is already ready returns it.
+
+        :param id: The id of the pending public upload (UUID), from CreatePublicUpload (required)
+        :type id: str
+        :param body: (required)
+        :type body: object
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
+        :type idempotency_key: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._media_service_complete_public_upload_serialize(
+            id=id,
+            body=body,
+            idempotency_key=idempotency_key,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "CompletePublicMediaUploadResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def media_service_complete_public_upload_without_preload_content(
+        self,
+        id: Annotated[StrictStr, Field(description="The id of the pending public upload (UUID), from CreatePublicUpload")],
+        body: Dict[str, Any],
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Complete a public QR code logo upload
+
+        Checks the image PUT to the uploadUrl of a public upload: its size, and its real format read from its first bytes. When it matches what CreatePublicUpload declared, the upload is ready to be a QR code design's centralImageMediaId within the hour. When it does not, it is discarded and the error says why; start a new upload. Completing an upload that is already ready returns it.
+
+        :param id: The id of the pending public upload (UUID), from CreatePublicUpload (required)
+        :type id: str
+        :param body: (required)
+        :type body: object
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
+        :type idempotency_key: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._media_service_complete_public_upload_serialize(
+            id=id,
+            body=body,
+            idempotency_key=idempotency_key,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "CompletePublicMediaUploadResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _media_service_complete_public_upload_serialize(
+        self,
+        id,
+        body,
+        idempotency_key,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if id is not None:
+            _path_params['id'] = id
+        # process the query parameters
+        # process the header parameters
+        if idempotency_key is not None:
+            _header_params['Idempotency-Key'] = idempotency_key
+        # process the form parameters
+        # process the body parameter
+        if body is not None:
+            _body_params = body
+
+
+        # set the HTTP header `Accept`
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
+        # set the HTTP header `Content-Type`
+        if _content_type:
+            _header_params['Content-Type'] = _content_type
+        else:
+            _default_content_type = (
+                self.api_client.select_header_content_type(
+                    [
+                        'application/json'
+                    ]
+                )
+            )
+            if _default_content_type is not None:
+                _header_params['Content-Type'] = _default_content_type
+
+        # authentication setting
+        _auth_settings: List[str] = [
+        ]
+
+        return self.api_client.param_serialize(
+            method='POST',
+            resource_path='/v1/media/public-uploads/{id}:complete',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
 
 
     @validate_call
@@ -394,7 +701,7 @@ class MediaApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> CompleteMediaUploadResponse:
-        """Complete a direct media upload
+        """Complete a media upload
 
         Checks the file PUT to the uploadUrl: its size, its real format read from its first bytes, and the storage allowance. When it matches what CreateUpload declared, the media becomes READY and is returned with a signed URL. When it does not, the file and the media are discarded and the error says why; start a new upload. Completing a media item that is already READY returns it.  The server always establishes the file's SHA-256 itself, from the checksum storage verified or by reading the file back. A file the workspace already holds is discarded with 409 MEDIA_ALREADY_EXISTS; the error's metadata names the existing media in existingMediaId and existingFileName. Use that media instead.  Requires the `media:write` scope.
 
@@ -470,7 +777,7 @@ class MediaApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ApiResponse[CompleteMediaUploadResponse]:
-        """Complete a direct media upload
+        """Complete a media upload
 
         Checks the file PUT to the uploadUrl: its size, its real format read from its first bytes, and the storage allowance. When it matches what CreateUpload declared, the media becomes READY and is returned with a signed URL. When it does not, the file and the media are discarded and the error says why; start a new upload. Completing a media item that is already READY returns it.  The server always establishes the file's SHA-256 itself, from the checksum storage verified or by reading the file back. A file the workspace already holds is discarded with 409 MEDIA_ALREADY_EXISTS; the error's metadata names the existing media in existingMediaId and existingFileName. Use that media instead.  Requires the `media:write` scope.
 
@@ -546,7 +853,7 @@ class MediaApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Complete a direct media upload
+        """Complete a media upload
 
         Checks the file PUT to the uploadUrl: its size, its real format read from its first bytes, and the storage allowance. When it matches what CreateUpload declared, the media becomes READY and is returned with a signed URL. When it does not, the file and the media are discarded and the error says why; start a new upload. Completing a media item that is already READY returns it.  The server always establishes the file's SHA-256 itself, from the checksum storage verified or by reading the file back. A file the workspace already holds is discarded with 409 MEDIA_ALREADY_EXISTS; the error's metadata names the existing media in existingMediaId and existingFileName. Use that media instead.  Requires the `media:write` scope.
 
@@ -684,9 +991,9 @@ class MediaApi:
 
 
     @validate_call
-    def media_service_create(
+    def media_service_create_public_upload(
         self,
-        create_media_request: CreateMediaRequest,
+        create_public_media_upload_request: CreatePublicMediaUploadRequest,
         idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
@@ -700,13 +1007,13 @@ class MediaApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> CreateMediaResponse:
-        """Upload a media file
+    ) -> CreatePublicMediaUploadResponse:
+        """Start a public QR code logo upload
 
-        Uploads a file sent in the request itself, base64 encoded over HTTP, up to 3 MB. Larger files (a PDF brochure, a video) are uploaded straight to storage instead: CreateUpload, a PUT of the file to the returned uploadUrl, then CompleteUpload. A media item only has a kind, read from its bytes: images (PNG, JPEG, WebP, SVG) up to 10 MB, PDF documents up to 25 MB and MP4 videos up to 50 MB. Nothing about where it will be used is needed at upload: any image can then be a QR code logo, a background cover, a badge or a footer logo (up to 3 MB for those), and any media can be opened by an Open media step.  A workspace holds each file once. A file whose bytes (SHA-256) match media the workspace already has is refused with 409 MEDIA_ALREADY_EXISTS; the error's metadata names that media in existingMediaId and existingFileName. Use that media instead of uploading the file again.  Requires the `media:write` scope.
+        Uploads a QR code logo without an API token, for a QR code design created without one (POST /v1/qrcode-designs). It is the same flow as CreateUpload, outside any workspace: declare the image's name, MIME type (image/png, image/jpeg, image/webp or image/svg+xml) and exact size in bytes, at most 3 MB; PUT its bytes to uploadUrl with the uploadHeaders before uploadExpiresAt; then call CompletePublicUpload and pass the media id as the design's centralImageMediaId. Anything but an image of at most 3 MB is refused with MEDIA_NOT_ALLOWED_HERE.  A public upload belongs to no workspace, is never listed and can only be a design's logo. The design keeps its own copy of the image, and the upload itself is deleted an hour after it started, used or not. With an API token, upload with CreateUpload instead.
 
-        :param create_media_request: (required)
-        :type create_media_request: CreateMediaRequest
+        :param create_public_media_upload_request: (required)
+        :type create_public_media_upload_request: CreatePublicMediaUploadRequest
         :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
@@ -731,8 +1038,8 @@ class MediaApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._media_service_create_serialize(
-            create_media_request=create_media_request,
+        _param = self._media_service_create_public_upload_serialize(
+            create_public_media_upload_request=create_public_media_upload_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -741,7 +1048,7 @@ class MediaApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "CreateMediaResponse",
+            '200': "CreatePublicMediaUploadResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -756,9 +1063,9 @@ class MediaApi:
 
 
     @validate_call
-    def media_service_create_with_http_info(
+    def media_service_create_public_upload_with_http_info(
         self,
-        create_media_request: CreateMediaRequest,
+        create_public_media_upload_request: CreatePublicMediaUploadRequest,
         idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
@@ -772,13 +1079,13 @@ class MediaApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[CreateMediaResponse]:
-        """Upload a media file
+    ) -> ApiResponse[CreatePublicMediaUploadResponse]:
+        """Start a public QR code logo upload
 
-        Uploads a file sent in the request itself, base64 encoded over HTTP, up to 3 MB. Larger files (a PDF brochure, a video) are uploaded straight to storage instead: CreateUpload, a PUT of the file to the returned uploadUrl, then CompleteUpload. A media item only has a kind, read from its bytes: images (PNG, JPEG, WebP, SVG) up to 10 MB, PDF documents up to 25 MB and MP4 videos up to 50 MB. Nothing about where it will be used is needed at upload: any image can then be a QR code logo, a background cover, a badge or a footer logo (up to 3 MB for those), and any media can be opened by an Open media step.  A workspace holds each file once. A file whose bytes (SHA-256) match media the workspace already has is refused with 409 MEDIA_ALREADY_EXISTS; the error's metadata names that media in existingMediaId and existingFileName. Use that media instead of uploading the file again.  Requires the `media:write` scope.
+        Uploads a QR code logo without an API token, for a QR code design created without one (POST /v1/qrcode-designs). It is the same flow as CreateUpload, outside any workspace: declare the image's name, MIME type (image/png, image/jpeg, image/webp or image/svg+xml) and exact size in bytes, at most 3 MB; PUT its bytes to uploadUrl with the uploadHeaders before uploadExpiresAt; then call CompletePublicUpload and pass the media id as the design's centralImageMediaId. Anything but an image of at most 3 MB is refused with MEDIA_NOT_ALLOWED_HERE.  A public upload belongs to no workspace, is never listed and can only be a design's logo. The design keeps its own copy of the image, and the upload itself is deleted an hour after it started, used or not. With an API token, upload with CreateUpload instead.
 
-        :param create_media_request: (required)
-        :type create_media_request: CreateMediaRequest
+        :param create_public_media_upload_request: (required)
+        :type create_public_media_upload_request: CreatePublicMediaUploadRequest
         :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
@@ -803,8 +1110,8 @@ class MediaApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._media_service_create_serialize(
-            create_media_request=create_media_request,
+        _param = self._media_service_create_public_upload_serialize(
+            create_public_media_upload_request=create_public_media_upload_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -813,7 +1120,7 @@ class MediaApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "CreateMediaResponse",
+            '200': "CreatePublicMediaUploadResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -828,9 +1135,9 @@ class MediaApi:
 
 
     @validate_call
-    def media_service_create_without_preload_content(
+    def media_service_create_public_upload_without_preload_content(
         self,
-        create_media_request: CreateMediaRequest,
+        create_public_media_upload_request: CreatePublicMediaUploadRequest,
         idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
@@ -845,12 +1152,12 @@ class MediaApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Upload a media file
+        """Start a public QR code logo upload
 
-        Uploads a file sent in the request itself, base64 encoded over HTTP, up to 3 MB. Larger files (a PDF brochure, a video) are uploaded straight to storage instead: CreateUpload, a PUT of the file to the returned uploadUrl, then CompleteUpload. A media item only has a kind, read from its bytes: images (PNG, JPEG, WebP, SVG) up to 10 MB, PDF documents up to 25 MB and MP4 videos up to 50 MB. Nothing about where it will be used is needed at upload: any image can then be a QR code logo, a background cover, a badge or a footer logo (up to 3 MB for those), and any media can be opened by an Open media step.  A workspace holds each file once. A file whose bytes (SHA-256) match media the workspace already has is refused with 409 MEDIA_ALREADY_EXISTS; the error's metadata names that media in existingMediaId and existingFileName. Use that media instead of uploading the file again.  Requires the `media:write` scope.
+        Uploads a QR code logo without an API token, for a QR code design created without one (POST /v1/qrcode-designs). It is the same flow as CreateUpload, outside any workspace: declare the image's name, MIME type (image/png, image/jpeg, image/webp or image/svg+xml) and exact size in bytes, at most 3 MB; PUT its bytes to uploadUrl with the uploadHeaders before uploadExpiresAt; then call CompletePublicUpload and pass the media id as the design's centralImageMediaId. Anything but an image of at most 3 MB is refused with MEDIA_NOT_ALLOWED_HERE.  A public upload belongs to no workspace, is never listed and can only be a design's logo. The design keeps its own copy of the image, and the upload itself is deleted an hour after it started, used or not. With an API token, upload with CreateUpload instead.
 
-        :param create_media_request: (required)
-        :type create_media_request: CreateMediaRequest
+        :param create_public_media_upload_request: (required)
+        :type create_public_media_upload_request: CreatePublicMediaUploadRequest
         :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
@@ -875,8 +1182,8 @@ class MediaApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._media_service_create_serialize(
-            create_media_request=create_media_request,
+        _param = self._media_service_create_public_upload_serialize(
+            create_public_media_upload_request=create_public_media_upload_request,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -885,7 +1192,7 @@ class MediaApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "CreateMediaResponse",
+            '200': "CreatePublicMediaUploadResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -895,9 +1202,9 @@ class MediaApi:
         return response_data.response
 
 
-    def _media_service_create_serialize(
+    def _media_service_create_public_upload_serialize(
         self,
-        create_media_request,
+        create_public_media_upload_request,
         idempotency_key,
         _request_auth,
         _content_type,
@@ -926,8 +1233,8 @@ class MediaApi:
             _header_params['Idempotency-Key'] = idempotency_key
         # process the form parameters
         # process the body parameter
-        if create_media_request is not None:
-            _body_params = create_media_request
+        if create_public_media_upload_request is not None:
+            _body_params = create_public_media_upload_request
 
 
         # set the HTTP header `Accept`
@@ -954,13 +1261,11 @@ class MediaApi:
 
         # authentication setting
         _auth_settings: List[str] = [
-            'oauth2', 
-            'bearerAuth'
         ]
 
         return self.api_client.param_serialize(
             method='POST',
-            resource_path='/v1/media',
+            resource_path='/v1/media/public-uploads',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -1302,9 +1607,9 @@ class MediaApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> CreateMediaUploadResponse:
-        """Start a direct media upload
+        """Start a media upload
 
-        Reserves a media item for a file uploaded straight to storage, so large files never pass through the API. Declare the file's name, MIME type and exact size in bytes; they are checked against the limit for the file's kind (images up to 10 MB, PDF documents up to 25 MB, MP4 videos up to 50 MB) and against the workspace's storage allowance now, and against the uploaded bytes on completion. Then PUT the file's bytes to uploadUrl with the uploadHeaders (and a Content-Length equal to size) before uploadExpiresAt, and call CompleteUpload. Until completed the media is PENDING: it is not listed and cannot be used. An upload not completed within an hour is discarded.  A workspace holds each file once. Optionally declare sha256, the file's SHA-256 as hex: a file the workspace already holds is then refused here, before any upload, with 409 MEDIA_ALREADY_EXISTS, whose metadata names that media in existingMediaId and existingFileName (use it instead), and storage refuses bytes that do not match the hash, so the PUT must send the x-amz-checksum-sha256 header from uploadHeaders. Without sha256 the duplicate is caught on completion instead.  Requires the `media:write` scope.
+        The one way to put a file into Linkbreakers: every field that takes a file (an Open media step, a QR code logo, a page theme's background cover, badge or footer logo) takes the id of media uploaded this way, never the file itself. The file goes straight to storage and never passes through the API.  Declare the file's name, MIME type and exact size in bytes; they are checked against the limit for the file's kind (images up to 10 MB, PDF documents up to 25 MB, MP4 videos up to 50 MB) and against the workspace's storage allowance now, and against the uploaded bytes on completion. Then PUT the file's bytes to uploadUrl with the uploadHeaders (and a Content-Length equal to size) before uploadExpiresAt, and call CompleteUpload. Until completed the media is PENDING: it is not listed and cannot be used. An upload not completed within an hour is discarded. A media item only has a kind, read from its bytes: nothing about where it will be used is needed at upload, and any image of at most 3 MB can then be a QR code logo, a background cover, a badge or a footer logo.  A workspace holds each file once. Optionally declare sha256, the file's SHA-256 as hex: a file the workspace already holds is then refused here, before any upload, with 409 MEDIA_ALREADY_EXISTS, whose metadata names that media in existingMediaId and existingFileName (use it instead), and storage refuses bytes that do not match the hash, so the PUT must send the x-amz-checksum-sha256 header from uploadHeaders. Without sha256 the duplicate is caught on completion instead.  Requires the `media:write` scope.
 
         :param create_media_upload_request: (required)
         :type create_media_upload_request: CreateMediaUploadRequest
@@ -1374,9 +1679,9 @@ class MediaApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ApiResponse[CreateMediaUploadResponse]:
-        """Start a direct media upload
+        """Start a media upload
 
-        Reserves a media item for a file uploaded straight to storage, so large files never pass through the API. Declare the file's name, MIME type and exact size in bytes; they are checked against the limit for the file's kind (images up to 10 MB, PDF documents up to 25 MB, MP4 videos up to 50 MB) and against the workspace's storage allowance now, and against the uploaded bytes on completion. Then PUT the file's bytes to uploadUrl with the uploadHeaders (and a Content-Length equal to size) before uploadExpiresAt, and call CompleteUpload. Until completed the media is PENDING: it is not listed and cannot be used. An upload not completed within an hour is discarded.  A workspace holds each file once. Optionally declare sha256, the file's SHA-256 as hex: a file the workspace already holds is then refused here, before any upload, with 409 MEDIA_ALREADY_EXISTS, whose metadata names that media in existingMediaId and existingFileName (use it instead), and storage refuses bytes that do not match the hash, so the PUT must send the x-amz-checksum-sha256 header from uploadHeaders. Without sha256 the duplicate is caught on completion instead.  Requires the `media:write` scope.
+        The one way to put a file into Linkbreakers: every field that takes a file (an Open media step, a QR code logo, a page theme's background cover, badge or footer logo) takes the id of media uploaded this way, never the file itself. The file goes straight to storage and never passes through the API.  Declare the file's name, MIME type and exact size in bytes; they are checked against the limit for the file's kind (images up to 10 MB, PDF documents up to 25 MB, MP4 videos up to 50 MB) and against the workspace's storage allowance now, and against the uploaded bytes on completion. Then PUT the file's bytes to uploadUrl with the uploadHeaders (and a Content-Length equal to size) before uploadExpiresAt, and call CompleteUpload. Until completed the media is PENDING: it is not listed and cannot be used. An upload not completed within an hour is discarded. A media item only has a kind, read from its bytes: nothing about where it will be used is needed at upload, and any image of at most 3 MB can then be a QR code logo, a background cover, a badge or a footer logo.  A workspace holds each file once. Optionally declare sha256, the file's SHA-256 as hex: a file the workspace already holds is then refused here, before any upload, with 409 MEDIA_ALREADY_EXISTS, whose metadata names that media in existingMediaId and existingFileName (use it instead), and storage refuses bytes that do not match the hash, so the PUT must send the x-amz-checksum-sha256 header from uploadHeaders. Without sha256 the duplicate is caught on completion instead.  Requires the `media:write` scope.
 
         :param create_media_upload_request: (required)
         :type create_media_upload_request: CreateMediaUploadRequest
@@ -1446,9 +1751,9 @@ class MediaApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Start a direct media upload
+        """Start a media upload
 
-        Reserves a media item for a file uploaded straight to storage, so large files never pass through the API. Declare the file's name, MIME type and exact size in bytes; they are checked against the limit for the file's kind (images up to 10 MB, PDF documents up to 25 MB, MP4 videos up to 50 MB) and against the workspace's storage allowance now, and against the uploaded bytes on completion. Then PUT the file's bytes to uploadUrl with the uploadHeaders (and a Content-Length equal to size) before uploadExpiresAt, and call CompleteUpload. Until completed the media is PENDING: it is not listed and cannot be used. An upload not completed within an hour is discarded.  A workspace holds each file once. Optionally declare sha256, the file's SHA-256 as hex: a file the workspace already holds is then refused here, before any upload, with 409 MEDIA_ALREADY_EXISTS, whose metadata names that media in existingMediaId and existingFileName (use it instead), and storage refuses bytes that do not match the hash, so the PUT must send the x-amz-checksum-sha256 header from uploadHeaders. Without sha256 the duplicate is caught on completion instead.  Requires the `media:write` scope.
+        The one way to put a file into Linkbreakers: every field that takes a file (an Open media step, a QR code logo, a page theme's background cover, badge or footer logo) takes the id of media uploaded this way, never the file itself. The file goes straight to storage and never passes through the API.  Declare the file's name, MIME type and exact size in bytes; they are checked against the limit for the file's kind (images up to 10 MB, PDF documents up to 25 MB, MP4 videos up to 50 MB) and against the workspace's storage allowance now, and against the uploaded bytes on completion. Then PUT the file's bytes to uploadUrl with the uploadHeaders (and a Content-Length equal to size) before uploadExpiresAt, and call CompleteUpload. Until completed the media is PENDING: it is not listed and cannot be used. An upload not completed within an hour is discarded. A media item only has a kind, read from its bytes: nothing about where it will be used is needed at upload, and any image of at most 3 MB can then be a QR code logo, a background cover, a badge or a footer logo.  A workspace holds each file once. Optionally declare sha256, the file's SHA-256 as hex: a file the workspace already holds is then refused here, before any upload, with 409 MEDIA_ALREADY_EXISTS, whose metadata names that media in existingMediaId and existingFileName (use it instead), and storage refuses bytes that do not match the hash, so the PUT must send the x-amz-checksum-sha256 header from uploadHeaders. Without sha256 the duplicate is caught on completion instead.  Requires the `media:write` scope.
 
         :param create_media_upload_request: (required)
         :type create_media_upload_request: CreateMediaUploadRequest
