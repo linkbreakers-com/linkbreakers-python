@@ -144,6 +144,18 @@ release of this SDK keeps working until then; this release calls the new ones:
 | `POST /v1/public/qrcode-designs` | `POST /v1/qrcode-designs` |
 | `GET /v1/allowances` | `GET /v1/plan-usage` |
 | `POST /v1/custom-domains/{id}/check` | `POST /v1/custom-domains/{id}:verify` |
+| `POST /v1/auth/email/verification/request` | `POST /v1/members/email-verification` |
+
+### Moved operation (2026-11-16)
+
+Resending a member's verification email is now in the Members section, so
+`authServiceRequestEmailVerification` moves from AuthApi to MembersApi (the
+method keeps its name; the operation id is still
+`AuthService_RequestEmailVerification`). AuthApi had no other public
+operation and goes away. Its path is now `POST /v1/members/email-verification`;
+the former `POST /v1/auth/email/verification/request` keeps answering until
+at least 2027-06-01. Call it when a call answers `WORKSPACE_UNVERIFIED`: it
+sends the verification email again, and verifying the address lifts the pause.
 
 ### Other
 
