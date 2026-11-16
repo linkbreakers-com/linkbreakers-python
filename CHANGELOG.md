@@ -1,30 +1,32 @@
 # Changelog
 
-## Next release after 1.200.0 (2026-11-16): three operations join the section they belong to
+## Next release after 1.200.0 (2026-11-16): four operations join the section they belong to
 
-Breaking for code calling the three operations below. Versions follow the
+Breaking for code calling the four operations below. Versions follow the
 API's version.
 
-The API moved three operations into the section, and the service, they are
+The API moved four operations into the section, and the service, they are
 about. Each section is one API class, and the method name comes from the
-operation ID, so the class changes for all three and the method name for
-two:
+operation ID, so the class changes for all four and the method name for
+three:
 
 | Before | After |
 |---|---|
 | `APIScopesApi.workspace_tokens_service_list_api_scopes` | `WorkspaceTokensApi.workspace_tokens_service_list_api_scopes` |
 | `IntegrationsApi.integrations_service_list_for_link` | `LinksApi.links_service_list_integrations` |
 | `MembersApi.auth_service_request_email_verification` | `MembersApi.members_service_request_email_verification` |
+| `PlanUsageApi.plan_usage_service_list` | `WorkspacesApi.workspaces_service_get_usage` |
 
 | Operation | Path |
 |---|---|
 | List the scopes a token can have | `GET /v1/workspace-tokens/scopes` (was `GET /v1/api-scopes`, removed with no alias: no integration called it in the last 14 days) |
 | List the integrations active on a link | `GET /v1/links/{linkId}/integrations` (unchanged) |
 | Resend a member's verification email | `POST /v1/members/email-verification` (unchanged) |
+| Get the workspace's plan usage | `GET /v1/workspace/usage` (was `GET /v1/plan-usage`, removed with no alias: only our dashboard called it) |
 
-The API Scopes and Integrations classes are gone (the `Integrations*` classes
+The API Scopes, Integrations and Plan Usage classes are gone (the `Integrations*` classes
 for Slack, forms, contact tools, Google Analytics and retargeting pixels stay).
-Models keep their names (`ListApiScopesResponse`, `LinkIntegration`,
+`ListAllowancesResponse` is now `WorkspaceUsage`; other models keep their names (`ListApiScopesResponse`, `LinkIntegration`,
 `ListLinkIntegrationsResponse`, `RequestEmailVerificationRequest`).
 
 ## 1.198.1 to 1.200.0 (2026-11-15 and 2026-11-16): the public API contract cleanup
