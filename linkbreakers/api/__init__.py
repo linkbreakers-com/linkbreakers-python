@@ -1,14 +1,12 @@
 # flake8: noqa
 
 # import apis into api package
-from linkbreakers.api.api_scopes_api import APIScopesApi
 from linkbreakers.api.agents_api import AgentsApi
 from linkbreakers.api.analytics_api import AnalyticsApi
 from linkbreakers.api.analytics_dashboards_api import AnalyticsDashboardsApi
 from linkbreakers.api.custom_domains_api import CustomDomainsApi
 from linkbreakers.api.directories_api import DirectoriesApi
 from linkbreakers.api.events_api import EventsApi
-from linkbreakers.api.integrations_api import IntegrationsApi
 from linkbreakers.api.integrations_contact_tools_api import IntegrationsContactToolsApi
 from linkbreakers.api.integrations_forms_api import IntegrationsFormsApi
 from linkbreakers.api.integrations_google_analytics_api import IntegrationsGoogleAnalyticsApi

@@ -8,11 +8,9 @@ linkbreakers/api/__init__.py
 linkbreakers/api/agents_api.py
 linkbreakers/api/analytics_api.py
 linkbreakers/api/analytics_dashboards_api.py
-linkbreakers/api/api_scopes_api.py
 linkbreakers/api/custom_domains_api.py
 linkbreakers/api/directories_api.py
 linkbreakers/api/events_api.py
-linkbreakers/api/integrations_api.py
 linkbreakers/api/integrations_contact_tools_api.py
 linkbreakers/api/integrations_forms_api.py
 linkbreakers/api/integrations_google_analytics_api.py
@@ -121,8 +119,6 @@ linkbreakers/models/claim_agent_workspace_request.py
 linkbreakers/models/client_redirect_payload.py
 linkbreakers/models/complete_contact_tool_o_auth_response.py
 linkbreakers/models/complete_form_tool_o_auth_response.py
-linkbreakers/models/complete_google_forms_o_auth_request.py
-linkbreakers/models/complete_google_forms_o_auth_response.py
 linkbreakers/models/complete_media_replace_response.py
 linkbreakers/models/complete_media_upload_response.py
 linkbreakers/models/complete_slack_o_auth_request.py
@@ -217,7 +213,6 @@ linkbreakers/models/day_of_week_condition_trace_option.py
 linkbreakers/models/day_of_week_option.py
 linkbreakers/models/delete_attribute_response.py
 linkbreakers/models/delete_visitor_response.py
-linkbreakers/models/detected_google_form.py
 linkbreakers/models/detected_tool_form.py
 linkbreakers/models/device.py
 linkbreakers/models/device_actor.py
@@ -317,8 +312,6 @@ linkbreakers/models/get_form_tool_o_auth_url_response.py
 linkbreakers/models/get_geo_breakdown_request.py
 linkbreakers/models/get_geo_breakdown_response.py
 linkbreakers/models/get_google_analytics_integration_response.py
-linkbreakers/models/get_google_forms_integration_response.py
-linkbreakers/models/get_google_forms_o_auth_url_response.py
 linkbreakers/models/get_grouped_time_series_request.py
 linkbreakers/models/get_grouped_time_series_response.py
 linkbreakers/models/get_hour_of_day_distribution_request.py
@@ -348,9 +341,6 @@ linkbreakers/models/get_workflow_step_response.py
 linkbreakers/models/get_workspace_token_response.py
 linkbreakers/models/google_analytics_attribute_keys.py
 linkbreakers/models/google_analytics_integration.py
-linkbreakers/models/google_forms_integration.py
-linkbreakers/models/google_forms_integration_status.py
-linkbreakers/models/google_forms_integrations_service_choose_form_link_body.py
 linkbreakers/models/googlerpc_status.py
 linkbreakers/models/group_by_dimension.py
 linkbreakers/models/hour_of_day_data_point.py
@@ -398,7 +388,6 @@ linkbreakers/models/list_contact_tool_lists_response.py
 linkbreakers/models/list_contact_tool_pipelines_response.py
 linkbreakers/models/list_custom_domains_response.py
 linkbreakers/models/list_dashboards_response.py
-linkbreakers/models/list_detected_google_forms_response.py
 linkbreakers/models/list_directories_response.py
 linkbreakers/models/list_event_traces_response.py
 linkbreakers/models/list_events_csv_response.py
@@ -562,7 +551,6 @@ linkbreakers/models/submit_review_reward_request.py
 linkbreakers/models/submit_review_reward_response.py
 linkbreakers/models/subscription_type.py
 linkbreakers/models/switch_workspace_response.py
-linkbreakers/models/sync_google_forms_response.py
 linkbreakers/models/test_contact_connection_response.py
 linkbreakers/models/test_google_analytics_integration_response.py
 linkbreakers/models/test_slack_integration_response.py
@@ -594,8 +582,6 @@ linkbreakers/models/update_directory_response.py
 linkbreakers/models/update_form_connection_response.py
 linkbreakers/models/update_google_analytics_integration_request.py
 linkbreakers/models/update_google_analytics_integration_response.py
-linkbreakers/models/update_google_forms_integration_request.py
-linkbreakers/models/update_google_forms_integration_response.py
 linkbreakers/models/update_link_response.py
 linkbreakers/models/update_link_setting_response.py
 linkbreakers/models/update_me_request.py

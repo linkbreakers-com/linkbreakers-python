@@ -5,9 +5,9 @@
 """
     Linkbreakers API
 
-    The Linkbreakers REST API: links, QR codes, workflows, visitors and analytics, as JSON over HTTPS. Send a workspace API token as `Authorization: Bearer <token>`.  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Paused workspaces  A free workspace whose members have not verified any email address is paused 7 days after sign-up. Its calls then answer `403` with the code `WORKSPACE_UNVERIFIED` and change nothing; QR codes and links keep working for visitors. To lift the pause, ask the workspace owner to verify their email: `POST /v1/members/email-verification` sends the verification email again, and works while the workspace is paused. `unverifiedPauseAt` on the workspace says when the pause starts.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  A renamed operation keeps answering its former path until that path's sunset. Responses on a former path carry the same `Deprecation`, `Sunset` and `Link` header fields; this document lists only the current path, and the policy lists the former ones.  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
+    The Linkbreakers REST API: links, QR codes, workflows, visitors and analytics, as JSON over HTTPS. Send a workspace API token as `Authorization: Bearer <token>`.  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Paused workspaces  A free workspace whose members have not verified any email address is paused 7 days after sign-up. Its calls then answer `403` with the code `WORKSPACE_UNVERIFIED` and change nothing; QR codes and links keep working for visitors. To lift the pause, ask the workspace owner to verify their email: `POST /v1/members/email-verification` sends the verification email again, and works while the workspace is paused. `unverifiedPauseAt` on the workspace says when the pause starts.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  A renamed operation keeps answering its former path while clients still call it, until that path's sunset at the latest: a former path no client calls for 14 days is removed. Responses on a former path carry the same `Deprecation`, `Sunset` and `Link` header fields; this document lists only the current path, and the policy lists the former paths that still answer.  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
 
-    The version of the OpenAPI document: 1.200.0
+    The version of the OpenAPI document: 1.200.1
     Contact: support@linkbreakers.com
     Generated by OpenAPI Generator (https://openapi-generator.tech)
 
@@ -15,18 +15,16 @@
 """  # noqa: E501
 
 
-__version__ = "1.200.0"
+__version__ = "1.200.1"
 
 # Define package exports
 __all__ = [
-    "APIScopesApi",
     "AgentsApi",
     "AnalyticsApi",
     "AnalyticsDashboardsApi",
     "CustomDomainsApi",
     "DirectoriesApi",
     "EventsApi",
-    "IntegrationsApi",
     "IntegrationsContactToolsApi",
     "IntegrationsFormsApi",
     "IntegrationsGoogleAnalyticsApi",
@@ -139,8 +137,6 @@ __all__ = [
     "ClientRedirectPayload",
     "CompleteContactToolOAuthResponse",
     "CompleteFormToolOAuthResponse",
-    "CompleteGoogleFormsOAuthRequest",
-    "CompleteGoogleFormsOAuthResponse",
     "CompleteMediaReplaceResponse",
     "CompleteMediaUploadResponse",
     "CompleteSlackOAuthRequest",
@@ -235,7 +231,6 @@ __all__ = [
     "DayOfWeekOption",
     "DeleteAttributeResponse",
     "DeleteVisitorResponse",
-    "DetectedGoogleForm",
     "DetectedToolForm",
     "Device",
     "DeviceActor",
@@ -335,8 +330,6 @@ __all__ = [
     "GetGeoBreakdownRequest",
     "GetGeoBreakdownResponse",
     "GetGoogleAnalyticsIntegrationResponse",
-    "GetGoogleFormsIntegrationResponse",
-    "GetGoogleFormsOAuthURLResponse",
     "GetGroupedTimeSeriesRequest",
     "GetGroupedTimeSeriesResponse",
     "GetHourOfDayDistributionRequest",
@@ -366,9 +359,6 @@ __all__ = [
     "GetWorkspaceTokenResponse",
     "GoogleAnalyticsAttributeKeys",
     "GoogleAnalyticsIntegration",
-    "GoogleFormsIntegration",
-    "GoogleFormsIntegrationStatus",
-    "GoogleFormsIntegrationsServiceChooseFormLinkBody",
     "GooglerpcStatus",
     "GroupByDimension",
     "HTTPMethod",
@@ -416,7 +406,6 @@ __all__ = [
     "ListContactToolPipelinesResponse",
     "ListCustomDomainsResponse",
     "ListDashboardsResponse",
-    "ListDetectedGoogleFormsResponse",
     "ListDirectoriesResponse",
     "ListEventTracesResponse",
     "ListEventsCsvResponse",
@@ -580,7 +569,6 @@ __all__ = [
     "SubmitReviewRewardResponse",
     "SubscriptionType",
     "SwitchWorkspaceResponse",
-    "SyncGoogleFormsResponse",
     "TestContactConnectionResponse",
     "TestGoogleAnalyticsIntegrationResponse",
     "TestSlackIntegrationResponse",
@@ -612,8 +600,6 @@ __all__ = [
     "UpdateFormConnectionResponse",
     "UpdateGoogleAnalyticsIntegrationRequest",
     "UpdateGoogleAnalyticsIntegrationResponse",
-    "UpdateGoogleFormsIntegrationRequest",
-    "UpdateGoogleFormsIntegrationResponse",
     "UpdateLinkResponse",
     "UpdateLinkSettingResponse",
     "UpdateMeRequest",
@@ -695,14 +681,12 @@ __all__ = [
 ]
 
 # import apis into sdk package
-from linkbreakers.api.api_scopes_api import APIScopesApi as APIScopesApi
 from linkbreakers.api.agents_api import AgentsApi as AgentsApi
 from linkbreakers.api.analytics_api import AnalyticsApi as AnalyticsApi
 from linkbreakers.api.analytics_dashboards_api import AnalyticsDashboardsApi as AnalyticsDashboardsApi
 from linkbreakers.api.custom_domains_api import CustomDomainsApi as CustomDomainsApi
 from linkbreakers.api.directories_api import DirectoriesApi as DirectoriesApi
 from linkbreakers.api.events_api import EventsApi as EventsApi
-from linkbreakers.api.integrations_api import IntegrationsApi as IntegrationsApi
 from linkbreakers.api.integrations_contact_tools_api import IntegrationsContactToolsApi as IntegrationsContactToolsApi
 from linkbreakers.api.integrations_forms_api import IntegrationsFormsApi as IntegrationsFormsApi
 from linkbreakers.api.integrations_google_analytics_api import IntegrationsGoogleAnalyticsApi as IntegrationsGoogleAnalyticsApi
@@ -819,8 +803,6 @@ from linkbreakers.models.claim_agent_workspace_request import ClaimAgentWorkspac
 from linkbreakers.models.client_redirect_payload import ClientRedirectPayload as ClientRedirectPayload
 from linkbreakers.models.complete_contact_tool_o_auth_response import CompleteContactToolOAuthResponse as CompleteContactToolOAuthResponse
 from linkbreakers.models.complete_form_tool_o_auth_response import CompleteFormToolOAuthResponse as CompleteFormToolOAuthResponse
-from linkbreakers.models.complete_google_forms_o_auth_request import CompleteGoogleFormsOAuthRequest as CompleteGoogleFormsOAuthRequest
-from linkbreakers.models.complete_google_forms_o_auth_response import CompleteGoogleFormsOAuthResponse as CompleteGoogleFormsOAuthResponse
 from linkbreakers.models.complete_media_replace_response import CompleteMediaReplaceResponse as CompleteMediaReplaceResponse
 from linkbreakers.models.complete_media_upload_response import CompleteMediaUploadResponse as CompleteMediaUploadResponse
 from linkbreakers.models.complete_slack_o_auth_request import CompleteSlackOAuthRequest as CompleteSlackOAuthRequest
@@ -915,7 +897,6 @@ from linkbreakers.models.day_of_week_condition_trace_option import DayOfWeekCond
 from linkbreakers.models.day_of_week_option import DayOfWeekOption as DayOfWeekOption
 from linkbreakers.models.delete_attribute_response import DeleteAttributeResponse as DeleteAttributeResponse
 from linkbreakers.models.delete_visitor_response import DeleteVisitorResponse as DeleteVisitorResponse
-from linkbreakers.models.detected_google_form import DetectedGoogleForm as DetectedGoogleForm
 from linkbreakers.models.detected_tool_form import DetectedToolForm as DetectedToolForm
 from linkbreakers.models.device import Device as Device
 from linkbreakers.models.device_actor import DeviceActor as DeviceActor
@@ -1015,8 +996,6 @@ from linkbreakers.models.get_form_tool_o_auth_url_response import GetFormToolOAu
 from linkbreakers.models.get_geo_breakdown_request import GetGeoBreakdownRequest as GetGeoBreakdownRequest
 from linkbreakers.models.get_geo_breakdown_response import GetGeoBreakdownResponse as GetGeoBreakdownResponse
 from linkbreakers.models.get_google_analytics_integration_response import GetGoogleAnalyticsIntegrationResponse as GetGoogleAnalyticsIntegrationResponse
-from linkbreakers.models.get_google_forms_integration_response import GetGoogleFormsIntegrationResponse as GetGoogleFormsIntegrationResponse
-from linkbreakers.models.get_google_forms_o_auth_url_response import GetGoogleFormsOAuthURLResponse as GetGoogleFormsOAuthURLResponse
 from linkbreakers.models.get_grouped_time_series_request import GetGroupedTimeSeriesRequest as GetGroupedTimeSeriesRequest
 from linkbreakers.models.get_grouped_time_series_response import GetGroupedTimeSeriesResponse as GetGroupedTimeSeriesResponse
 from linkbreakers.models.get_hour_of_day_distribution_request import GetHourOfDayDistributionRequest as GetHourOfDayDistributionRequest
@@ -1046,9 +1025,6 @@ from linkbreakers.models.get_workflow_step_response import GetWorkflowStepRespon
 from linkbreakers.models.get_workspace_token_response import GetWorkspaceTokenResponse as GetWorkspaceTokenResponse
 from linkbreakers.models.google_analytics_attribute_keys import GoogleAnalyticsAttributeKeys as GoogleAnalyticsAttributeKeys
 from linkbreakers.models.google_analytics_integration import GoogleAnalyticsIntegration as GoogleAnalyticsIntegration
-from linkbreakers.models.google_forms_integration import GoogleFormsIntegration as GoogleFormsIntegration
-from linkbreakers.models.google_forms_integration_status import GoogleFormsIntegrationStatus as GoogleFormsIntegrationStatus
-from linkbreakers.models.google_forms_integrations_service_choose_form_link_body import GoogleFormsIntegrationsServiceChooseFormLinkBody as GoogleFormsIntegrationsServiceChooseFormLinkBody
 from linkbreakers.models.googlerpc_status import GooglerpcStatus as GooglerpcStatus
 from linkbreakers.models.group_by_dimension import GroupByDimension as GroupByDimension
 from linkbreakers.models.http_method import HTTPMethod as HTTPMethod
@@ -1096,7 +1072,6 @@ from linkbreakers.models.list_contact_tool_lists_response import ListContactTool
 from linkbreakers.models.list_contact_tool_pipelines_response import ListContactToolPipelinesResponse as ListContactToolPipelinesResponse
 from linkbreakers.models.list_custom_domains_response import ListCustomDomainsResponse as ListCustomDomainsResponse
 from linkbreakers.models.list_dashboards_response import ListDashboardsResponse as ListDashboardsResponse
-from linkbreakers.models.list_detected_google_forms_response import ListDetectedGoogleFormsResponse as ListDetectedGoogleFormsResponse
 from linkbreakers.models.list_directories_response import ListDirectoriesResponse as ListDirectoriesResponse
 from linkbreakers.models.list_event_traces_response import ListEventTracesResponse as ListEventTracesResponse
 from linkbreakers.models.list_events_csv_response import ListEventsCsvResponse as ListEventsCsvResponse
@@ -1260,7 +1235,6 @@ from linkbreakers.models.submit_review_reward_request import SubmitReviewRewardR
 from linkbreakers.models.submit_review_reward_response import SubmitReviewRewardResponse as SubmitReviewRewardResponse
 from linkbreakers.models.subscription_type import SubscriptionType as SubscriptionType
 from linkbreakers.models.switch_workspace_response import SwitchWorkspaceResponse as SwitchWorkspaceResponse
-from linkbreakers.models.sync_google_forms_response import SyncGoogleFormsResponse as SyncGoogleFormsResponse
 from linkbreakers.models.test_contact_connection_response import TestContactConnectionResponse as TestContactConnectionResponse
 from linkbreakers.models.test_google_analytics_integration_response import TestGoogleAnalyticsIntegrationResponse as TestGoogleAnalyticsIntegrationResponse
 from linkbreakers.models.test_slack_integration_response import TestSlackIntegrationResponse as TestSlackIntegrationResponse
@@ -1292,8 +1266,6 @@ from linkbreakers.models.update_directory_response import UpdateDirectoryRespons
 from linkbreakers.models.update_form_connection_response import UpdateFormConnectionResponse as UpdateFormConnectionResponse
 from linkbreakers.models.update_google_analytics_integration_request import UpdateGoogleAnalyticsIntegrationRequest as UpdateGoogleAnalyticsIntegrationRequest
 from linkbreakers.models.update_google_analytics_integration_response import UpdateGoogleAnalyticsIntegrationResponse as UpdateGoogleAnalyticsIntegrationResponse
-from linkbreakers.models.update_google_forms_integration_request import UpdateGoogleFormsIntegrationRequest as UpdateGoogleFormsIntegrationRequest
-from linkbreakers.models.update_google_forms_integration_response import UpdateGoogleFormsIntegrationResponse as UpdateGoogleFormsIntegrationResponse
 from linkbreakers.models.update_link_response import UpdateLinkResponse as UpdateLinkResponse
 from linkbreakers.models.update_link_setting_response import UpdateLinkSettingResponse as UpdateLinkSettingResponse
 from linkbreakers.models.update_me_request import UpdateMeRequest as UpdateMeRequest
