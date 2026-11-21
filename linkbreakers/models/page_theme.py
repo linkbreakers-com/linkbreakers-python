@@ -5,7 +5,7 @@
 
     The Linkbreakers REST API: links, QR codes, workflows, visitors and analytics, as JSON over HTTPS. Send a workspace API token as `Authorization: Bearer <token>`.  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Paused workspaces  A free workspace whose members have not verified any email address is paused 7 days after sign-up. Its calls then answer `403` with the code `WORKSPACE_UNVERIFIED` and change nothing; QR codes and links keep working for visitors. To lift the pause, ask the workspace owner to verify their email: `POST /v1/members/email-verification` sends the verification email again, and works while the workspace is paused. `unverifiedPauseAt` on the workspace says when the pause starts.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  A renamed operation keeps answering its former path while clients still call it, until that path's sunset at the latest: a former path no client calls for 14 days is removed. Responses on a former path carry the same `Deprecation`, `Sunset` and `Link` header fields; this document lists only the current path, and the policy lists the former paths that still answer.  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
 
-    The version of the OpenAPI document: 1.202.1
+    The version of the OpenAPI document: 1.203.0
     Contact: support@linkbreakers.com
     Generated by OpenAPI Generator (https://openapi-generator.tech)
 
@@ -23,7 +23,9 @@ from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictStr, field_
 from typing import Any, ClassVar, Dict, List, Optional
 from linkbreakers.models.container_config import ContainerConfig
 from linkbreakers.models.font_config import FontConfig
-from linkbreakers.models.page_theme_role_override import PageThemeRoleOverride
+from linkbreakers.models.page_theme_element_style_override import PageThemeElementStyleOverride
+from linkbreakers.models.page_theme_shape import PageThemeShape
+from linkbreakers.models.page_theme_small_text import PageThemeSmallText
 from linkbreakers.models.theme_color import ThemeColor
 from typing import Optional, Set
 from typing_extensions import Self
@@ -47,16 +49,20 @@ class PageTheme(BaseModel):
     created_at: Optional[datetime] = Field(default=None, alias="createdAt")
     element_color: Optional[ThemeColor] = Field(default=None, alias="elementColor")
     element_font: Optional[FontConfig] = Field(default=None, alias="elementFont")
+    element_styles: Optional[List[PageThemeElementStyleOverride]] = Field(default=None, description="The look of each element job (SURFACE, SELECTED, ACTION, QUIET). A job not listed follows the shape, the colours, or the look it always had.", alias="elementStyles")
     footer_logo_enabled: Optional[StrictBool] = Field(default=None, description="Whether the footer logo (a small company or brand logo centered at the bottom of every page using this theme) is shown.  Turning it off keeps footerLogoId, so turning it back on restores the same image.", alias="footerLogoEnabled")
     footer_logo_id: Optional[StrictStr] = Field(default=None, alias="footerLogoId")
+    heading_align: Optional[StrictStr] = Field(default=None, description="How titles and headline questions are aligned. Unset: centered titles, questions as the question style draws them. UNSPECIFIED on an update clears it.", alias="headingAlign")
     id: Optional[StrictStr] = None
-    question_style: Optional[StrictStr] = Field(default=None, description="How a form's questions are written: LABEL (small, in the body role) or HEADLINE (centered, in the heading role). Unset reads as LABEL.", alias="questionStyle")
-    roles: Optional[List[PageThemeRoleOverride]] = Field(default=None, description="The roles with a look of their own (headings, body, small text, fields, choices, buttons, chat bubbles, link buttons). A role not listed keeps what it inherits.")
+    question_style: Optional[StrictStr] = Field(default=None, description="How a form's questions are written: LABEL (small, in the body text) or HEADLINE (a heading, in the title font). Unset reads as LABEL.", alias="questionStyle")
+    shape: Optional[PageThemeShape] = Field(default=None, description="The radius and border every job follows unless it has its own.")
+    small_text: Optional[PageThemeSmallText] = Field(default=None, description="Small text: hints, counters, consent. Unset: the body text, smaller and muted.", alias="smallText")
+    text_color: Optional[ThemeColor] = Field(default=None, description="The text colour headings, body and small text follow when their own font has none. On an update, a colour without colours clears it.", alias="textColor")
     title_font: Optional[FontConfig] = Field(default=None, alias="titleFont")
     updated_at: Optional[datetime] = Field(default=None, alias="updatedAt")
     visitor_experience: Optional[StrictStr] = Field(default=None, description="How visitor pages pace their content. Unset reads as CLASSIC.", alias="visitorExperience")
     workspace_id: Optional[StrictStr] = Field(default=None, alias="workspaceId")
-    __properties: ClassVar[List[str]] = ["badgeEnabled", "badgeIconColor", "badgeId", "badgeShape", "bodyFont", "canvasColor", "canvasCoverId", "canvasCoverMode", "canvasTexture", "choiceLayout", "containerConfig", "containerEnabled", "createdAt", "elementColor", "elementFont", "footerLogoEnabled", "footerLogoId", "id", "questionStyle", "roles", "titleFont", "updatedAt", "visitorExperience", "workspaceId"]
+    __properties: ClassVar[List[str]] = ["badgeEnabled", "badgeIconColor", "badgeId", "badgeShape", "bodyFont", "canvasColor", "canvasCoverId", "canvasCoverMode", "canvasTexture", "choiceLayout", "containerConfig", "containerEnabled", "createdAt", "elementColor", "elementFont", "elementStyles", "footerLogoEnabled", "footerLogoId", "headingAlign", "id", "questionStyle", "shape", "smallText", "textColor", "titleFont", "updatedAt", "visitorExperience", "workspaceId"]
 
     @field_validator('badge_shape')
     def badge_shape_validate_enum(cls, value):
@@ -96,6 +102,16 @@ class PageTheme(BaseModel):
 
         if value not in set(['PAGE_THEME_CHOICE_LAYOUT_UNSPECIFIED', 'PAGE_THEME_CHOICE_LAYOUT_AUTO', 'PAGE_THEME_CHOICE_LAYOUT_ROWS']):
             raise ValueError("must be one of enum values ('PAGE_THEME_CHOICE_LAYOUT_UNSPECIFIED', 'PAGE_THEME_CHOICE_LAYOUT_AUTO', 'PAGE_THEME_CHOICE_LAYOUT_ROWS')")
+        return value
+
+    @field_validator('heading_align')
+    def heading_align_validate_enum(cls, value):
+        """Validates the enum"""
+        if value is None:
+            return value
+
+        if value not in set(['PAGE_THEME_TEXT_ALIGN_UNSPECIFIED', 'PAGE_THEME_TEXT_ALIGN_CENTER', 'PAGE_THEME_TEXT_ALIGN_LEFT']):
+            raise ValueError("must be one of enum values ('PAGE_THEME_TEXT_ALIGN_UNSPECIFIED', 'PAGE_THEME_TEXT_ALIGN_CENTER', 'PAGE_THEME_TEXT_ALIGN_LEFT')")
         return value
 
     @field_validator('question_style')
@@ -183,13 +199,22 @@ class PageTheme(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of element_font
         if self.element_font:
             _dict['elementFont'] = self.element_font.to_dict()
-        # override the default output from pydantic by calling `to_dict()` of each item in roles (list)
+        # override the default output from pydantic by calling `to_dict()` of each item in element_styles (list)
         _items = []
-        if self.roles:
-            for _item_roles in self.roles:
-                if _item_roles:
-                    _items.append(_item_roles.to_dict())
-            _dict['roles'] = _items
+        if self.element_styles:
+            for _item_element_styles in self.element_styles:
+                if _item_element_styles:
+                    _items.append(_item_element_styles.to_dict())
+            _dict['elementStyles'] = _items
+        # override the default output from pydantic by calling `to_dict()` of shape
+        if self.shape:
+            _dict['shape'] = self.shape.to_dict()
+        # override the default output from pydantic by calling `to_dict()` of small_text
+        if self.small_text:
+            _dict['smallText'] = self.small_text.to_dict()
+        # override the default output from pydantic by calling `to_dict()` of text_color
+        if self.text_color:
+            _dict['textColor'] = self.text_color.to_dict()
         # override the default output from pydantic by calling `to_dict()` of title_font
         if self.title_font:
             _dict['titleFont'] = self.title_font.to_dict()
@@ -220,11 +245,15 @@ class PageTheme(BaseModel):
             "createdAt": obj.get("createdAt"),
             "elementColor": ThemeColor.from_dict(obj["elementColor"]) if obj.get("elementColor") is not None else None,
             "elementFont": FontConfig.from_dict(obj["elementFont"]) if obj.get("elementFont") is not None else None,
+            "elementStyles": [PageThemeElementStyleOverride.from_dict(_item) for _item in obj["elementStyles"]] if obj.get("elementStyles") is not None else None,
             "footerLogoEnabled": obj.get("footerLogoEnabled"),
             "footerLogoId": obj.get("footerLogoId"),
+            "headingAlign": obj.get("headingAlign"),
             "id": obj.get("id"),
             "questionStyle": obj.get("questionStyle"),
-            "roles": [PageThemeRoleOverride.from_dict(_item) for _item in obj["roles"]] if obj.get("roles") is not None else None,
+            "shape": PageThemeShape.from_dict(obj["shape"]) if obj.get("shape") is not None else None,
+            "smallText": PageThemeSmallText.from_dict(obj["smallText"]) if obj.get("smallText") is not None else None,
+            "textColor": ThemeColor.from_dict(obj["textColor"]) if obj.get("textColor") is not None else None,
             "titleFont": FontConfig.from_dict(obj["titleFont"]) if obj.get("titleFont") is not None else None,
             "updatedAt": obj.get("updatedAt"),
             "visitorExperience": obj.get("visitorExperience"),
