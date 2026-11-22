@@ -1,9 +1,9 @@
 """
     Linkbreakers API
 
-    The Linkbreakers REST API: links, QR codes, workflows, visitors and analytics, as JSON over HTTPS. Send a workspace API token as `Authorization: Bearer <token>`.  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a job and a `Location` header; poll `GET /v1/jobs/{id}` until `status` is `JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `JOB_STATUS_FAILED` (`error` says why, and nothing was created). Jobs can be read for 24 hours after they finish.  ## Paused workspaces  A free workspace whose members have not verified any email address is paused 7 days after sign-up. Its calls then answer `403` with the code `WORKSPACE_UNVERIFIED` and change nothing; QR codes and links keep working for visitors. To lift the pause, ask the workspace owner to verify their email: `POST /v1/members/email-verification` sends the verification email again, and works while the workspace is paused. `unverifiedPauseAt` on the workspace says when the pause starts.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  A renamed operation keeps answering its former path while clients still call it, until that path's sunset at the latest: a former path no client calls for 14 days is removed. Responses on a former path carry the same `Deprecation`, `Sunset` and `Link` header fields; this document lists only the current path, and the policy lists the former paths that still answer.  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
+    The Linkbreakers REST API: links, QR codes, workflows, visitors and analytics, as JSON over HTTPS. Send a workspace API token as `Authorization: Bearer <token>`.  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a link job and a `Location` header; poll `GET /v1/links/jobs/{id}` until `status` is `LINK_JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `LINK_JOB_STATUS_FAILED` (`error` says why, and nothing was created). Link jobs can be read for 24 hours after they finish.  ## Paused workspaces  A free workspace whose members have not verified any email address is paused 7 days after sign-up. Its calls then answer `403` with the code `WORKSPACE_UNVERIFIED` and change nothing; QR codes and links keep working for visitors. To lift the pause, ask the workspace owner to verify their email: `POST /v1/members/email-verification` sends the verification email again, and works while the workspace is paused. `unverifiedPauseAt` on the workspace says when the pause starts.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  A renamed operation keeps answering its former path while clients still call it, until that path's sunset at the latest: a former path no client calls for 14 days is removed. Responses on a former path carry the same `Deprecation`, `Sunset` and `Link` header fields; this document lists only the current path, and the policy lists the former paths that still answer.  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
 
-    The version of the OpenAPI document: 1.204.0
+    The version of the OpenAPI document: 1.204.1
     Contact: support@linkbreakers.com
     Generated by OpenAPI Generator (https://openapi-generator.tech)
 
@@ -18,14 +18,14 @@ from typing_extensions import Annotated
 
 from pydantic import Field, StrictStr
 from typing_extensions import Annotated
-from linkbreakers.models.job import Job
+from linkbreakers.models.link_job import LinkJob
 
 from linkbreakers.api_client import ApiClient, RequestSerialized
 from linkbreakers.api_response import ApiResponse
 from linkbreakers.rest import RESTResponseType
 
 
-class JobsApi:
+class LinkJobsApi:
     """NOTE: This class is auto generated by OpenAPI Generator
     Ref: https://openapi-generator.tech
 
@@ -39,9 +39,9 @@ class JobsApi:
 
 
     @validate_call
-    def jobs_service_get(
+    def link_jobs_service_get(
         self,
-        id: Annotated[StrictStr, Field(description="The job ID returned when the job was accepted.")],
+        id: Annotated[StrictStr, Field(description="The link job ID returned when the job was accepted.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -54,12 +54,12 @@ class JobsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> Job:
-        """Get a job
+    ) -> LinkJob:
+        """Get a link job
 
-        Returns a background job and where it stands. Today every job is a bulk link creation started with `POST /v1/links/bulk/jobs`: its 202 Accepted response carries this job's URL in the `Location` header.  Read the job every few seconds until it is finished:  - `JOB_STATUS_PENDING`: accepted, waiting to run. Check again. - `JOB_STATUS_RUNNING`: creating the links. Check again. - `JOB_STATUS_SUCCEEDED`: done. `linksBulkCreate.linkIds` lists the created   links, in the order you sent them. - `JOB_STATUS_FAILED`: `error` says why. No link was created: a batch is   all or nothing.  A job can be read for 24 hours after it finishes; after that, this answers `JOB_NOT_FOUND`.  Requires the `links:read` scope.
+        Returns a link job and where it stands. Today every link job is a bulk link creation started with `POST /v1/links/bulk/jobs`: its 202 Accepted response carries this job's URL in the `Location` header.  Read the job every few seconds until it is finished:  - `LINK_JOB_STATUS_PENDING`: accepted, waiting to run. Check again. - `LINK_JOB_STATUS_RUNNING`: creating the links. Check again. - `LINK_JOB_STATUS_SUCCEEDED`: done. `linksBulkCreate.linkIds` lists the   created links, in the order you sent them. - `LINK_JOB_STATUS_FAILED`: `error` says why. No link was created: a batch   is all or nothing.  A link job can be read for 24 hours after it finishes; after that, this answers `LINK_JOB_NOT_FOUND`.  Requires the `links:read` scope.
 
-        :param id: The job ID returned when the job was accepted. (required)
+        :param id: The link job ID returned when the job was accepted. (required)
         :type id: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -83,7 +83,7 @@ class JobsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._jobs_service_get_serialize(
+        _param = self._link_jobs_service_get_serialize(
             id=id,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -92,7 +92,7 @@ class JobsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "Job",
+            '200': "LinkJob",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -107,9 +107,9 @@ class JobsApi:
 
 
     @validate_call
-    def jobs_service_get_with_http_info(
+    def link_jobs_service_get_with_http_info(
         self,
-        id: Annotated[StrictStr, Field(description="The job ID returned when the job was accepted.")],
+        id: Annotated[StrictStr, Field(description="The link job ID returned when the job was accepted.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -122,12 +122,12 @@ class JobsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[Job]:
-        """Get a job
+    ) -> ApiResponse[LinkJob]:
+        """Get a link job
 
-        Returns a background job and where it stands. Today every job is a bulk link creation started with `POST /v1/links/bulk/jobs`: its 202 Accepted response carries this job's URL in the `Location` header.  Read the job every few seconds until it is finished:  - `JOB_STATUS_PENDING`: accepted, waiting to run. Check again. - `JOB_STATUS_RUNNING`: creating the links. Check again. - `JOB_STATUS_SUCCEEDED`: done. `linksBulkCreate.linkIds` lists the created   links, in the order you sent them. - `JOB_STATUS_FAILED`: `error` says why. No link was created: a batch is   all or nothing.  A job can be read for 24 hours after it finishes; after that, this answers `JOB_NOT_FOUND`.  Requires the `links:read` scope.
+        Returns a link job and where it stands. Today every link job is a bulk link creation started with `POST /v1/links/bulk/jobs`: its 202 Accepted response carries this job's URL in the `Location` header.  Read the job every few seconds until it is finished:  - `LINK_JOB_STATUS_PENDING`: accepted, waiting to run. Check again. - `LINK_JOB_STATUS_RUNNING`: creating the links. Check again. - `LINK_JOB_STATUS_SUCCEEDED`: done. `linksBulkCreate.linkIds` lists the   created links, in the order you sent them. - `LINK_JOB_STATUS_FAILED`: `error` says why. No link was created: a batch   is all or nothing.  A link job can be read for 24 hours after it finishes; after that, this answers `LINK_JOB_NOT_FOUND`.  Requires the `links:read` scope.
 
-        :param id: The job ID returned when the job was accepted. (required)
+        :param id: The link job ID returned when the job was accepted. (required)
         :type id: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -151,7 +151,7 @@ class JobsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._jobs_service_get_serialize(
+        _param = self._link_jobs_service_get_serialize(
             id=id,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -160,7 +160,7 @@ class JobsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "Job",
+            '200': "LinkJob",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -175,9 +175,9 @@ class JobsApi:
 
 
     @validate_call
-    def jobs_service_get_without_preload_content(
+    def link_jobs_service_get_without_preload_content(
         self,
-        id: Annotated[StrictStr, Field(description="The job ID returned when the job was accepted.")],
+        id: Annotated[StrictStr, Field(description="The link job ID returned when the job was accepted.")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -191,11 +191,11 @@ class JobsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Get a job
+        """Get a link job
 
-        Returns a background job and where it stands. Today every job is a bulk link creation started with `POST /v1/links/bulk/jobs`: its 202 Accepted response carries this job's URL in the `Location` header.  Read the job every few seconds until it is finished:  - `JOB_STATUS_PENDING`: accepted, waiting to run. Check again. - `JOB_STATUS_RUNNING`: creating the links. Check again. - `JOB_STATUS_SUCCEEDED`: done. `linksBulkCreate.linkIds` lists the created   links, in the order you sent them. - `JOB_STATUS_FAILED`: `error` says why. No link was created: a batch is   all or nothing.  A job can be read for 24 hours after it finishes; after that, this answers `JOB_NOT_FOUND`.  Requires the `links:read` scope.
+        Returns a link job and where it stands. Today every link job is a bulk link creation started with `POST /v1/links/bulk/jobs`: its 202 Accepted response carries this job's URL in the `Location` header.  Read the job every few seconds until it is finished:  - `LINK_JOB_STATUS_PENDING`: accepted, waiting to run. Check again. - `LINK_JOB_STATUS_RUNNING`: creating the links. Check again. - `LINK_JOB_STATUS_SUCCEEDED`: done. `linksBulkCreate.linkIds` lists the   created links, in the order you sent them. - `LINK_JOB_STATUS_FAILED`: `error` says why. No link was created: a batch   is all or nothing.  A link job can be read for 24 hours after it finishes; after that, this answers `LINK_JOB_NOT_FOUND`.  Requires the `links:read` scope.
 
-        :param id: The job ID returned when the job was accepted. (required)
+        :param id: The link job ID returned when the job was accepted. (required)
         :type id: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -219,7 +219,7 @@ class JobsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._jobs_service_get_serialize(
+        _param = self._link_jobs_service_get_serialize(
             id=id,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -228,7 +228,7 @@ class JobsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "Job",
+            '200': "LinkJob",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -238,7 +238,7 @@ class JobsApi:
         return response_data.response
 
 
-    def _jobs_service_get_serialize(
+    def _link_jobs_service_get_serialize(
         self,
         id,
         _request_auth,
@@ -287,7 +287,7 @@ class JobsApi:
 
         return self.api_client.param_serialize(
             method='GET',
-            resource_path='/v1/jobs/{id}',
+            resource_path='/v1/links/jobs/{id}',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,

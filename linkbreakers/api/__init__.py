@@ -12,7 +12,7 @@ from linkbreakers.api.integrations_forms_api import IntegrationsFormsApi
 from linkbreakers.api.integrations_google_analytics_api import IntegrationsGoogleAnalyticsApi
 from linkbreakers.api.integrations_retargeting_pixels_api import IntegrationsRetargetingPixelsApi
 from linkbreakers.api.integrations_slack_api import IntegrationsSlackApi
-from linkbreakers.api.jobs_api import JobsApi
+from linkbreakers.api.link_jobs_api import LinkJobsApi
 from linkbreakers.api.link_settings_api import LinkSettingsApi
 from linkbreakers.api.links_api import LinksApi
 from linkbreakers.api.media_api import MediaApi

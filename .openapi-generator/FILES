@@ -16,7 +16,7 @@ linkbreakers/api/integrations_forms_api.py
 linkbreakers/api/integrations_google_analytics_api.py
 linkbreakers/api/integrations_retargeting_pixels_api.py
 linkbreakers/api/integrations_slack_api.py
-linkbreakers/api/jobs_api.py
+linkbreakers/api/link_jobs_api.py
 linkbreakers/api/link_settings_api.py
 linkbreakers/api/links_api.py
 linkbreakers/api/media_api.py
@@ -357,10 +357,6 @@ linkbreakers/models/in_app_browser_details.py
 linkbreakers/models/integration_delivery.py
 linkbreakers/models/integration_visitor_data.py
 linkbreakers/models/invite_member_request.py
-linkbreakers/models/job.py
-linkbreakers/models/job_error.py
-linkbreakers/models/job_status.py
-linkbreakers/models/job_type.py
 linkbreakers/models/journey_progress.py
 linkbreakers/models/language_condition_outcome.py
 linkbreakers/models/language_condition_payload.py
@@ -369,6 +365,10 @@ linkbreakers/models/language_condition_trace_option.py
 linkbreakers/models/link.py
 linkbreakers/models/link_integration.py
 linkbreakers/models/link_integration_kind.py
+linkbreakers/models/link_job.py
+linkbreakers/models/link_job_error.py
+linkbreakers/models/link_job_status.py
+linkbreakers/models/link_job_type.py
 linkbreakers/models/link_setting.py
 linkbreakers/models/link_settings_service_update_body.py
 linkbreakers/models/link_sort_field.py
