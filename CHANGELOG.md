@@ -1,5 +1,32 @@
 # Changelog
 
+## Next release (2026-11-22): Jobs is Link Jobs
+
+Breaking for code reading a background bulk link creation. Versions follow
+the API's version.
+
+The API's Jobs section is now Link Jobs, and its service, operation and
+messages with it: the only job there is links being created in the
+background. Each section is one API class and the method name comes from the
+operation ID, so regenerating this SDK renames both:
+
+| Before | After |
+|---|---|
+| `JobsApi.jobs_service_get` | `LinkJobsApi.link_jobs_service_get` |
+| `Job`, `JobStatus`, `JobType`, `JobError` | `LinkJob`, `LinkJobStatus`, `LinkJobType`, `LinkJobError` |
+| `LinksApi.links_service_create_bulk_async` returns `Job` | returns `LinkJob` |
+
+| Path | |
+|---|---|
+| `GET /v1/links/jobs/{id}` | was `GET /v1/jobs/{id}`, removed with no alias: no outside client called it in the 14 days before the rename |
+| `POST /v1/links/bulk/jobs` | unchanged; its `Location` header and `statusUrl` now point at `/v1/links/jobs/{id}` |
+
+Enum values change with their type: `JOB_STATUS_*` is `LINK_JOB_STATUS_*`
+and `JOB_TYPE_LINKS_BULK_CREATE` is `LINK_JOB_TYPE_BULK_CREATE`. The error
+codes `JOB_NOT_FOUND` and `JOB_FAILED` are `LINK_JOB_NOT_FOUND` and
+`LINK_JOB_FAILED`. Fields are unchanged (`linksBulkCreate.linkIds` still holds
+the created links).
+
 ## Next release after 1.200.0 (2026-11-16): files are uploaded, never sent in a request
 
 Breaking for code sending a file in a request. Versions follow the API's
