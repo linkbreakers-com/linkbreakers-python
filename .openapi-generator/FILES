@@ -263,6 +263,7 @@ linkbreakers/models/events_service_create_trace_body.py
 linkbreakers/models/events_service_update_device_body.py
 linkbreakers/models/events_time_series.py
 linkbreakers/models/events_time_series_data.py
+linkbreakers/models/export_workflow_steps_response.py
 linkbreakers/models/find_matching_page_theme_template_response.py
 linkbreakers/models/firing_retargeting_pixel.py
 linkbreakers/models/font_config.py
@@ -352,6 +353,8 @@ linkbreakers/models/import_page_theme_template_request.py
 linkbreakers/models/import_page_theme_template_response.py
 linkbreakers/models/import_qrcode_template_request.py
 linkbreakers/models/import_qrcode_template_response.py
+linkbreakers/models/import_workflow_steps_response.py
+linkbreakers/models/imported_workflow_step.py
 linkbreakers/models/in_app_browser.py
 linkbreakers/models/in_app_browser_details.py
 linkbreakers/models/integration_delivery.py
@@ -654,11 +657,20 @@ linkbreakers/models/widget_visualization.py
 linkbreakers/models/workflow_issue.py
 linkbreakers/models/workflow_step.py
 linkbreakers/models/workflow_step_branch.py
+linkbreakers/models/workflow_step_copy_notice.py
+linkbreakers/models/workflow_step_copy_notice_type.py
 linkbreakers/models/workflow_step_kind.py
 linkbreakers/models/workflow_step_node_type.py
 linkbreakers/models/workflow_step_payload.py
+linkbreakers/models/workflow_steps_document.py
+linkbreakers/models/workflow_steps_document_edge.py
+linkbreakers/models/workflow_steps_document_entry.py
+linkbreakers/models/workflow_steps_document_media.py
+linkbreakers/models/workflow_steps_document_step.py
 linkbreakers/models/workflow_steps_service_connect_body.py
 linkbreakers/models/workflow_steps_service_create_body.py
+linkbreakers/models/workflow_steps_service_export_body.py
+linkbreakers/models/workflow_steps_service_import_body.py
 linkbreakers/models/workflow_steps_service_update_body.py
 linkbreakers/models/workspace.py
 linkbreakers/models/workspace_allowance.py
