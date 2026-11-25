@@ -3,7 +3,7 @@
 
     The Linkbreakers REST API: links, QR codes, workflows, visitors and analytics, as JSON over HTTPS. Send a workspace API token as `Authorization: Bearer <token>`.  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a link job and a `Location` header; poll `GET /v1/links/jobs/{id}` until `status` is `LINK_JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `LINK_JOB_STATUS_FAILED` (`error` says why, and nothing was created). Link jobs can be read for 24 hours after they finish.  ## Paused workspaces  A free workspace whose members have not verified any email address is paused 7 days after sign-up. Its calls then answer `403` with the code `WORKSPACE_UNVERIFIED` and change nothing; QR codes and links keep working for visitors. To lift the pause, ask the workspace owner to verify their email: `POST /v1/members/email-verification` sends the verification email again, and works while the workspace is paused. `unverifiedPauseAt` on the workspace says when the pause starts.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  A renamed operation keeps answering its former path while clients still call it, until that path's sunset at the latest: a former path no client calls for 14 days is removed. Responses on a former path carry the same `Deprecation`, `Sunset` and `Link` header fields; this document lists only the current path, and the policy lists the former paths that still answer.  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
 
-    The version of the OpenAPI document: 1.205.1
+    The version of the OpenAPI document: 1.205.2
     Contact: support@linkbreakers.com
     Generated by OpenAPI Generator (https://openapi-generator.tech)
 
@@ -19,16 +19,17 @@ from typing_extensions import Annotated
 from pydantic import Field, StrictInt, StrictStr
 from typing import Any, Dict, Optional
 from typing_extensions import Annotated
-from linkbreakers.models.agents_service_create_knowledge_document_body import AgentsServiceCreateKnowledgeDocumentBody
+from linkbreakers.models.agents_service_create_knowledge_item_body import AgentsServiceCreateKnowledgeItemBody
 from linkbreakers.models.agents_service_update_body import AgentsServiceUpdateBody
-from linkbreakers.models.agents_service_update_knowledge_document_body import AgentsServiceUpdateKnowledgeDocumentBody
-from linkbreakers.models.create_agent_knowledge_document_response import CreateAgentKnowledgeDocumentResponse
+from linkbreakers.models.agents_service_update_knowledge_item_body import AgentsServiceUpdateKnowledgeItemBody
+from linkbreakers.models.create_agent_knowledge_item_response import CreateAgentKnowledgeItemResponse
 from linkbreakers.models.create_agent_request import CreateAgentRequest
 from linkbreakers.models.create_agent_response import CreateAgentResponse
 from linkbreakers.models.get_agent_response import GetAgentResponse
 from linkbreakers.models.list_agent_presets_response import ListAgentPresetsResponse
 from linkbreakers.models.list_agents_response import ListAgentsResponse
-from linkbreakers.models.update_agent_knowledge_document_response import UpdateAgentKnowledgeDocumentResponse
+from linkbreakers.models.refresh_agent_knowledge_item_response import RefreshAgentKnowledgeItemResponse
+from linkbreakers.models.update_agent_knowledge_item_response import UpdateAgentKnowledgeItemResponse
 from linkbreakers.models.update_agent_response import UpdateAgentResponse
 
 from linkbreakers.api_client import ApiClient, RequestSerialized
@@ -343,10 +344,10 @@ class AgentsApi:
 
 
     @validate_call
-    def agents_service_create_knowledge_document(
+    def agents_service_create_knowledge_item(
         self,
         agent_id: Annotated[StrictStr, Field(description="The agent's ID (UUID).")],
-        agents_service_create_knowledge_document_body: AgentsServiceCreateKnowledgeDocumentBody,
+        agents_service_create_knowledge_item_body: AgentsServiceCreateKnowledgeItemBody,
         idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
@@ -360,15 +361,15 @@ class AgentsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> CreateAgentKnowledgeDocumentResponse:
-        """Add a knowledge document
+    ) -> CreateAgentKnowledgeItemResponse:
+        """Add a knowledge item
 
-        Add a Markdown document to an agent's knowledge.  Requires the `agents:write` scope.
+        Add an item to an agent's knowledge: Markdown text, a web page read from its URL, or a PDF or image of the media library. A web page or media item is read in the background: it is returned with the status reading, then becomes ready, or failed with a reason. Only ready items are part of what the agent knows.  Requires the `agents:write` scope.
 
         :param agent_id: The agent's ID (UUID). (required)
         :type agent_id: str
-        :param agents_service_create_knowledge_document_body: (required)
-        :type agents_service_create_knowledge_document_body: AgentsServiceCreateKnowledgeDocumentBody
+        :param agents_service_create_knowledge_item_body: (required)
+        :type agents_service_create_knowledge_item_body: AgentsServiceCreateKnowledgeItemBody
         :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
@@ -393,9 +394,9 @@ class AgentsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._agents_service_create_knowledge_document_serialize(
+        _param = self._agents_service_create_knowledge_item_serialize(
             agent_id=agent_id,
-            agents_service_create_knowledge_document_body=agents_service_create_knowledge_document_body,
+            agents_service_create_knowledge_item_body=agents_service_create_knowledge_item_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -404,7 +405,7 @@ class AgentsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "CreateAgentKnowledgeDocumentResponse",
+            '200': "CreateAgentKnowledgeItemResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -419,10 +420,10 @@ class AgentsApi:
 
 
     @validate_call
-    def agents_service_create_knowledge_document_with_http_info(
+    def agents_service_create_knowledge_item_with_http_info(
         self,
         agent_id: Annotated[StrictStr, Field(description="The agent's ID (UUID).")],
-        agents_service_create_knowledge_document_body: AgentsServiceCreateKnowledgeDocumentBody,
+        agents_service_create_knowledge_item_body: AgentsServiceCreateKnowledgeItemBody,
         idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
@@ -436,15 +437,15 @@ class AgentsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[CreateAgentKnowledgeDocumentResponse]:
-        """Add a knowledge document
+    ) -> ApiResponse[CreateAgentKnowledgeItemResponse]:
+        """Add a knowledge item
 
-        Add a Markdown document to an agent's knowledge.  Requires the `agents:write` scope.
+        Add an item to an agent's knowledge: Markdown text, a web page read from its URL, or a PDF or image of the media library. A web page or media item is read in the background: it is returned with the status reading, then becomes ready, or failed with a reason. Only ready items are part of what the agent knows.  Requires the `agents:write` scope.
 
         :param agent_id: The agent's ID (UUID). (required)
         :type agent_id: str
-        :param agents_service_create_knowledge_document_body: (required)
-        :type agents_service_create_knowledge_document_body: AgentsServiceCreateKnowledgeDocumentBody
+        :param agents_service_create_knowledge_item_body: (required)
+        :type agents_service_create_knowledge_item_body: AgentsServiceCreateKnowledgeItemBody
         :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
@@ -469,9 +470,9 @@ class AgentsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._agents_service_create_knowledge_document_serialize(
+        _param = self._agents_service_create_knowledge_item_serialize(
             agent_id=agent_id,
-            agents_service_create_knowledge_document_body=agents_service_create_knowledge_document_body,
+            agents_service_create_knowledge_item_body=agents_service_create_knowledge_item_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -480,7 +481,7 @@ class AgentsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "CreateAgentKnowledgeDocumentResponse",
+            '200': "CreateAgentKnowledgeItemResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -495,10 +496,10 @@ class AgentsApi:
 
 
     @validate_call
-    def agents_service_create_knowledge_document_without_preload_content(
+    def agents_service_create_knowledge_item_without_preload_content(
         self,
         agent_id: Annotated[StrictStr, Field(description="The agent's ID (UUID).")],
-        agents_service_create_knowledge_document_body: AgentsServiceCreateKnowledgeDocumentBody,
+        agents_service_create_knowledge_item_body: AgentsServiceCreateKnowledgeItemBody,
         idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
@@ -513,14 +514,14 @@ class AgentsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Add a knowledge document
+        """Add a knowledge item
 
-        Add a Markdown document to an agent's knowledge.  Requires the `agents:write` scope.
+        Add an item to an agent's knowledge: Markdown text, a web page read from its URL, or a PDF or image of the media library. A web page or media item is read in the background: it is returned with the status reading, then becomes ready, or failed with a reason. Only ready items are part of what the agent knows.  Requires the `agents:write` scope.
 
         :param agent_id: The agent's ID (UUID). (required)
         :type agent_id: str
-        :param agents_service_create_knowledge_document_body: (required)
-        :type agents_service_create_knowledge_document_body: AgentsServiceCreateKnowledgeDocumentBody
+        :param agents_service_create_knowledge_item_body: (required)
+        :type agents_service_create_knowledge_item_body: AgentsServiceCreateKnowledgeItemBody
         :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
@@ -545,9 +546,9 @@ class AgentsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._agents_service_create_knowledge_document_serialize(
+        _param = self._agents_service_create_knowledge_item_serialize(
             agent_id=agent_id,
-            agents_service_create_knowledge_document_body=agents_service_create_knowledge_document_body,
+            agents_service_create_knowledge_item_body=agents_service_create_knowledge_item_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -556,7 +557,7 @@ class AgentsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "CreateAgentKnowledgeDocumentResponse",
+            '200': "CreateAgentKnowledgeItemResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -566,10 +567,10 @@ class AgentsApi:
         return response_data.response
 
 
-    def _agents_service_create_knowledge_document_serialize(
+    def _agents_service_create_knowledge_item_serialize(
         self,
         agent_id,
-        agents_service_create_knowledge_document_body,
+        agents_service_create_knowledge_item_body,
         idempotency_key,
         _request_auth,
         _content_type,
@@ -600,8 +601,8 @@ class AgentsApi:
             _header_params['Idempotency-Key'] = idempotency_key
         # process the form parameters
         # process the body parameter
-        if agents_service_create_knowledge_document_body is not None:
-            _body_params = agents_service_create_knowledge_document_body
+        if agents_service_create_knowledge_item_body is not None:
+            _body_params = agents_service_create_knowledge_item_body
 
 
         # set the HTTP header `Accept`
@@ -634,7 +635,7 @@ class AgentsApi:
 
         return self.api_client.param_serialize(
             method='POST',
-            resource_path='/v1/agents/{agentId}/knowledge-documents',
+            resource_path='/v1/agents/{agentId}/knowledge-items',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -669,7 +670,7 @@ class AgentsApi:
     ) -> object:
         """Delete an agent
 
-        Delete an agent and its knowledge documents.  Requires the `agents:write` scope.
+        Delete an agent and its knowledge items.  Requires the `agents:write` scope.
 
         :param id: The agent's ID (UUID). (required)
         :type id: str
@@ -737,7 +738,7 @@ class AgentsApi:
     ) -> ApiResponse[object]:
         """Delete an agent
 
-        Delete an agent and its knowledge documents.  Requires the `agents:write` scope.
+        Delete an agent and its knowledge items.  Requires the `agents:write` scope.
 
         :param id: The agent's ID (UUID). (required)
         :type id: str
@@ -805,7 +806,7 @@ class AgentsApi:
     ) -> RESTResponseType:
         """Delete an agent
 
-        Delete an agent and its knowledge documents.  Requires the `agents:write` scope.
+        Delete an agent and its knowledge items.  Requires the `agents:write` scope.
 
         :param id: The agent's ID (UUID). (required)
         :type id: str
@@ -916,10 +917,10 @@ class AgentsApi:
 
 
     @validate_call
-    def agents_service_delete_knowledge_document(
+    def agents_service_delete_knowledge_item(
         self,
         agent_id: Annotated[StrictStr, Field(description="The agent's ID (UUID).")],
-        id: Annotated[StrictStr, Field(description="The document's ID (UUID).")],
+        id: Annotated[StrictStr, Field(description="The item's ID (UUID).")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -933,13 +934,13 @@ class AgentsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> object:
-        """Delete a knowledge document
+        """Delete a knowledge item
 
-        Remove a document from an agent's knowledge.  Requires the `agents:write` scope.
+        Remove an item from an agent's knowledge. A media file it read stays in the media library.  Requires the `agents:write` scope.
 
         :param agent_id: The agent's ID (UUID). (required)
         :type agent_id: str
-        :param id: The document's ID (UUID). (required)
+        :param id: The item's ID (UUID). (required)
         :type id: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -963,7 +964,7 @@ class AgentsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._agents_service_delete_knowledge_document_serialize(
+        _param = self._agents_service_delete_knowledge_item_serialize(
             agent_id=agent_id,
             id=id,
             _request_auth=_request_auth,
@@ -988,10 +989,10 @@ class AgentsApi:
 
 
     @validate_call
-    def agents_service_delete_knowledge_document_with_http_info(
+    def agents_service_delete_knowledge_item_with_http_info(
         self,
         agent_id: Annotated[StrictStr, Field(description="The agent's ID (UUID).")],
-        id: Annotated[StrictStr, Field(description="The document's ID (UUID).")],
+        id: Annotated[StrictStr, Field(description="The item's ID (UUID).")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1005,13 +1006,13 @@ class AgentsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ApiResponse[object]:
-        """Delete a knowledge document
+        """Delete a knowledge item
 
-        Remove a document from an agent's knowledge.  Requires the `agents:write` scope.
+        Remove an item from an agent's knowledge. A media file it read stays in the media library.  Requires the `agents:write` scope.
 
         :param agent_id: The agent's ID (UUID). (required)
         :type agent_id: str
-        :param id: The document's ID (UUID). (required)
+        :param id: The item's ID (UUID). (required)
         :type id: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1035,7 +1036,7 @@ class AgentsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._agents_service_delete_knowledge_document_serialize(
+        _param = self._agents_service_delete_knowledge_item_serialize(
             agent_id=agent_id,
             id=id,
             _request_auth=_request_auth,
@@ -1060,10 +1061,10 @@ class AgentsApi:
 
 
     @validate_call
-    def agents_service_delete_knowledge_document_without_preload_content(
+    def agents_service_delete_knowledge_item_without_preload_content(
         self,
         agent_id: Annotated[StrictStr, Field(description="The agent's ID (UUID).")],
-        id: Annotated[StrictStr, Field(description="The document's ID (UUID).")],
+        id: Annotated[StrictStr, Field(description="The item's ID (UUID).")],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1077,13 +1078,13 @@ class AgentsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Delete a knowledge document
+        """Delete a knowledge item
 
-        Remove a document from an agent's knowledge.  Requires the `agents:write` scope.
+        Remove an item from an agent's knowledge. A media file it read stays in the media library.  Requires the `agents:write` scope.
 
         :param agent_id: The agent's ID (UUID). (required)
         :type agent_id: str
-        :param id: The document's ID (UUID). (required)
+        :param id: The item's ID (UUID). (required)
         :type id: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -1107,7 +1108,7 @@ class AgentsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._agents_service_delete_knowledge_document_serialize(
+        _param = self._agents_service_delete_knowledge_item_serialize(
             agent_id=agent_id,
             id=id,
             _request_auth=_request_auth,
@@ -1127,7 +1128,7 @@ class AgentsApi:
         return response_data.response
 
 
-    def _agents_service_delete_knowledge_document_serialize(
+    def _agents_service_delete_knowledge_item_serialize(
         self,
         agent_id,
         id,
@@ -1179,7 +1180,7 @@ class AgentsApi:
 
         return self.api_client.param_serialize(
             method='DELETE',
-            resource_path='/v1/agents/{agentId}/knowledge-documents/{id}',
+            resource_path='/v1/agents/{agentId}/knowledge-items/{id}',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -1214,7 +1215,7 @@ class AgentsApi:
     ) -> GetAgentResponse:
         """Get an agent
 
-        Retrieve an agent with its knowledge documents.  Requires the `agents:read` scope.
+        Retrieve an agent with its knowledge items.  Requires the `agents:read` scope.
 
         :param id: The agent's ID (UUID). (required)
         :type id: str
@@ -1282,7 +1283,7 @@ class AgentsApi:
     ) -> ApiResponse[GetAgentResponse]:
         """Get an agent
 
-        Retrieve an agent with its knowledge documents.  Requires the `agents:read` scope.
+        Retrieve an agent with its knowledge items.  Requires the `agents:read` scope.
 
         :param id: The agent's ID (UUID). (required)
         :type id: str
@@ -1350,7 +1351,7 @@ class AgentsApi:
     ) -> RESTResponseType:
         """Get an agent
 
-        Retrieve an agent with its knowledge documents.  Requires the `agents:read` scope.
+        Retrieve an agent with its knowledge items.  Requires the `agents:read` scope.
 
         :param id: The agent's ID (UUID). (required)
         :type id: str
@@ -1481,7 +1482,7 @@ class AgentsApi:
     ) -> ListAgentsResponse:
         """List agents
 
-        List the workspace's agents, without their knowledge documents.  Requires the `agents:read` scope.
+        List the workspace's agents, without their knowledge items.  Requires the `agents:read` scope.
 
         :param page_size: Maximum number of agents to return. Defaults to 50.
         :type page_size: int
@@ -1557,7 +1558,7 @@ class AgentsApi:
     ) -> ApiResponse[ListAgentsResponse]:
         """List agents
 
-        List the workspace's agents, without their knowledge documents.  Requires the `agents:read` scope.
+        List the workspace's agents, without their knowledge items.  Requires the `agents:read` scope.
 
         :param page_size: Maximum number of agents to return. Defaults to 50.
         :type page_size: int
@@ -1633,7 +1634,7 @@ class AgentsApi:
     ) -> RESTResponseType:
         """List agents
 
-        List the workspace's agents, without their knowledge documents.  Requires the `agents:read` scope.
+        List the workspace's agents, without their knowledge items.  Requires the `agents:read` scope.
 
         :param page_size: Maximum number of agents to return. Defaults to 50.
         :type page_size: int
@@ -2012,6 +2013,329 @@ class AgentsApi:
 
 
     @validate_call
+    def agents_service_refresh_knowledge_item(
+        self,
+        agent_id: Annotated[StrictStr, Field(description="The agent's ID (UUID).")],
+        id: Annotated[StrictStr, Field(description="The item's ID (UUID).")],
+        body: Dict[str, Any],
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RefreshAgentKnowledgeItemResponse:
+        """Refresh a knowledge item
+
+        Read a web page or media item again, in the background: after the page or file changed, or to retry an item that failed. The agent keeps the text read before until the new reading is ready. A Markdown item has nothing to read and is refused.  Requires the `agents:write` scope.
+
+        :param agent_id: The agent's ID (UUID). (required)
+        :type agent_id: str
+        :param id: The item's ID (UUID). (required)
+        :type id: str
+        :param body: (required)
+        :type body: object
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
+        :type idempotency_key: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._agents_service_refresh_knowledge_item_serialize(
+            agent_id=agent_id,
+            id=id,
+            body=body,
+            idempotency_key=idempotency_key,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "RefreshAgentKnowledgeItemResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def agents_service_refresh_knowledge_item_with_http_info(
+        self,
+        agent_id: Annotated[StrictStr, Field(description="The agent's ID (UUID).")],
+        id: Annotated[StrictStr, Field(description="The item's ID (UUID).")],
+        body: Dict[str, Any],
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[RefreshAgentKnowledgeItemResponse]:
+        """Refresh a knowledge item
+
+        Read a web page or media item again, in the background: after the page or file changed, or to retry an item that failed. The agent keeps the text read before until the new reading is ready. A Markdown item has nothing to read and is refused.  Requires the `agents:write` scope.
+
+        :param agent_id: The agent's ID (UUID). (required)
+        :type agent_id: str
+        :param id: The item's ID (UUID). (required)
+        :type id: str
+        :param body: (required)
+        :type body: object
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
+        :type idempotency_key: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._agents_service_refresh_knowledge_item_serialize(
+            agent_id=agent_id,
+            id=id,
+            body=body,
+            idempotency_key=idempotency_key,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "RefreshAgentKnowledgeItemResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def agents_service_refresh_knowledge_item_without_preload_content(
+        self,
+        agent_id: Annotated[StrictStr, Field(description="The agent's ID (UUID).")],
+        id: Annotated[StrictStr, Field(description="The item's ID (UUID).")],
+        body: Dict[str, Any],
+        idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Refresh a knowledge item
+
+        Read a web page or media item again, in the background: after the page or file changed, or to retry an item that failed. The agent keeps the text read before until the new reading is ready. A Markdown item has nothing to read and is refused.  Requires the `agents:write` scope.
+
+        :param agent_id: The agent's ID (UUID). (required)
+        :type agent_id: str
+        :param id: The item's ID (UUID). (required)
+        :type id: str
+        :param body: (required)
+        :type body: object
+        :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
+        :type idempotency_key: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._agents_service_refresh_knowledge_item_serialize(
+            agent_id=agent_id,
+            id=id,
+            body=body,
+            idempotency_key=idempotency_key,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '200': "RefreshAgentKnowledgeItemResponse",
+            '429': "ErrorResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _agents_service_refresh_knowledge_item_serialize(
+        self,
+        agent_id,
+        id,
+        body,
+        idempotency_key,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if agent_id is not None:
+            _path_params['agentId'] = agent_id
+        if id is not None:
+            _path_params['id'] = id
+        # process the query parameters
+        # process the header parameters
+        if idempotency_key is not None:
+            _header_params['Idempotency-Key'] = idempotency_key
+        # process the form parameters
+        # process the body parameter
+        if body is not None:
+            _body_params = body
+
+
+        # set the HTTP header `Accept`
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
+        # set the HTTP header `Content-Type`
+        if _content_type:
+            _header_params['Content-Type'] = _content_type
+        else:
+            _default_content_type = (
+                self.api_client.select_header_content_type(
+                    [
+                        'application/json'
+                    ]
+                )
+            )
+            if _default_content_type is not None:
+                _header_params['Content-Type'] = _default_content_type
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'oauth2', 
+            'bearerAuth'
+        ]
+
+        return self.api_client.param_serialize(
+            method='POST',
+            resource_path='/v1/agents/{agentId}/knowledge-items/{id}:refresh',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
     def agents_service_update(
         self,
         id: Annotated[StrictStr, Field(description="The agent's ID (UUID).")],
@@ -2320,11 +2644,11 @@ class AgentsApi:
 
 
     @validate_call
-    def agents_service_update_knowledge_document(
+    def agents_service_update_knowledge_item(
         self,
         agent_id: Annotated[StrictStr, Field(description="The agent's ID (UUID).")],
-        id: Annotated[StrictStr, Field(description="The document's ID (UUID).")],
-        agents_service_update_knowledge_document_body: AgentsServiceUpdateKnowledgeDocumentBody,
+        id: Annotated[StrictStr, Field(description="The item's ID (UUID).")],
+        agents_service_update_knowledge_item_body: AgentsServiceUpdateKnowledgeItemBody,
         idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
@@ -2338,17 +2662,17 @@ class AgentsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> UpdateAgentKnowledgeDocumentResponse:
-        """Update a knowledge document
+    ) -> UpdateAgentKnowledgeItemResponse:
+        """Update a knowledge item
 
-        Change a knowledge document's title or content.  Requires the `agents:write` scope.
+        Change a knowledge item's title, a Markdown item's content, a web page item's URL or a media item's file. A new URL or file is read again in the background. The kind of an item cannot change.  Requires the `agents:write` scope.
 
         :param agent_id: The agent's ID (UUID). (required)
         :type agent_id: str
-        :param id: The document's ID (UUID). (required)
+        :param id: The item's ID (UUID). (required)
         :type id: str
-        :param agents_service_update_knowledge_document_body: (required)
-        :type agents_service_update_knowledge_document_body: AgentsServiceUpdateKnowledgeDocumentBody
+        :param agents_service_update_knowledge_item_body: (required)
+        :type agents_service_update_knowledge_item_body: AgentsServiceUpdateKnowledgeItemBody
         :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
@@ -2373,10 +2697,10 @@ class AgentsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._agents_service_update_knowledge_document_serialize(
+        _param = self._agents_service_update_knowledge_item_serialize(
             agent_id=agent_id,
             id=id,
-            agents_service_update_knowledge_document_body=agents_service_update_knowledge_document_body,
+            agents_service_update_knowledge_item_body=agents_service_update_knowledge_item_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -2385,7 +2709,7 @@ class AgentsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "UpdateAgentKnowledgeDocumentResponse",
+            '200': "UpdateAgentKnowledgeItemResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -2400,11 +2724,11 @@ class AgentsApi:
 
 
     @validate_call
-    def agents_service_update_knowledge_document_with_http_info(
+    def agents_service_update_knowledge_item_with_http_info(
         self,
         agent_id: Annotated[StrictStr, Field(description="The agent's ID (UUID).")],
-        id: Annotated[StrictStr, Field(description="The document's ID (UUID).")],
-        agents_service_update_knowledge_document_body: AgentsServiceUpdateKnowledgeDocumentBody,
+        id: Annotated[StrictStr, Field(description="The item's ID (UUID).")],
+        agents_service_update_knowledge_item_body: AgentsServiceUpdateKnowledgeItemBody,
         idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
@@ -2418,17 +2742,17 @@ class AgentsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[UpdateAgentKnowledgeDocumentResponse]:
-        """Update a knowledge document
+    ) -> ApiResponse[UpdateAgentKnowledgeItemResponse]:
+        """Update a knowledge item
 
-        Change a knowledge document's title or content.  Requires the `agents:write` scope.
+        Change a knowledge item's title, a Markdown item's content, a web page item's URL or a media item's file. A new URL or file is read again in the background. The kind of an item cannot change.  Requires the `agents:write` scope.
 
         :param agent_id: The agent's ID (UUID). (required)
         :type agent_id: str
-        :param id: The document's ID (UUID). (required)
+        :param id: The item's ID (UUID). (required)
         :type id: str
-        :param agents_service_update_knowledge_document_body: (required)
-        :type agents_service_update_knowledge_document_body: AgentsServiceUpdateKnowledgeDocumentBody
+        :param agents_service_update_knowledge_item_body: (required)
+        :type agents_service_update_knowledge_item_body: AgentsServiceUpdateKnowledgeItemBody
         :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
@@ -2453,10 +2777,10 @@ class AgentsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._agents_service_update_knowledge_document_serialize(
+        _param = self._agents_service_update_knowledge_item_serialize(
             agent_id=agent_id,
             id=id,
-            agents_service_update_knowledge_document_body=agents_service_update_knowledge_document_body,
+            agents_service_update_knowledge_item_body=agents_service_update_knowledge_item_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -2465,7 +2789,7 @@ class AgentsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "UpdateAgentKnowledgeDocumentResponse",
+            '200': "UpdateAgentKnowledgeItemResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -2480,11 +2804,11 @@ class AgentsApi:
 
 
     @validate_call
-    def agents_service_update_knowledge_document_without_preload_content(
+    def agents_service_update_knowledge_item_without_preload_content(
         self,
         agent_id: Annotated[StrictStr, Field(description="The agent's ID (UUID).")],
-        id: Annotated[StrictStr, Field(description="The document's ID (UUID).")],
-        agents_service_update_knowledge_document_body: AgentsServiceUpdateKnowledgeDocumentBody,
+        id: Annotated[StrictStr, Field(description="The item's ID (UUID).")],
+        agents_service_update_knowledge_item_body: AgentsServiceUpdateKnowledgeItemBody,
         idempotency_key: Annotated[Optional[Annotated[str, Field(min_length=1, strict=True, max_length=255)]], Field(description="A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.")] = None,
         _request_timeout: Union[
             None,
@@ -2499,16 +2823,16 @@ class AgentsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Update a knowledge document
+        """Update a knowledge item
 
-        Change a knowledge document's title or content.  Requires the `agents:write` scope.
+        Change a knowledge item's title, a Markdown item's content, a web page item's URL or a media item's file. A new URL or file is read again in the background. The kind of an item cannot change.  Requires the `agents:write` scope.
 
         :param agent_id: The agent's ID (UUID). (required)
         :type agent_id: str
-        :param id: The document's ID (UUID). (required)
+        :param id: The item's ID (UUID). (required)
         :type id: str
-        :param agents_service_update_knowledge_document_body: (required)
-        :type agents_service_update_knowledge_document_body: AgentsServiceUpdateKnowledgeDocumentBody
+        :param agents_service_update_knowledge_item_body: (required)
+        :type agents_service_update_knowledge_item_body: AgentsServiceUpdateKnowledgeItemBody
         :param idempotency_key: A unique value per request, such as a UUID, that makes retrying it safe: a retry with the same key and body returns the first response instead of acting twice.
         :type idempotency_key: str
         :param _request_timeout: timeout setting for this request. If one
@@ -2533,10 +2857,10 @@ class AgentsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._agents_service_update_knowledge_document_serialize(
+        _param = self._agents_service_update_knowledge_item_serialize(
             agent_id=agent_id,
             id=id,
-            agents_service_update_knowledge_document_body=agents_service_update_knowledge_document_body,
+            agents_service_update_knowledge_item_body=agents_service_update_knowledge_item_body,
             idempotency_key=idempotency_key,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -2545,7 +2869,7 @@ class AgentsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "UpdateAgentKnowledgeDocumentResponse",
+            '200': "UpdateAgentKnowledgeItemResponse",
             '429': "ErrorResponse",
         }
         response_data = self.api_client.call_api(
@@ -2555,11 +2879,11 @@ class AgentsApi:
         return response_data.response
 
 
-    def _agents_service_update_knowledge_document_serialize(
+    def _agents_service_update_knowledge_item_serialize(
         self,
         agent_id,
         id,
-        agents_service_update_knowledge_document_body,
+        agents_service_update_knowledge_item_body,
         idempotency_key,
         _request_auth,
         _content_type,
@@ -2592,8 +2916,8 @@ class AgentsApi:
             _header_params['Idempotency-Key'] = idempotency_key
         # process the form parameters
         # process the body parameter
-        if agents_service_update_knowledge_document_body is not None:
-            _body_params = agents_service_update_knowledge_document_body
+        if agents_service_update_knowledge_item_body is not None:
+            _body_params = agents_service_update_knowledge_item_body
 
 
         # set the HTTP header `Accept`
@@ -2626,7 +2950,7 @@ class AgentsApi:
 
         return self.api_client.param_serialize(
             method='PATCH',
-            resource_path='/v1/agents/{agentId}/knowledge-documents/{id}',
+            resource_path='/v1/agents/{agentId}/knowledge-items/{id}',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,

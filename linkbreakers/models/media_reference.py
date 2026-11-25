@@ -5,7 +5,7 @@
 
     The Linkbreakers REST API: links, QR codes, workflows, visitors and analytics, as JSON over HTTPS. Send a workspace API token as `Authorization: Bearer <token>`.  ## Entry points  `GET https://api.linkbreakers.com/` and `GET https://api.linkbreakers.com/v1` answer without credentials with the API's name, version and links. This document is served at `https://api.linkbreakers.com/openapi.json`.  ## Rate limits  Every response describes where the caller stands in the IETF `RateLimit-Policy` and `RateLimit` header fields (draft-ietf-httpapi-ratelimit-headers), and in `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (a Unix timestamp) for clients that read those. A request past the limit gets `429 Too Many Requests` with `Retry-After` in seconds.  - Workspace API token: 720 requests per 60 seconds, per token. - Dashboard session or OAuth token: 600 requests per 60 seconds, per token. - No credentials: 300 requests per 60 seconds, per client IP.  Each plan also includes a number of API calls per billing cycle. Past it, calls answer `429` with the code `MAX_PUBLIC_API_QUERIED_REACHED` until the cycle renews or the plan changes.  ## Pagination  Every list pages with opaque cursors (AIP-158). Pass `pageSize`, then send the `nextPageToken` of each response back as `pageToken` (or its alias `cursor`) to get the next page. An empty or absent `nextPageToken` means the list is complete. Each list operation describes this in `x-pagination`.  ## Batches and background jobs  `POST /v1/links/bulk` creates up to 250 links in one transactional request; `POST /v1/links/batch` takes the same links as a bare JSON array. `POST /v1/links/bulk/jobs` accepts the same batch and answers `202 Accepted` at once with a link job and a `Location` header; poll `GET /v1/links/jobs/{id}` until `status` is `LINK_JOB_STATUS_SUCCEEDED` (the created link ids are in `linksBulkCreate.linkIds`) or `LINK_JOB_STATUS_FAILED` (`error` says why, and nothing was created). Link jobs can be read for 24 hours after they finish.  ## Paused workspaces  A free workspace whose members have not verified any email address is paused 7 days after sign-up. Its calls then answer `403` with the code `WORKSPACE_UNVERIFIED` and change nothing; QR codes and links keep working for visitors. To lift the pause, ask the workspace owner to verify their email: `POST /v1/members/email-verification` sends the verification email again, and works while the workspace is paused. `unverifiedPauseAt` on the workspace says when the pause starts.  ## Versioning and deprecation  The version is in the path: every operation lives under `/v1`. Within a version, changes are additive only: new operations, new optional request fields, new response fields and new enum values. Clients should ignore fields and enum values they do not know. Anything that would break an existing client ships under a new path version instead.  An operation is retired in two steps. First it is deprecated: it keeps working, is flagged `deprecated: true` in this document, and every response carries a `Deprecation` header field (RFC 9745) with the time it was deprecated and a `Link` with `rel=\"deprecation\"` to the policy. Then, at least 180 days later, it may be removed; that date is announced in advance in a `Sunset` header field (RFC 8594) and as `x-sunset` on the operation. The full policy: https://linkbreakers.com/help/article/api-versioning-and-deprecation-policy  A renamed operation keeps answering its former path while clients still call it, until that path's sunset at the latest: a former path no client calls for 14 days is removed. Responses on a former path carry the same `Deprecation`, `Sunset` and `Link` header fields; this document lists only the current path, and the policy lists the former paths that still answer.  ## Idempotent retries  Every POST, PUT and PATCH accepts an optional `Idempotency-Key` header (draft-ietf-httpapi-idempotency-key-header). Send a new unique value, such as a UUID, with each logical request and reuse it only to retry that request. A retry with the same key and the same request returns the first response, marked `Idempotent-Replayed: true`, instead of running again. Keys are scoped to the token and kept for 24 hours. The same key with a different request is refused with `422`, and a retry while the first request is still running gets `409` with `Retry-After`. Server errors (5xx) and refusals such as 401, 403 and 429 are not stored, so retrying them runs the request again.  ## Identifying your client  Send a `Linkbreakers-Client` request header saying which client made the call: `<client>/<version> (<details>)`, for example `my-integration/1.2.0 (python 3.12; linux)`. The official SDKs, the CLI and the MCP bridge set it for you, as `sdk-python/2.3.1 (python 3.12.4; linux)` or `cli/1.4.0 (darwin arm64)`. It is optional and changes nothing about how a request is handled; it tells us which clients and versions are in use, so we know what can be retired and what to fix first. Keep the details short and free of personal data. Browsers may send it too: it is allowed by CORS.
 
-    The version of the OpenAPI document: 1.205.1
+    The version of the OpenAPI document: 1.205.2
     Contact: support@linkbreakers.com
     Generated by OpenAPI Generator (https://openapi-generator.tech)
 
@@ -28,15 +28,18 @@ class MediaReference(BaseModel):
     """
     One place a media item is used. A media item's references are where it is used; none means it is not used anywhere.
     """ # noqa: E501
-    link_id: Optional[StrictStr] = Field(default=None, description="The link that uses the media (UUID): the Open media step's link, a link whose page theme shows it, or a link whose QR code uses it as its logo. Empty when the use is not tied to a link, as for a template's own theme or QR code design.", alias="linkId")
+    agent_id: Optional[StrictStr] = Field(default=None, description="The agent that reads the media as knowledge (UUID). Set only for TYPE_AGENT_KNOWLEDGE.", alias="agentId")
+    agent_knowledge_item_id: Optional[StrictStr] = Field(default=None, description="The knowledge item that reads the media (UUID). Set with agentId.", alias="agentKnowledgeItemId")
+    agent_name: Optional[StrictStr] = Field(default=None, description="The agent's name. Set with agentId.", alias="agentName")
+    link_id: Optional[StrictStr] = Field(default=None, description="The link that uses the media (UUID): the Open media step's or the step's link, a link whose page theme shows it, or a link whose QR code uses it as its logo. Empty when the use is not tied to a link, as for a template's own theme or QR code design.", alias="linkId")
     link_name: Optional[StrictStr] = Field(default=None, description="The link's name, or its shortlink when it has no name. Empty when linkId is empty.", alias="linkName")
     page_theme_template_id: Optional[StrictStr] = Field(default=None, description="The page theme template whose theme shows the media (UUID). Set only for page theme uses that belong to a template rather than a link.", alias="pageThemeTemplateId")
     page_theme_template_name: Optional[StrictStr] = Field(default=None, description="The page theme template's name. Set with pageThemeTemplateId.", alias="pageThemeTemplateName")
     qrcode_template_id: Optional[StrictStr] = Field(default=None, description="The QR code template whose QR code design uses the media as its logo (UUID). Set only for TYPE_QR_CODE_LOGO uses that belong to a QR code template rather than a link.", alias="qrcodeTemplateId")
     qrcode_template_name: Optional[StrictStr] = Field(default=None, description="The QR code template's name. Set with qrcodeTemplateId.", alias="qrcodeTemplateName")
     type: Optional[MediaReferenceType] = None
-    workflow_step_id: Optional[StrictStr] = Field(default=None, description="The workflow step using the media (UUID): the Open media step handing it out, or the contact card showing it as its photo. Set only for TYPE_OPEN_MEDIA_STEP and TYPE_CONTACT_CARD_AVATAR.", alias="workflowStepId")
-    __properties: ClassVar[List[str]] = ["linkId", "linkName", "pageThemeTemplateId", "pageThemeTemplateName", "qrcodeTemplateId", "qrcodeTemplateName", "type", "workflowStepId"]
+    workflow_step_id: Optional[StrictStr] = Field(default=None, description="The workflow step using the media (UUID): the Open media step handing it out, or the step showing it as its own badge or cover. Set only for TYPE_OPEN_MEDIA_STEP, TYPE_STEP_BADGE and TYPE_STEP_COVER.", alias="workflowStepId")
+    __properties: ClassVar[List[str]] = ["agentId", "agentKnowledgeItemId", "agentName", "linkId", "linkName", "pageThemeTemplateId", "pageThemeTemplateName", "qrcodeTemplateId", "qrcodeTemplateName", "type", "workflowStepId"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -76,8 +79,14 @@ class MediaReference(BaseModel):
         * OpenAPI `readOnly` fields are excluded.
         * OpenAPI `readOnly` fields are excluded.
         * OpenAPI `readOnly` fields are excluded.
+        * OpenAPI `readOnly` fields are excluded.
+        * OpenAPI `readOnly` fields are excluded.
+        * OpenAPI `readOnly` fields are excluded.
         """
         excluded_fields: Set[str] = set([
+            "agent_id",
+            "agent_knowledge_item_id",
+            "agent_name",
             "link_id",
             "link_name",
             "page_theme_template_id",
@@ -105,6 +114,9 @@ class MediaReference(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
+            "agentId": obj.get("agentId"),
+            "agentKnowledgeItemId": obj.get("agentKnowledgeItemId"),
+            "agentName": obj.get("agentName"),
             "linkId": obj.get("linkId"),
             "linkName": obj.get("linkName"),
             "pageThemeTemplateId": obj.get("pageThemeTemplateId"),

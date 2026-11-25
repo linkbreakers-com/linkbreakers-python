@@ -44,7 +44,9 @@ linkbreakers/models/agent_claim_status.py
 linkbreakers/models/agent_guardrail.py
 linkbreakers/models/agent_guardrail_list.py
 linkbreakers/models/agent_guardrail_preset.py
-linkbreakers/models/agent_knowledge_document.py
+linkbreakers/models/agent_knowledge_item.py
+linkbreakers/models/agent_knowledge_item_kind.py
+linkbreakers/models/agent_knowledge_item_status.py
 linkbreakers/models/agent_limits.py
 linkbreakers/models/agent_question_handling.py
 linkbreakers/models/agent_question_handling_preset.py
@@ -55,9 +57,9 @@ linkbreakers/models/agent_role_preset.py
 linkbreakers/models/agent_tone.py
 linkbreakers/models/agent_tone_preset.py
 linkbreakers/models/agent_usage.py
-linkbreakers/models/agents_service_create_knowledge_document_body.py
+linkbreakers/models/agents_service_create_knowledge_item_body.py
 linkbreakers/models/agents_service_update_body.py
-linkbreakers/models/agents_service_update_knowledge_document_body.py
+linkbreakers/models/agents_service_update_knowledge_item_body.py
 linkbreakers/models/analytics_dashboard.py
 linkbreakers/models/analytics_dashboards_service_generate_widget_summary_body.py
 linkbreakers/models/analytics_dashboards_service_update_body.py
@@ -151,7 +153,7 @@ linkbreakers/models/country_condition_outcome.py
 linkbreakers/models/country_condition_payload.py
 linkbreakers/models/country_condition_trace_data.py
 linkbreakers/models/country_condition_trace_option.py
-linkbreakers/models/create_agent_knowledge_document_response.py
+linkbreakers/models/create_agent_knowledge_item_response.py
 linkbreakers/models/create_agent_request.py
 linkbreakers/models/create_agent_response.py
 linkbreakers/models/create_bulk_links_request.py
@@ -500,6 +502,7 @@ linkbreakers/models/qrcode_template_scope.py
 linkbreakers/models/qrcode_templates_service_update_body.py
 linkbreakers/models/redirect_trace_data.py
 linkbreakers/models/redirect_trace_data_fallback_reason.py
+linkbreakers/models/refresh_agent_knowledge_item_response.py
 linkbreakers/models/render_qrcode_images_response.py
 linkbreakers/models/rendered_qrcode.py
 linkbreakers/models/replace_media_import_response.py
@@ -580,7 +583,7 @@ linkbreakers/models/traffic_split_variant.py
 linkbreakers/models/traffic_split_variant_result.py
 linkbreakers/models/triggered_by.py
 linkbreakers/models/type_date.py
-linkbreakers/models/update_agent_knowledge_document_response.py
+linkbreakers/models/update_agent_knowledge_item_response.py
 linkbreakers/models/update_agent_response.py
 linkbreakers/models/update_contact_connection_response.py
 linkbreakers/models/update_custom_domain_response.py
@@ -660,6 +663,7 @@ linkbreakers/models/workflow_step_branch.py
 linkbreakers/models/workflow_step_copy_notice.py
 linkbreakers/models/workflow_step_copy_notice_type.py
 linkbreakers/models/workflow_step_kind.py
+linkbreakers/models/workflow_step_media.py
 linkbreakers/models/workflow_step_node_type.py
 linkbreakers/models/workflow_step_payload.py
 linkbreakers/models/workflow_steps_document.py
@@ -667,6 +671,7 @@ linkbreakers/models/workflow_steps_document_edge.py
 linkbreakers/models/workflow_steps_document_entry.py
 linkbreakers/models/workflow_steps_document_media.py
 linkbreakers/models/workflow_steps_document_step.py
+linkbreakers/models/workflow_steps_document_step_media.py
 linkbreakers/models/workflow_steps_service_connect_body.py
 linkbreakers/models/workflow_steps_service_create_body.py
 linkbreakers/models/workflow_steps_service_export_body.py
